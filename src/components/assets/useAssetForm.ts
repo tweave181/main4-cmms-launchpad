@@ -37,6 +37,16 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
 
   const onSubmit = async (data: AssetFormData) => {
     try {
+      // Ensure user profile and tenant_id are available
+      if (!userProfile?.tenant_id) {
+        toast({
+          title: "Error",
+          description: "User profile not found. Please try logging in again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Ensure required fields are present and construct the asset data
       const assetData: AssetInsert = {
         name: data.name, // Required field, always present from form validation
@@ -53,29 +63,43 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
         status: data.status,
         priority: data.priority,
         notes: data.notes || null,
-        tenant_id: userProfile?.tenant_id!,
+        tenant_id: userProfile.tenant_id, // Always set the tenant_id from user profile
       };
 
       if (isEditing) {
-        assetData.updated_by = userProfile?.id;
+        // For updates, include updated_by
+        if (userProfile.id) {
+          assetData.updated_by = userProfile.id;
+        }
+        
         const { error } = await supabase
           .from('assets')
           .update(assetData)
           .eq('id', asset.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Asset update error:', error);
+          throw error;
+        }
 
         toast({
           title: "Success",
           description: "Asset updated successfully",
         });
       } else {
-        assetData.created_by = userProfile?.id;
+        // For inserts, include created_by
+        if (userProfile.id) {
+          assetData.created_by = userProfile.id;
+        }
+        
         const { error } = await supabase
           .from('assets')
           .insert(assetData);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Asset creation error:', error);
+          throw error;
+        }
 
         toast({
           title: "Success",
@@ -85,9 +109,10 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
 
       onSuccess();
     } catch (error: any) {
+      console.error('Form submission error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "An error occurred while saving the asset",
         variant: "destructive",
       });
     }
