@@ -89,7 +89,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        await fetchUserProfile(session.user.id);
+        // Add a small delay for signup events to ensure the trigger has completed
+        if (event === 'SIGNED_UP') {
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 1000);
+        } else {
+          await fetchUserProfile(session.user.id);
+        }
       } else {
         setUserProfile(null);
         setTenant(null);
@@ -102,15 +109,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, name: string, tenantName: string, tenantSlug: string) => {
     try {
-      // First create the auth user with metadata
+      // Use the trigger-based approach by passing metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             name: name,
-            tenant_name: tenantName,
-            tenant_slug: tenantSlug,
+            tenant_name: tenantName, // This will trigger tenant creation
             role: 'admin' // First user in tenant is admin
           }
         }
@@ -118,20 +124,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (authError) throw authError;
 
-      if (authData.user) {
-        // Create tenant and admin user using the database function
-        const { error: tenantError } = await supabase.rpc('create_tenant_and_admin', {
-          tenant_name: tenantName,
-          tenant_slug: tenantSlug,
-          user_id: authData.user.id,
-          user_email: email,
-          first_name: name.split(' ')[0] || name,
-          last_name: name.split(' ').slice(1).join(' ') || null
-        });
-
-        if (tenantError) throw tenantError;
-      }
+      // The trigger function will handle creating the tenant and user profile
+      console.log('Signup successful, user created:', authData.user?.id);
     } catch (error: any) {
+      console.error('Signup error:', error);
       throw new Error(error.message || 'Failed to sign up');
     }
   };
