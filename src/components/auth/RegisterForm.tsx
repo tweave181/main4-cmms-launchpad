@@ -13,8 +13,7 @@ interface RegisterFormProps {
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -44,9 +43,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { firstName, lastName, email, password, confirmPassword, tenantName, tenantSlug } = formData;
+    const { name, email, password, confirmPassword, tenantName, tenantSlug } = formData;
 
-    if (!firstName || !lastName || !email || !password || !tenantName || !tenantSlug) {
+    if (!name || !email || !password || !tenantName || !tenantSlug) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -75,7 +74,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
 
     setLoading(true);
     try {
-      await signUp(email, password, firstName, lastName, tenantName, tenantSlug);
+      await signUp(email, password, name, tenantName, tenantSlug);
       toast({
         title: "Success",
         description: "Account created successfully! Please check your email to verify your account.",
@@ -101,29 +100,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                name="firstName"
-                placeholder="First name"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                name="lastName"
-                placeholder="Last name"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              name="name"
+              placeholder="Your full name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
