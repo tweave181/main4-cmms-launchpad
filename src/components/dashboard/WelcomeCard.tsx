@@ -10,7 +10,9 @@ export const WelcomeCard: React.FC = () => {
   return (
     <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
       <CardHeader className="p-0 mb-6">
-        <CardTitle className="text-2xl font-semibold">Welcome to Main4 CMMS</CardTitle>
+        <CardTitle className="text-2xl font-semibold">
+          Welcome back, {userProfile?.name || 'User'}!
+        </CardTitle>
         <CardDescription>
           Your multi-tenant Computerized Maintenance Management System
         </CardDescription>
