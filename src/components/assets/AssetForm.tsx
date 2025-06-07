@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -92,20 +91,24 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
   const onSubmit = async (data: AssetFormData) => {
     try {
-      const assetData: Partial<AssetInsert> = {
-        ...data,
-        purchase_cost: data.purchase_cost ? parseFloat(data.purchase_cost) : null,
+      // Ensure required fields are present and construct the asset data
+      const assetData: AssetInsert = {
+        name: data.name, // Required field, always present from form validation
+        description: data.description || null,
+        asset_tag: data.asset_tag || null,
+        serial_number: data.serial_number || null,
+        model: data.model || null,
+        manufacturer: data.manufacturer || null,
+        category: data.category || null,
+        location: data.location || null,
         purchase_date: data.purchase_date || null,
+        purchase_cost: data.purchase_cost ? parseFloat(data.purchase_cost) : null,
         warranty_expiry: data.warranty_expiry || null,
+        status: data.status,
+        priority: data.priority,
+        notes: data.notes || null,
         tenant_id: userProfile?.tenant_id!,
       };
-
-      // Remove empty strings and convert to null
-      Object.keys(assetData).forEach((key) => {
-        if (assetData[key as keyof typeof assetData] === '') {
-          (assetData as any)[key] = null;
-        }
-      });
 
       if (isEditing) {
         assetData.updated_by = userProfile?.id;
@@ -260,6 +263,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 )}
               />
 
+              
               <FormField
                 control={form.control}
                 name="manufacturer"
@@ -349,6 +353,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 )}
               />
             </div>
+
+            
 
             <FormField
               control={form.control}
