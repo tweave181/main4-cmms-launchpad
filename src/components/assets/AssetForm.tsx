@@ -8,6 +8,9 @@ import {
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAssetForm } from './useAssetForm';
 import { AssetBasicFields } from './AssetBasicFields';
 import { AssetTechnicalFields } from './AssetTechnicalFields';
@@ -28,7 +31,35 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { userProfile } = useAuth();
   const { form, onSubmit, isEditing } = useAssetForm({ asset, onSuccess });
+
+  // Show warning if user profile is not available
+  if (!userProfile?.tenant_id) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Profile Loading</DialogTitle>
+          </DialogHeader>
+          
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Your user profile is still loading. Please wait a moment and try again.
+              If this persists, try refreshing the page.
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex justify-end space-x-4 pt-4">
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
