@@ -9,6 +9,83 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assets: {
+        Row: {
+          asset_tag: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          location: string | null
+          manufacturer: string | null
+          model: string | null
+          name: string
+          notes: string | null
+          priority: Database["public"]["Enums"]["asset_priority"]
+          purchase_cost: number | null
+          purchase_date: string | null
+          serial_number: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+          warranty_expiry: string | null
+        }
+        Insert: {
+          asset_tag?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["asset_priority"]
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+          warranty_expiry?: string | null
+        }
+        Update: {
+          asset_tag?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["asset_priority"]
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          warranty_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string
@@ -91,6 +168,8 @@ export type Database = {
       }
     }
     Enums: {
+      asset_priority: "low" | "medium" | "high" | "critical"
+      asset_status: "active" | "inactive" | "maintenance" | "disposed"
       user_role: "admin" | "manager" | "technician"
     }
     CompositeTypes: {
@@ -207,6 +286,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      asset_priority: ["low", "medium", "high", "critical"],
+      asset_status: ["active", "inactive", "maintenance", "disposed"],
       user_role: ["admin", "manager", "technician"],
     },
   },
