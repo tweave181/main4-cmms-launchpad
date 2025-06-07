@@ -7,6 +7,10 @@ import { useAuth } from '@/contexts/AuthContext';
 export const WelcomeCard: React.FC = () => {
   const { userProfile, tenant, isAdmin } = useAuth();
 
+  // Debug logging to see what data we have
+  console.log('WelcomeCard - userProfile:', userProfile);
+  console.log('WelcomeCard - userProfile.name:', userProfile?.name);
+
   return (
     <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
       <CardHeader className="p-0 mb-6">
