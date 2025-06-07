@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4" />
                 <span className="text-sm font-medium">
-                  {userProfile?.first_name} {userProfile?.last_name}
+                  {userProfile?.name}
                 </span>
                 {isAdmin && (
                   <Badge variant="secondary" className="flex items-center space-x-1">
@@ -83,7 +83,7 @@ const Dashboard: React.FC = () => {
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm">Your Role</h4>
                   <Badge variant={isAdmin ? "default" : "secondary"}>
-                    {userProfile?.role}
+                    {isAdmin ? 'admin' : 'user'}
                   </Badge>
                 </div>
                 <div className="space-y-2">
