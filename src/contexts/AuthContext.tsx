@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       if (session?.user) {
         // Add a small delay for signup events to ensure the trigger has completed
-        if (event === 'SIGNED_UP') {
+        if (event === 'SIGNED_IN') {
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 1000);
