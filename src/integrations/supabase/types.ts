@@ -9,16 +9,98 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      tenants: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_tenant_and_admin: {
+        Args: {
+          tenant_name: string
+          tenant_slug: string
+          user_id: string
+          user_email: string
+          first_name?: string
+          last_name?: string
+        }
+        Returns: string
+      }
+      get_current_user_tenant_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +215,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "user"],
+    },
   },
 } as const
