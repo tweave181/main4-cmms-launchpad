@@ -83,7 +83,7 @@ const Dashboard: React.FC = () => {
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm">Your Role</h4>
                   <Badge variant={isAdmin ? "default" : "secondary"}>
-                    {isAdmin ? 'admin' : 'user'}
+                    {userProfile?.role}
                   </Badge>
                 </div>
                 <div className="space-y-2">

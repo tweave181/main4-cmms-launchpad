@@ -14,22 +14,16 @@ export type Database = {
           created_at: string
           id: string
           name: string
-          slug: string
-          updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
-          slug: string
-          updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
-          slug?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -39,6 +33,7 @@ export type Database = {
           email: string
           id: string
           name: string
+          role: Database["public"]["Enums"]["user_role"]
           tenant_id: string
           updated_at: string
         }
@@ -47,6 +42,7 @@ export type Database = {
           email: string
           id: string
           name?: string
+          role?: Database["public"]["Enums"]["user_role"]
           tenant_id: string
           updated_at?: string
         }
@@ -55,6 +51,7 @@ export type Database = {
           email?: string
           id?: string
           name?: string
+          role?: Database["public"]["Enums"]["user_role"]
           tenant_id?: string
           updated_at?: string
         }

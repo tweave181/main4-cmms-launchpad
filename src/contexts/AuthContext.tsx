@@ -8,6 +8,7 @@ interface UserProfile {
   tenant_id: string;
   email: string;
   name: string;
+  role: 'admin' | 'manager' | 'technician';
   created_at: string;
   updated_at: string;
 }
@@ -15,9 +16,7 @@ interface UserProfile {
 interface Tenant {
   id: string;
   name: string;
-  slug: string;
   created_at: string;
-  updated_at: string;
 }
 
 interface AuthContextType {
@@ -155,8 +154,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // For now, assume first user is admin - we'll need to implement proper role checking later
-  const isAdmin = true;
+  // Check if user is admin based on their role in the database
+  const isAdmin = userProfile?.role === 'admin';
 
   const value = {
     user,
