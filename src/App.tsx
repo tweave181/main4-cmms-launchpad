@@ -7,6 +7,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import AuthPage from "@/components/auth/AuthPage";
 import Dashboard from "@/components/Dashboard";
+import { AppLayout } from "@/components/layout/AppLayout";
+import WorkOrders from "@/pages/WorkOrders";
+import Assets from "@/pages/Assets";
+import Maintenance from "@/pages/Maintenance";
+import Inventory from "@/pages/Inventory";
+import Reports from "@/pages/Reports";
+import Vendors from "@/pages/Vendors";
+import AdminSettings from "@/pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,10 +39,19 @@ const AppContent = () => {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <AppLayout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/work-orders" element={<WorkOrders />} />
+          <Route path="/assets" element={<Assets />} />
+          <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/vendors" element={<Vendors />} />
+          <Route path="/settings" element={<AdminSettings />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AppLayout>
     </BrowserRouter>
   );
 };
