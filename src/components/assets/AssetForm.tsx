@@ -10,7 +10,7 @@ import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { useAssetForm } from './useAssetForm';
 import { AssetBasicFields } from './AssetBasicFields';
 import { AssetTechnicalFields } from './AssetTechnicalFields';
