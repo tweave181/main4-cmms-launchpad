@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tag, Plus, Search, Filter, Eye, Edit2, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { AssetForm } from '@/components/assets/AssetForm';
 import { AssetDetail } from '@/components/assets/AssetDetail';
 import { toast } from '@/components/ui/use-toast';
