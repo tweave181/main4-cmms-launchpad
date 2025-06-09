@@ -5,6 +5,7 @@ export const useAuthOperations = () => {
   const signUp = async (email: string, password: string, name: string, tenantName: string, tenantSlug: string) => {
     try {
       // Use the trigger-based approach by passing metadata
+      // The handle_new_user function will now properly set JWT claims
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -19,7 +20,6 @@ export const useAuthOperations = () => {
 
       if (authError) throw authError;
 
-      // The trigger function will handle creating the tenant and user profile
       console.log('Signup successful, user created:', authData.user?.id);
     } catch (error: any) {
       console.error('Signup error:', error);

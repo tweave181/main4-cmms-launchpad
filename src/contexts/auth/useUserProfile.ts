@@ -9,14 +9,21 @@ export const useUserProfile = () => {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  const fetchUserProfile = async (userId: string, retryCount = 0) => {
-    const maxRetries = 3;
-    const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Exponential backoff
-
+  const fetchUserProfile = async (userId: string) => {
     try {
       setProfileLoading(true);
-      console.log(`Fetching user profile for ${userId}, attempt ${retryCount + 1}`);
+      console.log(`Fetching user profile for ${userId}`);
       
+      // Get the current session to access JWT claims
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.error('No active session found');
+        setProfileLoading(false);
+        return;
+      }
+
+      // Fetch user profile using the new RLS policies
       const { data: profile, error } = await supabase
         .from('users')
         .select('*')
@@ -25,19 +32,9 @@ export const useUserProfile = () => {
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        
-        if (retryCount < maxRetries) {
-          console.log(`Retrying profile fetch in ${retryDelay}ms...`);
-          setTimeout(() => {
-            fetchUserProfile(userId, retryCount + 1);
-          }, retryDelay);
-          return;
-        }
-        
-        // Only show error toast after all retries are exhausted
         toast({
           title: "Profile Loading Error",
-          description: "Unable to load your profile. Please refresh the page or contact support if the issue persists.",
+          description: "Unable to load your profile. Please try logging in again.",
           variant: "destructive",
         });
         setProfileLoading(false);
@@ -46,17 +43,9 @@ export const useUserProfile = () => {
 
       if (!profile) {
         console.error('No profile found for user:', userId);
-        
-        if (retryCount < maxRetries) {
-          setTimeout(() => {
-            fetchUserProfile(userId, retryCount + 1);
-          }, retryDelay);
-          return;
-        }
-        
         toast({
           title: "Profile Not Found",
-          description: "Your user profile was not found. Please contact support for assistance.",
+          description: "Your user profile was not found. Please contact support.",
           variant: "destructive",
         });
         setProfileLoading(false);
@@ -66,7 +55,7 @@ export const useUserProfile = () => {
       console.log('User profile fetched successfully:', profile);
       setUserProfile(profile);
 
-      // Fetch tenant data
+      // Fetch tenant data using the new JWT-based policy
       if (profile?.tenant_id) {
         console.log('Fetching tenant data for:', profile.tenant_id);
         

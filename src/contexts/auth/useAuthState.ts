@@ -26,8 +26,8 @@ export const useAuthState = () => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        // Add a small delay for new user signups to ensure the trigger has completed
-        if (event.toString() === 'SIGNED_UP') {
+        // For new signups, add a delay to ensure the trigger has completed
+        if (event === 'SIGNED_UP') {
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 2000);
@@ -41,7 +41,7 @@ export const useAuthState = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchUserProfile, clearUserData]);
 
   return {
     user,
