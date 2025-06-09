@@ -9,7 +9,7 @@ import {
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useAssetForm } from './useAssetForm';
 import { AssetBasicFields } from './AssetBasicFields';
@@ -31,29 +31,55 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { userProfile } = useAuth();
+  const { userProfile, loading } = useAuth();
   const { form, onSubmit, isEditing } = useAssetForm({ asset, onSuccess });
 
-  // Show warning if user profile is not available
+  // Show loading state while profile is being fetched
+  if (loading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Loading Profile</DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+
+          <div className="flex justify-end space-x-4 pt-4">
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Show warning if user profile is not available after loading
   if (!userProfile?.tenant_id) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Profile Loading</DialogTitle>
+            <DialogTitle>Profile Error</DialogTitle>
           </DialogHeader>
           
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Your user profile is still loading. Please wait a moment and try again.
-              If this persists, try refreshing the page.
+              Your user profile could not be loaded. Please try refreshing the page.
+              If this problem persists, please contact support.
             </AlertDescription>
           </Alert>
 
           <div className="flex justify-end space-x-4 pt-4">
             <Button variant="outline" onClick={onClose}>
               Close
+            </Button>
+            <Button onClick={() => window.location.reload()}>
+              Refresh Page
             </Button>
           </div>
         </DialogContent>

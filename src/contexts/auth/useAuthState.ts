@@ -7,7 +7,7 @@ import { useUserProfile } from './useUserProfile';
 export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { userProfile, tenant, fetchUserProfile, clearUserData } = useUserProfile();
+  const { userProfile, tenant, profileLoading, fetchUserProfile, clearUserData } = useUserProfile();
 
   useEffect(() => {
     // Get initial session
@@ -27,10 +27,10 @@ export const useAuthState = () => {
       
       if (session?.user) {
         // Add a small delay for signup events to ensure the trigger has completed
-        if (event === 'SIGNED_IN') {
+        if (event === 'SIGNED_UP') {
           setTimeout(() => {
             fetchUserProfile(session.user.id);
-          }, 1000);
+          }, 2000);
         } else {
           await fetchUserProfile(session.user.id);
         }
@@ -47,6 +47,6 @@ export const useAuthState = () => {
     user,
     userProfile,
     tenant,
-    loading
+    loading: loading || profileLoading
   };
 };

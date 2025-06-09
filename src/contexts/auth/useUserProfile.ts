@@ -7,12 +7,14 @@ import type { UserProfile, Tenant } from './types';
 export const useUserProfile = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const fetchUserProfile = async (userId: string, retryCount = 0) => {
     const maxRetries = 3;
-    const retryDelay = 1000; // 1 second
+    const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Exponential backoff
 
     try {
+      setProfileLoading(true);
       console.log(`Fetching user profile for ${userId}, attempt ${retryCount + 1}`);
       
       const { data: profile, error } = await supabase
@@ -32,11 +34,13 @@ export const useUserProfile = () => {
           return;
         }
         
+        // Only show error toast after all retries are exhausted
         toast({
-          title: "Profile Error",
-          description: "Unable to load user profile. Please try refreshing the page.",
+          title: "Profile Loading Error",
+          description: "Unable to load your profile. Please refresh the page or contact support if the issue persists.",
           variant: "destructive",
         });
+        setProfileLoading(false);
         throw error;
       }
 
@@ -51,10 +55,11 @@ export const useUserProfile = () => {
         }
         
         toast({
-          title: "Profile Error",
-          description: "User profile not found. Please contact support.",
+          title: "Profile Not Found",
+          description: "Your user profile was not found. Please contact support for assistance.",
           variant: "destructive",
         });
+        setProfileLoading(false);
         return;
       }
 
@@ -74,8 +79,8 @@ export const useUserProfile = () => {
         if (tenantError) {
           console.error('Error fetching tenant:', tenantError);
           toast({
-            title: "Tenant Error",
-            description: "Unable to load organization data.",
+            title: "Organization Data Error",
+            description: "Unable to load organization information.",
             variant: "destructive",
           });
         } else {
@@ -83,21 +88,26 @@ export const useUserProfile = () => {
           setTenant(tenantData);
         }
       }
+      
+      setProfileLoading(false);
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       setUserProfile(null);
       setTenant(null);
+      setProfileLoading(false);
     }
   };
 
   const clearUserData = () => {
     setUserProfile(null);
     setTenant(null);
+    setProfileLoading(false);
   };
 
   return {
     userProfile,
     tenant,
+    profileLoading,
     fetchUserProfile,
     clearUserData
   };
