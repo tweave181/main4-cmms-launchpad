@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { User, AuthChangeEvent } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserProfile } from './useUserProfile';
 
@@ -27,7 +27,7 @@ export const useAuthState = () => {
       
       if (session?.user) {
         // For new signups, add a delay to ensure the trigger has completed
-        if (event === AuthChangeEvent.SIGNED_UP) {
+        if (event === 'SIGNED_UP') {
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 2000);
