@@ -15,7 +15,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, userProfile, tenant, loading } = useAuthState();
+  const { user, userProfile, tenant, loading, ready } = useAuthState();
   const { signUp, signIn, signOut } = useAuthOperations();
 
   // Check if user is admin based on their role in the database
@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userProfile,
     tenant,
     loading,
+    ready,
     signUp,
     signIn,
     signOut,

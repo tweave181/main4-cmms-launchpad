@@ -22,6 +22,7 @@ export interface AuthContextType {
   userProfile: UserProfile | null;
   tenant: Tenant | null;
   loading: boolean;
+  ready: boolean;
   signUp: (email: string, password: string, name: string, tenantName: string, tenantSlug: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;

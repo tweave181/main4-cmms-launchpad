@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import type { UserProfile, Tenant } from './types';
@@ -8,8 +8,15 @@ export const useUserProfile = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [lastFetchedUserId, setLastFetchedUserId] = useState<string | null>(null);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    // Prevent duplicate fetches for the same user
+    if (lastFetchedUserId === userId && userProfile) {
+      console.log('Profile already fetched for this user, skipping');
+      return;
+    }
+
     try {
       setProfileLoading(true);
       console.log(`Fetching user profile for ${userId}`);
@@ -18,10 +25,20 @@ export const useUserProfile = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        console.error('No active session found');
+        console.error('No active session found during profile fetch');
         setProfileLoading(false);
         return;
       }
+
+      // Double-check JWT claims are available
+      const tenantId = session.user.user_metadata?.tenant_id || session.user.app_metadata?.tenant_id;
+      if (!tenantId) {
+        console.error('No tenant_id found in JWT claims, aborting profile fetch');
+        setProfileLoading(false);
+        return;
+      }
+
+      console.log('JWT claims confirmed, proceeding with profile fetch. Tenant ID:', tenantId);
 
       // Fetch user profile using the new RLS policies
       const { data: profile, error } = await supabase
@@ -54,6 +71,7 @@ export const useUserProfile = () => {
 
       console.log('User profile fetched successfully:', profile);
       setUserProfile(profile);
+      setLastFetchedUserId(userId);
 
       // Fetch tenant data using the new JWT-based policy
       if (profile?.tenant_id) {
@@ -83,15 +101,18 @@ export const useUserProfile = () => {
       console.error('Error in fetchUserProfile:', error);
       setUserProfile(null);
       setTenant(null);
+      setLastFetchedUserId(null);
       setProfileLoading(false);
     }
-  };
+  }, [userProfile, lastFetchedUserId]);
 
-  const clearUserData = () => {
+  const clearUserData = useCallback(() => {
+    console.log('Clearing user data');
     setUserProfile(null);
     setTenant(null);
     setProfileLoading(false);
-  };
+    setLastFetchedUserId(null);
+  }, []);
 
   return {
     userProfile,
