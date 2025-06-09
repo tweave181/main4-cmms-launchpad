@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,7 +28,7 @@ export const useAuthState = () => {
       
       if (session?.user) {
         // For new signups, add a delay to ensure the trigger has completed
-        if (event === 'SIGNED_UP') {
+        if (event === 'SIGNED_IN') {
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 2000);
@@ -50,3 +51,4 @@ export const useAuthState = () => {
     loading: loading || profileLoading
   };
 };
+
