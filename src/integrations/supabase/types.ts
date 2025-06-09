@@ -158,6 +158,10 @@ export type Database = {
         }
         Returns: string
       }
+      fix_missing_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
