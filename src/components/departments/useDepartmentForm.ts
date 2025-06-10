@@ -41,7 +41,8 @@ export const useDepartmentForm = ({ department, onSuccess }: UseDepartmentFormPr
       }
 
       const departmentData: DepartmentInsert = {
-        ...data,
+        name: data.name,
+        description: data.description,
         tenant_id: userProfile.tenant_id,
       };
 
