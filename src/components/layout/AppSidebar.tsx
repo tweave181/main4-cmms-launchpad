@@ -10,7 +10,8 @@ import {
   BarChart, 
   Users, 
   Settings,
-  Building2
+  Building2,
+  Building
 } from 'lucide-react';
 import {
   Sidebar,
@@ -60,6 +61,11 @@ const menuItems = [
     title: "Vendors",
     url: "/vendors",
     icon: Users,
+  },
+  {
+    title: "Departments",
+    url: "/departments",
+    icon: Building,
   },
   {
     title: "Admin Settings",

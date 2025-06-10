@@ -14,6 +14,7 @@ import Maintenance from "@/pages/Maintenance";
 import Inventory from "@/pages/Inventory";
 import Reports from "@/pages/Reports";
 import Vendors from "@/pages/Vendors";
+import Departments from "@/pages/Departments";
 import AdminSettings from "@/pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 
@@ -48,6 +49,7 @@ const AppContent = () => {
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/vendors" element={<Vendors />} />
+          <Route path="/departments" element={<Departments />} />
           <Route path="/settings" element={<AdminSettings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
