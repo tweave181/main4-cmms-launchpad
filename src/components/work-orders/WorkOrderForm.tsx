@@ -54,8 +54,8 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     defaultValues: {
       title: workOrder?.title || '',
       description: workOrder?.description || '',
-      asset_id: workOrder?.asset_id || '',
-      assigned_to: workOrder?.assigned_to || '',
+      asset_id: workOrder?.asset_id || undefined,
+      assigned_to: workOrder?.assigned_to || undefined,
       status: workOrder?.status || 'open',
       priority: workOrder?.priority || 'medium',
       work_type: workOrder?.work_type || 'corrective',
@@ -107,7 +107,10 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select priority" />
@@ -131,7 +134,10 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Work Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select work type" />
@@ -157,7 +163,10 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
