@@ -34,7 +34,10 @@ export const AssetWorkOrders: React.FC<AssetWorkOrdersProps> = ({ assetId }) => 
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as WorkOrder[];
+      return data as (WorkOrder & {
+        assigned_user?: { name: string } | null;
+        created_user?: { name: string } | null;
+      })[];
     },
   });
 
