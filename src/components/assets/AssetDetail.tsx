@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit2, Calendar, DollarSign, MapPin, Hash, Package, Building } from 'lucide-react';
+import { AssetWorkOrders } from './AssetWorkOrders';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'];
@@ -62,7 +63,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold">
@@ -85,6 +86,9 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
               Priority: {asset.priority}
             </Badge>
           </div>
+
+          {/* Work Orders Section */}
+          <AssetWorkOrders assetId={asset.id} />
 
           {/* Basic Information */}
           <Card className="rounded-2xl">
