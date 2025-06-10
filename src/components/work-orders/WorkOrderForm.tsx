@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { WorkOrderBasicFields } from './WorkOrderBasicFields';
+import { WorkOrderAssetFields } from './WorkOrderAssetFields';
 import { WorkOrderSelectFields } from './WorkOrderSelectFields';
 import { WorkOrderDateFields } from './WorkOrderDateFields';
 import { WorkOrderEstimateFields } from './WorkOrderEstimateFields';
@@ -34,6 +35,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <WorkOrderBasicFields control={form.control} />
+        <WorkOrderAssetFields control={form.control} />
         <WorkOrderSelectFields control={form.control} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <WorkOrderDateFields control={form.control} />
