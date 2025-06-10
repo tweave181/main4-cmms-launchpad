@@ -67,8 +67,10 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
           <FormItem>
             <FormLabel>Asset</FormLabel>
             <Select 
-              onValueChange={field.onChange} 
-              value={field.value || undefined}
+              onValueChange={(value) => {
+                field.onChange(value === 'no-asset' ? undefined : value);
+              }} 
+              value={field.value || 'no-asset'}
             >
               <FormControl>
                 <SelectTrigger>
@@ -76,7 +78,7 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="">No Asset</SelectItem>
+                <SelectItem value="no-asset">No Asset</SelectItem>
                 {assets.map((asset) => (
                   <SelectItem key={asset.id} value={asset.id}>
                     {asset.name} {asset.asset_tag && `(${asset.asset_tag})`}
@@ -96,8 +98,10 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
           <FormItem>
             <FormLabel>Assigned To</FormLabel>
             <Select 
-              onValueChange={field.onChange} 
-              value={field.value || undefined}
+              onValueChange={(value) => {
+                field.onChange(value === 'unassigned' ? undefined : value);
+              }} 
+              value={field.value || 'unassigned'}
             >
               <FormControl>
                 <SelectTrigger>
@@ -105,7 +109,7 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="">Unassigned</SelectItem>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
                 {users.map((user) => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.name} ({user.email})
