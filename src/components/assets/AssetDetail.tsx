@@ -33,11 +33,11 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
         <AssetDetailHeader asset={asset} onEdit={onEdit} />
 
         <div className="space-y-6">
-          <AssetWorkOrders assetId={asset.id} />
           <AssetBasicInfo asset={asset} />
           <AssetFinancialInfo asset={asset} />
           <AssetDescriptionSection asset={asset} />
           <AssetRecordInfo asset={asset} />
+          <AssetWorkOrders assetId={asset.id} />
         </div>
       </DialogContent>
     </Dialog>
