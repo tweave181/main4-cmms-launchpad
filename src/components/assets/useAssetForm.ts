@@ -28,6 +28,7 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
       manufacturer: asset?.manufacturer || '',
       category: asset?.category || '',
       location: asset?.location || '',
+      department_id: asset?.department_id || '',
       purchase_date: asset?.purchase_date || '',
       purchase_cost: asset?.purchase_cost?.toString() || '',
       warranty_expiry: asset?.warranty_expiry || '',

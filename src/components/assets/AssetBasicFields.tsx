@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { useDepartments } from '@/hooks/useDepartments';
 import type { AssetFormData } from './types';
 
 interface AssetBasicFieldsProps {
@@ -23,6 +24,8 @@ interface AssetBasicFieldsProps {
 }
 
 export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control }) => {
+  const { departments } = useDepartments();
+
   return (
     <>
       <FormField
@@ -76,6 +79,31 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control }) =
             <FormControl>
               <Input placeholder="Enter location" {...field} />
             </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="department_id"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Department</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {departments.map((department) => (
+                  <SelectItem key={department.id} value={department.id}>
+                    {department.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}

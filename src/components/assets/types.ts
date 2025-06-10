@@ -14,6 +14,7 @@ export const assetSchema = z.object({
   manufacturer: z.string().optional(),
   category: z.string().optional(),
   location: z.string().optional(),
+  department_id: z.string().optional(),
   purchase_date: z.string().optional(),
   purchase_cost: z.string().optional(),
   warranty_expiry: z.string().optional(),
