@@ -6,18 +6,40 @@ import { Wrench, Plus } from 'lucide-react';
 import { WorkOrderList } from '@/components/work-orders/WorkOrderList';
 import { WorkOrderFiltersComponent } from '@/components/work-orders/WorkOrderFilters';
 import { CreateWorkOrderModal } from '@/components/work-orders/CreateWorkOrderModal';
+import { WorkOrderDetail } from '@/components/work-orders/WorkOrderDetail';
+import { EditWorkOrderModal } from '@/components/work-orders/EditWorkOrderModal';
 import { useWorkOrders } from '@/hooks/useWorkOrders';
 import type { WorkOrder, WorkOrderFilters } from '@/types/workOrder';
 
 const WorkOrders: React.FC = () => {
   const [filters, setFilters] = useState<WorkOrderFilters>({});
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const { data: workOrders = [], isLoading } = useWorkOrders(filters);
 
   const handleWorkOrderClick = (workOrder: WorkOrder) => {
-    // TODO: Navigate to work order detail page
     console.log('Clicked work order:', workOrder);
+    setSelectedWorkOrder(workOrder);
+    setIsDetailOpen(true);
+  };
+
+  const handleEditWorkOrder = (workOrder: WorkOrder) => {
+    setSelectedWorkOrder(workOrder);
+    setIsDetailOpen(false);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseDetail = () => {
+    setIsDetailOpen(false);
+    setSelectedWorkOrder(null);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditModalOpen(false);
+    setSelectedWorkOrder(null);
   };
 
   const handleClearFilters = () => {
@@ -61,6 +83,24 @@ const WorkOrders: React.FC = () => {
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
       />
+
+      {selectedWorkOrder && (
+        <WorkOrderDetail
+          workOrder={selectedWorkOrder}
+          isOpen={isDetailOpen}
+          onClose={handleCloseDetail}
+          onEdit={() => handleEditWorkOrder(selectedWorkOrder)}
+        />
+      )}
+
+      {selectedWorkOrder && (
+        <EditWorkOrderModal
+          workOrder={selectedWorkOrder}
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          onClose={handleCloseEdit}
+        />
+      )}
     </div>
   );
 };

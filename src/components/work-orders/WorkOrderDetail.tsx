@@ -8,7 +8,8 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, User, Wrench, DollarSign } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Clock, User, Wrench, DollarSign, Edit } from 'lucide-react';
 import type { WorkOrder } from '@/types/workOrder';
 
 interface WorkOrderDetailProps {
@@ -19,12 +20,14 @@ interface WorkOrderDetailProps {
   };
   isOpen: boolean;
   onClose: () => void;
+  onEdit?: () => void;
 }
 
 export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
   workOrder,
   isOpen,
   onClose,
+  onEdit,
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -54,10 +57,23 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Wrench className="h-5 w-5 text-primary" />
-            <span>{workOrder.title}</span>
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center space-x-2">
+              <Wrench className="h-5 w-5 text-primary" />
+              <span>{workOrder.title}</span>
+            </DialogTitle>
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onEdit}
+                className="flex items-center space-x-2"
+              >
+                <Edit className="h-4 w-4" />
+                <span>Edit</span>
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">
