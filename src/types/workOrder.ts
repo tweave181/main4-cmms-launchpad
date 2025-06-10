@@ -42,10 +42,11 @@ export interface WorkOrderFormData {
   due_date?: string;
 }
 
+// Updated WorkOrderFilters to use valid enum values or undefined (never empty strings)
 export interface WorkOrderFilters {
-  status?: string;
-  priority?: string;
-  work_type?: string;
+  status?: 'open' | 'in_progress' | 'completed' | 'cancelled';
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  work_type?: 'corrective' | 'preventive' | 'emergency' | 'inspection';
   assigned_to?: string;
   search?: string;
 }

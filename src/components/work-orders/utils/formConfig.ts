@@ -15,3 +15,8 @@ export const getDefaultFormValues = (workOrder?: WorkOrder): WorkOrderFormData =
     due_date: workOrder?.due_date || '',
   };
 };
+
+// Helper function to get safe filter values that won't cause Select errors
+export const getSafeFilterValue = (value: string | undefined): string | undefined => {
+  return value === '' ? undefined : value;
+};

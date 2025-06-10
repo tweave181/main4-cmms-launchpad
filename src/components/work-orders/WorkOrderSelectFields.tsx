@@ -35,7 +35,7 @@ export const WorkOrderSelectFields: React.FC<WorkOrderSelectFieldsProps> = ({
               <FormLabel>Priority</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                value={field.value}
+                value={field.value || ''}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -62,7 +62,7 @@ export const WorkOrderSelectFields: React.FC<WorkOrderSelectFieldsProps> = ({
               <FormLabel>Work Type</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                value={field.value}
+                value={field.value || ''}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -91,7 +91,7 @@ export const WorkOrderSelectFields: React.FC<WorkOrderSelectFieldsProps> = ({
               <FormLabel>Status</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                value={field.value}
+                value={field.value || ''}
               >
                 <FormControl>
                   <SelectTrigger>
