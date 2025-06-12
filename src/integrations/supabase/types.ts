@@ -131,6 +131,132 @@ export type Database = {
           },
         ]
       }
+      inventory_parts: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          linked_asset_type: string | null
+          name: string
+          quantity_in_stock: number
+          reorder_threshold: number
+          sku: string
+          storage_locations: string[] | null
+          tenant_id: string
+          unit_of_measure: Database["public"]["Enums"]["part_unit"]
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          linked_asset_type?: string | null
+          name: string
+          quantity_in_stock?: number
+          reorder_threshold?: number
+          sku: string
+          storage_locations?: string[] | null
+          tenant_id: string
+          unit_of_measure?: Database["public"]["Enums"]["part_unit"]
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          linked_asset_type?: string | null
+          name?: string
+          quantity_in_stock?: number
+          reorder_threshold?: number
+          sku?: string
+          storage_locations?: string[] | null
+          tenant_id?: string
+          unit_of_measure?: Database["public"]["Enums"]["part_unit"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      part_asset_associations: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          part_id: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          part_id: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          part_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "part_asset_associations_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_asset_associations_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_parts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      part_work_order_usage: {
+        Row: {
+          created_at: string
+          id: string
+          part_id: string
+          quantity_used: number
+          work_order_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          part_id: string
+          quantity_used: number
+          work_order_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          part_id?: string
+          quantity_used?: number
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "part_work_order_usage_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_work_order_usage_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pm_schedule_assets: {
         Row: {
           asset_id: string
@@ -277,6 +403,53 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_transactions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          part_id: string
+          quantity_after: number
+          quantity_change: number
+          reference_id: string | null
+          reference_type: string | null
+          transaction_type: Database["public"]["Enums"]["stock_transaction_type"]
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          part_id: string
+          quantity_after: number
+          quantity_change: number
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type: Database["public"]["Enums"]["stock_transaction_type"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          part_id?: string
+          quantity_after?: number
+          quantity_change?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type?: Database["public"]["Enums"]["stock_transaction_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_transactions_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_parts"
             referencedColumns: ["id"]
           },
         ]
@@ -499,6 +672,16 @@ export type Database = {
     Enums: {
       asset_priority: "low" | "medium" | "high" | "critical"
       asset_status: "active" | "inactive" | "maintenance" | "disposed"
+      part_unit:
+        | "pieces"
+        | "kg"
+        | "lbs"
+        | "liters"
+        | "gallons"
+        | "meters"
+        | "feet"
+        | "hours"
+      stock_transaction_type: "usage" | "restock" | "adjustment" | "initial"
       user_role: "admin" | "manager" | "technician"
     }
     CompositeTypes: {
@@ -617,6 +800,17 @@ export const Constants = {
     Enums: {
       asset_priority: ["low", "medium", "high", "critical"],
       asset_status: ["active", "inactive", "maintenance", "disposed"],
+      part_unit: [
+        "pieces",
+        "kg",
+        "lbs",
+        "liters",
+        "gallons",
+        "meters",
+        "feet",
+        "hours",
+      ],
+      stock_transaction_type: ["usage", "restock", "adjustment", "initial"],
       user_role: ["admin", "manager", "technician"],
     },
   },
