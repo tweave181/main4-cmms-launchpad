@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { PMAssetSelector } from './PMAssetSelector';
+import { PMChecklistEditor } from './PMChecklistEditor';
+import { useUsers } from '@/hooks/usePreventiveMaintenance';
 import type { PMScheduleFormData } from '@/types/preventiveMaintenance';
 
 const pmScheduleSchema = z.object({
@@ -21,7 +23,13 @@ const pmScheduleSchema = z.object({
   frequency_unit: z.enum(['days', 'weeks', 'months']).optional(),
   next_due_date: z.string().min(1, 'Next due date is required'),
   asset_ids: z.array(z.string()).min(1, 'At least one asset must be selected'),
+  assigned_to: z.string().optional(),
   is_active: z.boolean(),
+  checklist_items: z.array(z.object({
+    item_text: z.string().min(1, 'Item text is required'),
+    item_type: z.enum(['checkbox', 'value']),
+    sort_order: z.number(),
+  })).optional(),
 });
 
 interface PMScheduleFormProps {
@@ -37,6 +45,8 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
   loading,
   initialData,
 }) => {
+  const { data: users = [] } = useUsers();
+  
   const form = useForm<PMScheduleFormData>({
     resolver: zodResolver(pmScheduleSchema),
     defaultValues: {
@@ -48,7 +58,9 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
       frequency_unit: initialData?.frequency_unit || 'months',
       next_due_date: initialData?.next_due_date || '',
       asset_ids: initialData?.asset_ids || [],
+      assigned_to: initialData?.assigned_to || '',
       is_active: initialData?.is_active ?? true,
+      checklist_items: initialData?.checklist_items || [],
     },
   });
 
@@ -79,25 +91,51 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
 
           <FormField
             control={form.control}
-            name="is_active"
+            name="assigned_to"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Active Schedule</FormLabel>
-                  <div className="text-sm text-muted-foreground">
-                    Enable or disable this maintenance schedule
-                  </div>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
+              <FormItem>
+                <FormLabel>Assigned To</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select user" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">No assignment</SelectItem>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name} ({user.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="is_active"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <FormLabel>Active Schedule</FormLabel>
+                <div className="text-sm text-muted-foreground">
+                  Enable or disable this maintenance schedule
+                </div>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -246,12 +284,28 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
           </div>
         </div>
 
+        <FormField
+          control={form.control}
+          name="checklist_items"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <PMChecklistEditor
+                  items={field.value || []}
+                  onChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="flex justify-end space-x-4 pt-4 border-t">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Schedule'}
+            {loading ? 'Saving...' : initialData ? 'Update Schedule' : 'Create Schedule'}
           </Button>
         </div>
       </form>

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
-import type { PMScheduleFormData, PMScheduleWithAssets } from '@/types/preventiveMaintenance';
+import type { PMScheduleFormData, PMScheduleWithAssets, PMScheduleChecklistItem } from '@/types/preventiveMaintenance';
 
 export const usePMSchedules = () => {
   const { userProfile } = useAuth();
@@ -17,6 +17,7 @@ export const usePMSchedules = () => {
         .from('preventive_maintenance_schedules')
         .select(`
           *,
+          assigned_user:users!assigned_to(id, name, email),
           pm_schedule_assets!inner(
             asset_id,
             assets(
@@ -42,12 +43,82 @@ export const usePMSchedules = () => {
         // Cast frequency_type to the expected union type
         frequency_type: schedule.frequency_type as 'daily' | 'weekly' | 'monthly' | 'custom',
         frequency_unit: schedule.frequency_unit as 'days' | 'weeks' | 'months' | undefined,
-        assets: schedule.pm_schedule_assets?.map(psa => psa.assets).filter(Boolean) || []
+        assets: schedule.pm_schedule_assets?.map(psa => psa.assets).filter(Boolean) || [],
+        assigned_user: schedule.assigned_user ? {
+          id: schedule.assigned_user.id,
+          name: schedule.assigned_user.name,
+          email: schedule.assigned_user.email
+        } : undefined
       }));
 
       return transformedData;
     },
     enabled: !!userProfile?.tenant_id,
+  });
+};
+
+export const usePMSchedule = (id: string) => {
+  const { userProfile } = useAuth();
+
+  return useQuery({
+    queryKey: ['pm-schedule', id],
+    queryFn: async (): Promise<PMScheduleWithAssets> => {
+      console.log('Fetching PM schedule:', id);
+      
+      const { data, error } = await supabase
+        .from('preventive_maintenance_schedules')
+        .select(`
+          *,
+          assigned_user:users!assigned_to(id, name, email),
+          pm_schedule_assets(
+            asset_id,
+            assets(
+              id,
+              name,
+              asset_tag
+            )
+          )
+        `)
+        .eq('id', id)
+        .eq('tenant_id', userProfile?.tenant_id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching PM schedule:', error);
+        throw error;
+      }
+
+      console.log('PM schedule fetched:', data);
+      
+      // Fetch checklist items separately
+      const { data: checklistItems, error: checklistError } = await supabase
+        .from('pm_schedule_checklist_items')
+        .select('*')
+        .eq('pm_schedule_id', id)
+        .order('sort_order');
+
+      if (checklistError) {
+        console.error('Error fetching checklist items:', checklistError);
+        throw checklistError;
+      }
+
+      // Transform the data
+      const transformedData: PMScheduleWithAssets = {
+        ...data,
+        frequency_type: data.frequency_type as 'daily' | 'weekly' | 'monthly' | 'custom',
+        frequency_unit: data.frequency_unit as 'days' | 'weeks' | 'months' | undefined,
+        assets: data.pm_schedule_assets?.map(psa => psa.assets).filter(Boolean) || [],
+        assigned_user: data.assigned_user ? {
+          id: data.assigned_user.id,
+          name: data.assigned_user.name,
+          email: data.assigned_user.email
+        } : undefined,
+        checklist_items: checklistItems || []
+      };
+
+      return transformedData;
+    },
+    enabled: !!userProfile?.tenant_id && !!id,
   });
 };
 
@@ -75,6 +146,7 @@ export const useCreatePMSchedule = () => {
           frequency_value: data.frequency_value,
           frequency_unit: data.frequency_unit,
           next_due_date: data.next_due_date,
+          assigned_to: data.assigned_to,
           is_active: data.is_active,
           created_by: userProfile.id,
         })
@@ -105,6 +177,27 @@ export const useCreatePMSchedule = () => {
         }
 
         console.log('Assets linked to PM schedule successfully');
+      }
+
+      // Create checklist items
+      if (data.checklist_items.length > 0) {
+        const checklistItems = data.checklist_items.map(item => ({
+          pm_schedule_id: schedule.id,
+          item_text: item.item_text,
+          item_type: item.item_type,
+          sort_order: item.sort_order,
+        }));
+
+        const { error: checklistError } = await supabase
+          .from('pm_schedule_checklist_items')
+          .insert(checklistItems);
+
+        if (checklistError) {
+          console.error('Error creating checklist items:', checklistError);
+          throw checklistError;
+        }
+
+        console.log('Checklist items created successfully');
       }
 
       return schedule;
@@ -145,6 +238,7 @@ export const useUpdatePMSchedule = () => {
           frequency_value: data.frequency_value,
           frequency_unit: data.frequency_unit,
           next_due_date: data.next_due_date,
+          assigned_to: data.assigned_to,
           is_active: data.is_active,
         })
         .eq('id', id);
@@ -176,6 +270,34 @@ export const useUpdatePMSchedule = () => {
           if (linkError) {
             console.error('Error updating asset links:', linkError);
             throw linkError;
+          }
+        }
+      }
+
+      // Update checklist items if provided
+      if (data.checklist_items) {
+        // Remove existing checklist items
+        await supabase
+          .from('pm_schedule_checklist_items')
+          .delete()
+          .eq('pm_schedule_id', id);
+
+        // Add new checklist items
+        if (data.checklist_items.length > 0) {
+          const checklistItems = data.checklist_items.map(item => ({
+            pm_schedule_id: id,
+            item_text: item.item_text,
+            item_type: item.item_type,
+            sort_order: item.sort_order,
+          }));
+
+          const { error: checklistError } = await supabase
+            .from('pm_schedule_checklist_items')
+            .insert(checklistItems);
+
+          if (checklistError) {
+            console.error('Error updating checklist items:', checklistError);
+            throw checklistError;
           }
         }
       }
@@ -236,5 +358,31 @@ export const useDeletePMSchedule = () => {
         variant: "destructive",
       });
     },
+  });
+};
+
+export const useUsers = () => {
+  const { userProfile } = useAuth();
+
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      console.log('Fetching users...');
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .eq('tenant_id', userProfile?.tenant_id)
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
+
+      console.log('Users fetched:', data);
+      return data;
+    },
+    enabled: !!userProfile?.tenant_id,
   });
 };

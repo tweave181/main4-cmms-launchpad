@@ -167,8 +167,47 @@ export type Database = {
           },
         ]
       }
+      pm_schedule_checklist_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_text: string
+          item_type: string
+          pm_schedule_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_text: string
+          item_type?: string
+          pm_schedule_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_text?: string
+          item_type?: string
+          pm_schedule_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pm_schedule_checklist_items_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "preventive_maintenance_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preventive_maintenance_schedules: {
         Row: {
+          assigned_to: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -185,6 +224,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -201,6 +241,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -217,6 +258,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "preventive_maintenance_schedules_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "preventive_maintenance_schedules_created_by_fkey"
             columns: ["created_by"]
