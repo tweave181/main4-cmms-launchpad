@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import type { PMScheduleFormData, PMScheduleWithAssets } from '@/types/preventiveMaintenance';
 
 export const usePMSchedules = () => {
@@ -36,9 +36,12 @@ export const usePMSchedules = () => {
 
       console.log('PM schedules fetched:', data);
       
-      // Transform the data to include assets array
-      const transformedData = data.map(schedule => ({
+      // Transform the data to include assets array with proper typing
+      const transformedData: PMScheduleWithAssets[] = data.map(schedule => ({
         ...schedule,
+        // Cast frequency_type to the expected union type
+        frequency_type: schedule.frequency_type as 'daily' | 'weekly' | 'monthly' | 'custom',
+        frequency_unit: schedule.frequency_unit as 'days' | 'weeks' | 'months' | undefined,
         assets: schedule.pm_schedule_assets?.map(psa => psa.assets).filter(Boolean) || []
       }));
 
@@ -112,6 +115,7 @@ export const useCreatePMSchedule = () => {
         description: "Preventive maintenance schedule created successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['pm-schedules-calendar'] });
     },
     onError: (error: any) => {
       console.error('PM schedule creation error:', error);
@@ -184,6 +188,7 @@ export const useUpdatePMSchedule = () => {
         description: "Preventive maintenance schedule updated successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['pm-schedules-calendar'] });
     },
     onError: (error: any) => {
       console.error('PM schedule update error:', error);
@@ -221,6 +226,7 @@ export const useDeletePMSchedule = () => {
         description: "Preventive maintenance schedule deleted successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['pm-schedules-calendar'] });
     },
     onError: (error: any) => {
       console.error('PM schedule deletion error:', error);

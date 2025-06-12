@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import type { PMScheduleWithAssets } from '@/types/preventiveMaintenance';
@@ -47,9 +46,12 @@ export const PMCalendarView: React.FC = () => {
 
       console.log('PM schedules for calendar fetched:', data);
       
-      // Transform the data to include assets array
-      const transformedData = data.map(schedule => ({
+      // Transform the data to include assets array with proper typing
+      const transformedData: PMScheduleWithAssets[] = data.map(schedule => ({
         ...schedule,
+        // Cast frequency_type to the expected union type
+        frequency_type: schedule.frequency_type as 'daily' | 'weekly' | 'monthly' | 'custom',
+        frequency_unit: schedule.frequency_unit as 'days' | 'weeks' | 'months' | undefined,
         assets: schedule.pm_schedule_assets?.map(psa => psa.assets).filter(Boolean) || []
       }));
 
@@ -108,7 +110,7 @@ export const PMCalendarView: React.FC = () => {
       <CardContent>
         <div className="grid grid-cols-7 gap-2 mb-4">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
+            <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
               {day}
             </div>
           ))}
@@ -125,9 +127,9 @@ export const PMCalendarView: React.FC = () => {
                 key={day.toISOString()}
                 className={`
                   min-h-[100px] p-2 border rounded-lg
-                  ${isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}
+                  ${isCurrentMonth ? 'bg-background' : 'bg-muted/50 text-muted-foreground'}
                   ${isToday ? 'ring-2 ring-primary ring-opacity-50' : ''}
-                  hover:bg-gray-50 transition-colors
+                  hover:bg-muted/50 transition-colors
                 `}
               >
                 <div className={`text-sm font-medium mb-1 ${isToday ? 'text-primary font-bold' : ''}`}>
@@ -156,8 +158,8 @@ export const PMCalendarView: React.FC = () => {
         </div>
 
         {schedules.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            <CalendarIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+          <div className="text-center py-8 text-muted-foreground">
+            <CalendarIcon className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" />
             <p>No maintenance scheduled for {format(currentDate, 'MMMM yyyy')}</p>
           </div>
         )}
