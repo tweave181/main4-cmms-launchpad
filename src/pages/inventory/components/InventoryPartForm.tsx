@@ -62,10 +62,17 @@ export const InventoryPartForm: React.FC<InventoryPartFormProps> = ({
 
   const handleSubmit = (data: FormData) => {
     const submitData: InventoryPartData = {
-      ...data,
+      name: data.name,
+      sku: data.sku,
+      description: data.description || null,
+      category: data.category || null,
+      quantity_in_stock: data.quantity_in_stock,
+      reorder_threshold: data.reorder_threshold,
+      unit_of_measure: data.unit_of_measure,
+      linked_asset_type: data.linked_asset_type || null,
       storage_locations: data.storage_locations 
         ? data.storage_locations.split(',').map(loc => loc.trim()).filter(Boolean)
-        : [],
+        : null,
     };
     onSubmit(submitData);
   };
