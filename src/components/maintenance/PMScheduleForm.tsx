@@ -67,7 +67,12 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
 
   const handleSubmit = (data: PMScheduleFormData) => {
     console.log('PM Schedule form data:', data);
-    onSubmit(data);
+    // Convert "unassigned" back to empty string for the API
+    const submitData = {
+      ...data,
+      assigned_to: data.assigned_to === 'unassigned' ? '' : data.assigned_to,
+    };
+    onSubmit(submitData);
   };
 
   return (
@@ -94,14 +99,14 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Assigned To</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || 'unassigned'}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select user" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No assignment</SelectItem>
+                    <SelectItem value="unassigned">No assignment</SelectItem>
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name} ({user.email})
