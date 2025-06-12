@@ -61,8 +61,13 @@ export const usePMSchedule = (id: string) => {
           email: data.assigned_user.email
         } : undefined,
         checklist_items: checklistItems?.map(item => ({
-          ...item,
-          item_type: item.item_type as 'checkbox' | 'value'
+          id: item.id,
+          pm_schedule_id: item.pm_schedule_id,
+          item_text: item.item_text,
+          item_type: item.item_type as 'checkbox' | 'value',
+          sort_order: item.sort_order,
+          created_at: item.created_at,
+          updated_at: item.updated_at
         } as PMScheduleChecklistItem)) || []
       };
 
