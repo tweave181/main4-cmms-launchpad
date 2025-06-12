@@ -131,6 +131,108 @@ export type Database = {
           },
         ]
       }
+      pm_schedule_assets: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          pm_schedule_id: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          pm_schedule_id: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          pm_schedule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pm_schedule_assets_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedule_assets_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "preventive_maintenance_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preventive_maintenance_schedules: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          frequency_type: string
+          frequency_unit: string | null
+          frequency_value: number
+          id: string
+          instructions: string | null
+          is_active: boolean
+          last_completed_date: string | null
+          name: string
+          next_due_date: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          frequency_type: string
+          frequency_unit?: string | null
+          frequency_value?: number
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          last_completed_date?: string | null
+          name: string
+          next_due_date: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          frequency_type?: string
+          frequency_unit?: string | null
+          frequency_value?: number
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          last_completed_date?: string | null
+          name?: string
+          next_due_date?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preventive_maintenance_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventive_maintenance_schedules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string
