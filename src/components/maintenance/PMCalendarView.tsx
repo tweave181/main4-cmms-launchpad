@@ -1,145 +1,167 @@
 
 import React, { useState } from 'react';
-import { Calendar } from '@/components/ui/calendar';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { format, isSameDay } from 'date-fns';
-import { usePMSchedules } from '@/hooks/usePreventiveMaintenance';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import type { PMScheduleWithAssets } from '@/types/preventiveMaintenance';
 
 export const PMCalendarView: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const { data: schedules = [], isLoading } = usePMSchedules();
+  const { userProfile } = useAuth();
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  const getSchedulesForDate = (date: Date): PMScheduleWithAssets[] => {
+  const { data: schedules = [] } = useQuery({
+    queryKey: ['pm-schedules-calendar', format(currentDate, 'yyyy-MM')],
+    queryFn: async (): Promise<PMScheduleWithAssets[]> => {
+      console.log('Fetching PM schedules for calendar...');
+      
+      const monthStart = startOfMonth(currentDate);
+      const monthEnd = endOfMonth(currentDate);
+      
+      const { data, error } = await supabase
+        .from('preventive_maintenance_schedules')
+        .select(`
+          *,
+          pm_schedule_assets!inner(
+            asset_id,
+            assets(
+              id,
+              name,
+              asset_tag
+            )
+          )
+        `)
+        .eq('tenant_id', userProfile?.tenant_id)
+        .eq('is_active', true)
+        .gte('next_due_date', format(monthStart, 'yyyy-MM-dd'))
+        .lte('next_due_date', format(monthEnd, 'yyyy-MM-dd'));
+
+      if (error) {
+        console.error('Error fetching PM schedules for calendar:', error);
+        throw error;
+      }
+
+      console.log('PM schedules for calendar fetched:', data);
+      
+      // Transform the data to include assets array
+      const transformedData = data.map(schedule => ({
+        ...schedule,
+        assets: schedule.pm_schedule_assets?.map(psa => psa.assets).filter(Boolean) || []
+      }));
+
+      return transformedData;
+    },
+    enabled: !!userProfile?.tenant_id,
+  });
+
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const getSchedulesForDay = (day: Date) => {
     return schedules.filter(schedule => 
-      isSameDay(new Date(schedule.next_due_date), date)
+      isSameDay(new Date(schedule.next_due_date), day)
     );
   };
 
-  const getDateClassName = (date: Date): string => {
-    const schedulesForDate = getSchedulesForDate(date);
-    if (schedulesForDate.length === 0) return '';
-    
-    const hasOverdue = schedulesForDate.some(s => new Date(s.next_due_date) < new Date());
-    if (hasOverdue) return 'bg-red-100 text-red-900';
-    
-    return 'bg-blue-100 text-blue-900';
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1));
   };
-
-  const selectedDateSchedules = selectedDate ? getSchedulesForDate(selectedDate) : [];
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Skeleton className="h-80 w-full" />
-        </div>
-        <div>
-          <Skeleton className="h-80 w-full" />
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Maintenance Calendar</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              className="rounded-md border"
-              modifiers={{
-                hasSchedules: (date) => getSchedulesForDate(date).length > 0,
-              }}
-              modifiersClassNames={{
-                hasSchedules: 'bg-blue-100 text-blue-900 font-semibold',
-              }}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Select a Date'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {selectedDate ? (
-              <div className="space-y-3">
-                {selectedDateSchedules.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No maintenance scheduled for this date.
-                  </p>
-                ) : (
-                  selectedDateSchedules.map((schedule) => (
-                    <div key={schedule.id} className="border rounded-lg p-3">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-sm">{schedule.name}</h4>
-                        <Badge 
-                          variant={new Date(schedule.next_due_date) < new Date() ? 'destructive' : 'default'}
-                          className="text-xs"
-                        >
-                          {new Date(schedule.next_due_date) < new Date() ? 'Overdue' : 'Due'}
-                        </Badge>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center space-x-2">
+            <CalendarIcon className="h-5 w-5" />
+            <span>{format(currentDate, 'MMMM yyyy')}</span>
+          </CardTitle>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateMonth('prev')}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentDate(new Date())}
+            >
+              Today
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateMonth('next')}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-7 gap-2 mb-4">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
+              {day}
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-7 gap-2">
+          {days.map((day) => {
+            const daySchedules = getSchedulesForDay(day);
+            const isToday = isSameDay(day, new Date());
+            const isCurrentMonth = isSameMonth(day, currentDate);
+            
+            return (
+              <div
+                key={day.toISOString()}
+                className={`
+                  min-h-[100px] p-2 border rounded-lg
+                  ${isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}
+                  ${isToday ? 'ring-2 ring-primary ring-opacity-50' : ''}
+                  hover:bg-gray-50 transition-colors
+                `}
+              >
+                <div className={`text-sm font-medium mb-1 ${isToday ? 'text-primary font-bold' : ''}`}>
+                  {format(day, 'd')}
+                </div>
+                
+                <div className="space-y-1">
+                  {daySchedules.map((schedule) => (
+                    <div
+                      key={schedule.id}
+                      className="p-1 rounded text-xs bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 cursor-pointer transition-colors"
+                      title={`${schedule.name} - ${schedule.assets?.length || 0} assets`}
+                    >
+                      <div className="font-medium truncate">
+                        {schedule.name}
                       </div>
-                      
-                      {schedule.description && (
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {schedule.description}
-                        </p>
-                      )}
-                      
-                      <div className="text-xs text-muted-foreground">
-                        Assets: {schedule.assets?.length || 0}
+                      <div className="text-xs opacity-75">
+                        {schedule.assets?.length || 0} assets
                       </div>
-                      
-                      {schedule.assets && schedule.assets.length > 0 && (
-                        <div className="mt-2">
-                          <div className="text-xs text-muted-foreground mb-1">
-                            Equipment:
-                          </div>
-                          <div className="space-y-1">
-                            {schedule.assets.slice(0, 3).map((asset) => (
-                              <div key={asset.id} className="text-xs bg-gray-50 rounded px-2 py-1">
-                                {asset.name}
-                                {asset.asset_tag && (
-                                  <span className="text-muted-foreground ml-1">
-                                    #{asset.asset_tag}
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                            {schedule.assets.length > 3 && (
-                              <div className="text-xs text-muted-foreground">
-                                +{schedule.assets.length - 3} more...
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  ))
-                )}
+                  ))}
+                </div>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Click on a date to view scheduled maintenance.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            );
+          })}
+        </div>
+
+        {schedules.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <CalendarIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+            <p>No maintenance scheduled for {format(currentDate, 'MMMM yyyy')}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };

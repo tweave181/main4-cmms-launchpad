@@ -1,9 +1,9 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
-import type { PreventiveMaintenanceSchedule, PMScheduleFormData, PMScheduleWithAssets } from '@/types/preventiveMaintenance';
 import { useAuth } from '@/contexts/auth';
+import { toast } from '@/components/ui/use-toast';
+import type { PMScheduleFormData, PMScheduleWithAssets } from '@/types/preventiveMaintenance';
 
 export const usePMSchedules = () => {
   const { userProfile } = useAuth();
@@ -17,9 +17,9 @@ export const usePMSchedules = () => {
         .from('preventive_maintenance_schedules')
         .select(`
           *,
-          pm_schedule_assets (
+          pm_schedule_assets!inner(
             asset_id,
-            assets (
+            assets(
               id,
               name,
               asset_tag
@@ -35,26 +35,29 @@ export const usePMSchedules = () => {
       }
 
       console.log('PM schedules fetched:', data);
-
-      return data.map(schedule => ({
+      
+      // Transform the data to include assets array
+      const transformedData = data.map(schedule => ({
         ...schedule,
         assets: schedule.pm_schedule_assets?.map(psa => psa.assets).filter(Boolean) || []
       }));
+
+      return transformedData;
     },
     enabled: !!userProfile?.tenant_id,
   });
 };
 
 export const useCreatePMSchedule = () => {
-  const queryClient = useQueryClient();
   const { userProfile } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: PMScheduleFormData) => {
-      console.log('Creating PM schedule:', data);
+      console.log('Creating PM schedule with data:', data);
 
-      if (!userProfile) {
-        throw new Error('User profile not found');
+      if (!userProfile?.tenant_id) {
+        throw new Error('No tenant found');
       }
 
       // Create the PM schedule
@@ -80,11 +83,13 @@ export const useCreatePMSchedule = () => {
         throw scheduleError;
       }
 
-      // Link assets to the PM schedule
+      console.log('PM schedule created:', schedule);
+
+      // Link assets to the schedule
       if (data.asset_ids.length > 0) {
-        const assetLinks = data.asset_ids.map(asset_id => ({
+        const assetLinks = data.asset_ids.map(assetId => ({
           pm_schedule_id: schedule.id,
-          asset_id,
+          asset_id: assetId,
         }));
 
         const { error: linkError } = await supabase
@@ -95,23 +100,24 @@ export const useCreatePMSchedule = () => {
           console.error('Error linking assets to PM schedule:', linkError);
           throw linkError;
         }
-      }
 
-      toast({
-        title: "Success",
-        description: "Preventive maintenance schedule created successfully",
-      });
+        console.log('Assets linked to PM schedule successfully');
+      }
 
       return schedule;
     },
     onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Preventive maintenance schedule created successfully",
+      });
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
     },
-    onError: (error) => {
-      console.error('PM schedule creation failed:', error);
+    onError: (error: any) => {
+      console.error('PM schedule creation error:', error);
       toast({
         title: "Error",
-        description: "Failed to create preventive maintenance schedule",
+        description: error.message || "Failed to create PM schedule",
         variant: "destructive",
       });
     },
@@ -144,19 +150,46 @@ export const useUpdatePMSchedule = () => {
         throw error;
       }
 
+      // Update asset links if provided
+      if (data.asset_ids) {
+        // Remove existing links
+        await supabase
+          .from('pm_schedule_assets')
+          .delete()
+          .eq('pm_schedule_id', id);
+
+        // Add new links
+        if (data.asset_ids.length > 0) {
+          const assetLinks = data.asset_ids.map(assetId => ({
+            pm_schedule_id: id,
+            asset_id: assetId,
+          }));
+
+          const { error: linkError } = await supabase
+            .from('pm_schedule_assets')
+            .insert(assetLinks);
+
+          if (linkError) {
+            console.error('Error updating asset links:', linkError);
+            throw linkError;
+          }
+        }
+      }
+
+      console.log('PM schedule updated successfully');
+    },
+    onSuccess: () => {
       toast({
         title: "Success",
         description: "Preventive maintenance schedule updated successfully",
       });
-    },
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
     },
-    onError: (error) => {
-      console.error('PM schedule update failed:', error);
+    onError: (error: any) => {
+      console.error('PM schedule update error:', error);
       toast({
         title: "Error",
-        description: "Failed to update preventive maintenance schedule",
+        description: error.message || "Failed to update PM schedule",
         variant: "destructive",
       });
     },
@@ -180,19 +213,20 @@ export const useDeletePMSchedule = () => {
         throw error;
       }
 
+      console.log('PM schedule deleted successfully');
+    },
+    onSuccess: () => {
       toast({
         title: "Success",
         description: "Preventive maintenance schedule deleted successfully",
       });
-    },
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
     },
-    onError: (error) => {
-      console.error('PM schedule deletion failed:', error);
+    onError: (error: any) => {
+      console.error('PM schedule deletion error:', error);
       toast({
         title: "Error",
-        description: "Failed to delete preventive maintenance schedule",
+        description: error.message || "Failed to delete PM schedule",
         variant: "destructive",
       });
     },
