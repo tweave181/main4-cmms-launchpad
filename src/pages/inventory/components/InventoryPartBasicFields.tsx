@@ -17,18 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-interface FormData {
-  name: string;
-  description?: string;
-  sku: string;
-  category?: string;
-  quantity_in_stock: number;
-  reorder_threshold: number;
-  unit_of_measure: 'pieces' | 'kg' | 'lbs' | 'liters' | 'gallons' | 'meters' | 'feet' | 'hours';
-  storage_locations?: string;
-  linked_asset_type?: string;
-}
+import type { FormData } from './useInventoryPartForm';
 
 interface InventoryPartBasicFieldsProps {
   control: Control<FormData>;
