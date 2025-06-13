@@ -8,7 +8,8 @@ import { WorkOrderFiltersComponent } from '@/components/work-orders/WorkOrderFil
 import { CreateWorkOrderModal } from '@/components/work-orders/CreateWorkOrderModal';
 import { WorkOrderDetail } from '@/components/work-orders/WorkOrderDetail';
 import { EditWorkOrderModal } from '@/components/work-orders/EditWorkOrderModal';
-import { useWorkOrders } from '@/hooks/useWorkOrders';
+import { MobileActionButtons } from '@/components/mobile/MobileActionButtons';
+import { useOfflineWorkOrders } from '@/hooks/useOfflineWorkOrders';
 import type { WorkOrder, WorkOrderFilters } from '@/types/workOrder';
 
 const WorkOrders: React.FC = () => {
@@ -18,7 +19,7 @@ const WorkOrders: React.FC = () => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const { data: workOrders = [], isLoading } = useWorkOrders(filters);
+  const { data: workOrders = [], isLoading, isOffline } = useOfflineWorkOrders(filters);
 
   const handleWorkOrderClick = (workOrder: WorkOrder) => {
     console.log('Clicked work order:', workOrder);
@@ -46,6 +47,12 @@ const WorkOrders: React.FC = () => {
     setFilters({});
   };
 
+  const handleQRScanned = (code: string) => {
+    // Search for asset by code and open its work orders
+    console.log('QR scanned:', code);
+    setFilters({ search: code });
+  };
+
   return (
     <div className="p-6">
       <Card className="rounded-2xl shadow-sm border border-gray-200">
@@ -54,6 +61,7 @@ const WorkOrders: React.FC = () => {
             <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
               <Wrench className="h-6 w-6 text-primary" />
               <span>Work Orders</span>
+              {isOffline && <span className="text-sm text-orange-600">(Offline)</span>}
             </CardTitle>
             <Button 
               onClick={() => setIsCreateModalOpen(true)}
@@ -70,6 +78,16 @@ const WorkOrders: React.FC = () => {
             onFiltersChange={setFilters}
             onClearFilters={handleClearFilters}
           />
+          
+          {/* Mobile action buttons for scanning and quick actions */}
+          <div className="md:hidden mb-4">
+            <MobileActionButtons
+              onQRScanned={handleQRScanned}
+              showCamera={false}
+              showVoice={false}
+              showQR={true}
+            />
+          </div>
           
           <WorkOrderList
             workOrders={workOrders}

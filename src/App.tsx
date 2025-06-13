@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/auth";
 import AuthPage from "@/components/auth/AuthPage";
 import Dashboard from "@/components/Dashboard";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 import WorkOrders from "@/pages/WorkOrders";
 import Assets from "@/pages/Assets";
 import Maintenance from "@/pages/Maintenance";
@@ -41,6 +42,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <AppLayout>
+        <OfflineIndicator />
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/work-orders" element={<WorkOrders />} />
