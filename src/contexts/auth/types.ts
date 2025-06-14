@@ -6,7 +6,7 @@ export interface UserProfile {
   tenant_id: string;
   email: string;
   name: string;
-  role: 'admin' | 'manager' | 'technician' | 'contractor';
+  role: 'admin' | 'manager' | 'technician';
   created_at: string;
   updated_at: string;
 }

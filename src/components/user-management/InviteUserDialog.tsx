@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,10 +54,7 @@ export const InviteUserDialog: React.FC = () => {
 
   const onSubmit = async (data: InviteUserFormData) => {
     try {
-      await createInvitationMutation.mutateAsync({
-        email: data.email,
-        role: data.role,
-      });
+      await createInvitationMutation.mutateAsync(data);
       toast({
         title: "Success",
         description: "Invitation sent successfully",

@@ -2,9 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Building2, User, Shield, AlertCircle } from 'lucide-react';
+import { Building2, User, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const WelcomeCard: React.FC = () => {
   const { userProfile, tenant, isAdmin, loading, ready } = useAuth();
@@ -51,28 +50,6 @@ export const WelcomeCard: React.FC = () => {
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Show error state if profile failed to load
-  if (!userProfile) {
-    return (
-      <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
-        <CardHeader className="p-0 mb-6">
-          <CardTitle className="text-2xl font-semibold">Welcome!</CardTitle>
-          <CardDescription>
-            Your multi-tenant Computerized Maintenance Management System
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Unable to load your profile. Please contact your admin to activate your account or try refreshing the page.
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
     );
