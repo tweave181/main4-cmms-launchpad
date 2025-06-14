@@ -13,9 +13,9 @@ export const useUsers = () => {
       
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email')
+        .select('*')
         .eq('tenant_id', userProfile?.tenant_id)
-        .order('name');
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching users:', error);
