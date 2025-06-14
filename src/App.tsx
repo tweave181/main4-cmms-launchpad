@@ -17,6 +17,7 @@ import Reports from "@/pages/Reports";
 import Vendors from "@/pages/Vendors";
 import Departments from "@/pages/Departments";
 import AdminSettings from "@/pages/AdminSettings";
+import UserManagement from "@/pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const AppContent = () => {
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/departments" element={<Departments />} />
           <Route path="/settings" element={<AdminSettings />} />
+          <Route path="/users" element={<UserManagement />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>

@@ -11,7 +11,8 @@ import {
   Users, 
   Settings,
   Building2,
-  Building
+  Building,
+  UserCog
 } from 'lucide-react';
 import {
   Sidebar,
@@ -67,6 +68,14 @@ const menuItems = [
     url: "/departments",
     icon: Building,
   },
+];
+
+const adminMenuItems = [
+  {
+    title: "User Management",
+    url: "/users",
+    icon: UserCog,
+  },
   {
     title: "Admin Settings",
     url: "/settings",
@@ -76,7 +85,7 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const { tenant } = useAuth();
+  const { tenant, isAdmin } = useAuth();
 
   return (
     <Sidebar className="border-r">
@@ -109,6 +118,26 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminMenuItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                      <Link to={item.url} className="flex items-center space-x-3">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
