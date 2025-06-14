@@ -9,6 +9,7 @@ export const useUserProfile = () => {
   
   const { 
     profileLoading, 
+    profileError,
     fetchUserProfile: fetchProfile, 
     clearUserData: clearFetchingData 
   } = useProfileFetching();
@@ -28,6 +29,7 @@ export const useUserProfile = () => {
     userProfile,
     tenant,
     profileLoading,
+    profileError,
     fetchUserProfile,
     clearUserData
   };

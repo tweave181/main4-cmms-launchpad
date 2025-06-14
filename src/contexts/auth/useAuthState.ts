@@ -28,6 +28,7 @@ export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [ready, setReady] = useState(false);
+  const [sessionInitialized, setSessionInitialized] = useState(false);
   const { userProfile, tenant, profileLoading, fetchUserProfile, clearUserData } = useUserProfile();
 
   // Memoized function to handle session validation and profile fetching
@@ -39,9 +40,27 @@ export const useAuthState = () => {
       return;
     }
 
+    // Wait a bit longer for JWT claims to be properly set, especially for new signups
     if (!hasValidJWTClaims(session)) {
-      console.log('Session found but JWT claims not ready yet, waiting...');
+      console.log('Session found but JWT claims not ready yet, will retry...');
       setReady(false);
+      
+      // For new signups, give more time for the database trigger to complete
+      setTimeout(async () => {
+        const { data: { session: refreshedSession } } = await supabase.auth.getSession();
+        if (refreshedSession && hasValidJWTClaims(refreshedSession)) {
+          console.log('JWT claims now ready after retry, fetching profile');
+          setReady(true);
+          try {
+            await fetchUserProfile(refreshedSession.user.id);
+          } catch (error) {
+            console.error('Failed to fetch user profile after retry:', error);
+          }
+        } else {
+          console.log('JWT claims still not ready after retry');
+          setReady(false);
+        }
+      }, 1500);
       return;
     }
 
@@ -68,6 +87,7 @@ export const useAuthState = () => {
         
         console.log('Initial session check:', session ? 'User logged in' : 'No session');
         setUser(session?.user ?? null);
+        setSessionInitialized(true);
         
         if (session?.user) {
           await handleSessionReady(session);
@@ -81,6 +101,7 @@ export const useAuthState = () => {
         if (mounted) {
           setLoading(false);
           setReady(false);
+          setSessionInitialized(true);
         }
       }
     };
@@ -93,6 +114,7 @@ export const useAuthState = () => {
       
       console.log('Auth state changed:', event, session ? 'User logged in' : 'No session');
       setUser(session?.user ?? null);
+      setSessionInitialized(true);
       
       if (session?.user) {
         // For new signups, add a delay to ensure the trigger has completed
@@ -126,6 +148,7 @@ export const useAuthState = () => {
     userProfile,
     tenant,
     loading: loading || (user && !ready),
-    ready
+    ready,
+    sessionInitialized
   };
 };

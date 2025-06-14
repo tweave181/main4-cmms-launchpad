@@ -12,6 +12,7 @@ import { validateSessionAndClaims } from '../utils/sessionValidation';
 export const useProfileFetching = () => {
   const [profileLoading, setProfileLoading] = useState(false);
   const [lastFetchedUserId, setLastFetchedUserId] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   const fetchUserProfile = useCallback(async (
     userId: string,
@@ -27,6 +28,7 @@ export const useProfileFetching = () => {
 
     try {
       setProfileLoading(true);
+      setProfileError(null);
       
       // Validate session and JWT claims
       const session = await validateSessionAndClaims(userId);
@@ -47,9 +49,10 @@ export const useProfileFetching = () => {
             console.log('Successfully created and retrieved missing profile');
           } catch (createError) {
             console.error('Failed to create missing profile:', createError);
+            setProfileError('Unable to create your profile. Please contact your admin to activate your account.');
             toast({
-              title: "Profile Creation Error",
-              description: "Unable to create your profile. Please contact support.",
+              title: "Account Setup Required",
+              description: "Please contact your admin to activate your account.",
               variant: "destructive",
             });
             setProfileLoading(false);
@@ -57,6 +60,7 @@ export const useProfileFetching = () => {
           }
         } else {
           // Some other error occurred
+          setProfileError('Unable to load your profile. Please try logging in again.');
           toast({
             title: "Profile Loading Error",
             description: "Unable to load your profile. Please try logging in again.",
@@ -69,9 +73,10 @@ export const useProfileFetching = () => {
 
       if (!profile) {
         console.error('No profile found and creation failed for user:', userId);
+        setProfileError('Your user profile was not found. Please contact your admin to activate your account.');
         toast({
-          title: "Profile Not Found",
-          description: "Your user profile was not found. Please contact support.",
+          title: "Account Not Found",
+          description: "Please contact your admin to activate your account.",
           variant: "destructive",
         });
         setProfileLoading(false);
@@ -99,6 +104,7 @@ export const useProfileFetching = () => {
       setUserProfile(null);
       setTenant(null);
       setLastFetchedUserId(null);
+      setProfileError('Unable to load your profile. Please try logging in again.');
       setProfileLoading(false);
     }
   }, [lastFetchedUserId]);
@@ -106,10 +112,12 @@ export const useProfileFetching = () => {
   const clearUserData = useCallback(() => {
     console.log('Clearing user data');
     setLastFetchedUserId(null);
+    setProfileError(null);
   }, []);
 
   return {
     profileLoading,
+    profileError,
     fetchUserProfile,
     clearUserData
   };
