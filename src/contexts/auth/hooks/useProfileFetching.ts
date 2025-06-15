@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
 import type { UserProfile } from '../types';
@@ -21,54 +20,67 @@ export const useProfileFetching = () => {
   ) => {
     // Prevent duplicate fetches for the same user
     if (lastFetchedUserId === userId && userProfile) {
-      console.log('Profile already fetched for this user, skipping');
       return;
     }
 
     try {
       setProfileLoading(true);
-      
+
       // Validate session and JWT claims
       const session = await validateSessionAndClaims(userId);
 
-      // Attempt to fetch user profile with retry logic
+      // Attempt to fetch user profile with retry logic (wrap in try/catch for token/401/403 error)
       let profile;
       try {
-        profile = await fetchProfileWithRetry(userId);
+        try {
+          profile = await fetchProfileWithRetry(userId);
+        } catch (error: any) {
+          // Handle common errors for invalid/expired session and propagate as needed
+          if (
+            error?.status === 401 ||
+            error?.status === 403 ||
+            error?.status === 400 ||
+            (typeof error.message === "string" &&
+              (
+                error.message.toLowerCase().includes("token") ||
+                error.message.toLowerCase().includes("refresh") ||
+                error.message.toLowerCase().includes("expired") ||
+                error.message.toLowerCase().includes("session")
+              )
+            )
+          ) {
+            throw new Error("SESSION_EXPIRED");
+          }
+          throw error;
+        }
       } catch (error: any) {
-        console.error('Profile fetch failed:', error);
-
+        // Handle specific error types
+        if (error.message === "SESSION_EXPIRED") {
+          setProfileLoading(false);
+          throw { status: 401, message: "Session expired." };
+        }
         // Handle specific error types
         if (error.message === 'PROFILE_NOT_FOUND') {
-          console.log('Profile not found, attempting to create missing profile...');
-          
           try {
             profile = await createMissingProfile(session);
-            console.log('Successfully created and retrieved missing profile');
           } catch (createError: any) {
-            console.error('Failed to create missing profile:', createError);
             setProfileLoading(false);
             throw new Error('Unable to create your profile. Please contact support for assistance.');
           }
         } else if (error.message === 'PROFILE_ACCESS_DENIED') {
-          console.error('Profile access denied:', error);
           setProfileLoading(false);
           throw new Error('You do not have permission to access this profile. Please contact an administrator.');
         } else {
-          // Some other error occurred
-          console.error('Profile access error:', error);
           setProfileLoading(false);
           throw new Error('Unable to access your profile. Please try again or contact support if the problem persists.');
         }
       }
 
       if (!profile) {
-        console.error('No profile found and creation failed for user:', userId);
         setProfileLoading(false);
         throw new Error('Your user profile could not be found or created. Please contact support.');
       }
 
-      console.log('User profile ready:', profile);
       setUserProfile(profile);
       setLastFetchedUserId(userId);
 
@@ -87,22 +99,17 @@ export const useProfileFetching = () => {
           });
         }
       }
-      
-      console.log('=== Profile fetch completed successfully ===');
       setProfileLoading(false);
     } catch (error: any) {
-      console.error('Error in fetchUserProfile:', error);
       setUserProfile(null);
       setTenant(null);
       setLastFetchedUserId(null);
       setProfileLoading(false);
-      // Re-throw the error so the parent can handle it
       throw error;
     }
   }, [lastFetchedUserId]);
 
   const clearUserData = useCallback(() => {
-    console.log('Clearing user data');
     setLastFetchedUserId(null);
   }, []);
 
