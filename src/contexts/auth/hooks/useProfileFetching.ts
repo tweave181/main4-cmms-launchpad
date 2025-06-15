@@ -45,37 +45,24 @@ export const useProfileFetching = () => {
           try {
             profile = await createMissingProfile(session);
             console.log('Successfully created and retrieved missing profile');
-          } catch (createError) {
+          } catch (createError: any) {
             console.error('Failed to create missing profile:', createError);
-            toast({
-              title: "Profile Creation Error",
-              description: "Unable to create your profile. Please contact support.",
-              variant: "destructive",
-            });
+            // Don't show toast here, let the parent component handle the error state
             setProfileLoading(false);
-            return;
+            throw new Error('Unable to create your profile. Please contact support.');
           }
         } else {
-          // Some other error occurred
-          toast({
-            title: "Profile Loading Error",
-            description: "Unable to load your profile. Please try logging in again.",
-            variant: "destructive",
-          });
+          // Some other error occurred - this could be a permissions issue
+          console.error('Profile access error:', error);
           setProfileLoading(false);
-          throw error;
+          throw new Error(error.message || 'Unable to access your profile. Please try again or contact support.');
         }
       }
 
       if (!profile) {
         console.error('No profile found and creation failed for user:', userId);
-        toast({
-          title: "Profile Not Found",
-          description: "Your user profile was not found. Please contact support.",
-          variant: "destructive",
-        });
         setProfileLoading(false);
-        return;
+        throw new Error('Your user profile was not found. Please contact support.');
       }
 
       console.log('User profile ready:', profile);
@@ -87,19 +74,27 @@ export const useProfileFetching = () => {
         try {
           const tenantData = await fetchTenantData(profile.tenant_id);
           setTenant(tenantData);
-        } catch (tenantError) {
-          // Error already handled in fetchTenantData
+        } catch (tenantError: any) {
+          console.error('Error fetching tenant data:', tenantError);
+          // Don't fail the entire profile fetch for tenant errors
+          toast({
+            title: "Organization Data Error",
+            description: "Unable to load organization information.",
+            variant: "destructive",
+          });
         }
       }
       
       console.log('=== Profile fetch completed successfully ===');
       setProfileLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in fetchUserProfile:', error);
       setUserProfile(null);
       setTenant(null);
       setLastFetchedUserId(null);
       setProfileLoading(false);
+      // Re-throw the error so the parent can handle it
+      throw error;
     }
   }, [lastFetchedUserId]);
 

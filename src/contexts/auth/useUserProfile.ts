@@ -14,7 +14,12 @@ export const useUserProfile = () => {
   } = useProfileFetching();
 
   const fetchUserProfile = useCallback(async (userId: string) => {
-    await fetchProfile(userId, userProfile, setUserProfile, setTenant);
+    try {
+      await fetchProfile(userId, userProfile, setUserProfile, setTenant);
+    } catch (error) {
+      // Re-throw the error so the parent can handle it
+      throw error;
+    }
   }, [fetchProfile, userProfile]);
 
   const clearUserData = useCallback(() => {

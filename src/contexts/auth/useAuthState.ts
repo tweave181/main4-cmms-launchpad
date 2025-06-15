@@ -24,10 +24,14 @@ const hasValidJWTClaims = (session: any): boolean => {
   return isValid;
 };
 
+export type ProfileStatus = 'loading' | 'ready' | 'missing' | 'error';
+
 export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [ready, setReady] = useState(false);
+  const [profileStatus, setProfileStatus] = useState<ProfileStatus>('loading');
+  const [profileError, setProfileError] = useState<string | null>(null);
   const { userProfile, tenant, profileLoading, fetchUserProfile, clearUserData } = useUserProfile();
 
   // Memoized function to handle session validation and profile fetching
@@ -35,6 +39,8 @@ export const useAuthState = () => {
     if (!session?.user) {
       console.log('No session or user, clearing data');
       setReady(false);
+      setProfileStatus('loading');
+      setProfileError(null);
       clearUserData();
       return;
     }
@@ -42,18 +48,52 @@ export const useAuthState = () => {
     if (!hasValidJWTClaims(session)) {
       console.log('Session found but JWT claims not ready yet, waiting...');
       setReady(false);
+      setProfileStatus('loading');
       return;
     }
 
     console.log('Session and JWT claims are ready, fetching profile for:', session.user.id);
     setReady(true);
+    setProfileStatus('loading');
+    setProfileError(null);
     
     try {
       await fetchUserProfile(session.user.id);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch user profile:', error);
+      setProfileError(error.message || 'Failed to load profile');
+      setProfileStatus('error');
     }
   }, [fetchUserProfile, clearUserData]);
+
+  // Function to retry profile fetching
+  const retryProfileFetch = useCallback(async () => {
+    if (user) {
+      setProfileStatus('loading');
+      setProfileError(null);
+      try {
+        await fetchUserProfile(user.id);
+      } catch (error: any) {
+        console.error('Profile retry failed:', error);
+        setProfileError(error.message || 'Failed to load profile');
+        setProfileStatus('error');
+      }
+    }
+  }, [user, fetchUserProfile]);
+
+  // Update profile status based on userProfile state
+  useEffect(() => {
+    if (!loading && ready && !profileLoading) {
+      if (userProfile) {
+        setProfileStatus('ready');
+        setProfileError(null);
+      } else if (profileError) {
+        setProfileStatus('error');
+      } else {
+        setProfileStatus('missing');
+      }
+    }
+  }, [userProfile, loading, ready, profileLoading, profileError]);
 
   useEffect(() => {
     let mounted = true;
@@ -73,6 +113,7 @@ export const useAuthState = () => {
           await handleSessionReady(session);
         } else {
           setReady(false);
+          setProfileStatus('loading');
         }
         
         setLoading(false);
@@ -81,6 +122,8 @@ export const useAuthState = () => {
         if (mounted) {
           setLoading(false);
           setReady(false);
+          setProfileStatus('error');
+          setProfileError('Failed to initialize authentication');
         }
       }
     };
@@ -109,6 +152,8 @@ export const useAuthState = () => {
       } else {
         console.log('No session, clearing user data');
         setReady(false);
+        setProfileStatus('loading');
+        setProfileError(null);
         clearUserData();
       }
       
@@ -126,6 +171,9 @@ export const useAuthState = () => {
     userProfile,
     tenant,
     loading: loading || (user && !ready),
-    ready
+    ready,
+    profileStatus,
+    profileError,
+    retryProfileFetch
   };
 };

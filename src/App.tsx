@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/auth";
 import AuthPage from "@/components/auth/AuthPage";
+import AccountSetupRequired from "@/components/auth/AccountSetupRequired";
 import Dashboard from "@/components/Dashboard";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
@@ -23,8 +24,9 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, profileStatus, profileError, retryProfileFetch } = useAuth();
 
+  // Show loading spinner while initializing auth
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -36,10 +38,40 @@ const AppContent = () => {
     );
   }
 
+  // Show login page if no user
   if (!user) {
     return <AuthPage />;
   }
 
+  // Handle profile status after user is authenticated
+  if (profileStatus === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show account setup screen for missing profiles
+  if (profileStatus === 'missing') {
+    return <AccountSetupRequired reason="missing" />;
+  }
+
+  // Show account setup screen for profile errors with retry option
+  if (profileStatus === 'error') {
+    return (
+      <AccountSetupRequired 
+        reason="error" 
+        errorMessage={profileError || undefined}
+        onRetry={retryProfileFetch}
+      />
+    );
+  }
+
+  // Show main app when profile is ready
   return (
     <BrowserRouter>
       <AppLayout>
