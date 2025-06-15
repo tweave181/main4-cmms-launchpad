@@ -202,7 +202,7 @@ export const useAuthState = () => {
         setProfileStatus('loading');
         setProfileError(null);
         clearUserData();
-        if (event === "SIGNED_OUT" || event === "USER_DELETED" || event === "TOKEN_REFRESH_FAILED") {
+        if (event === "SIGNED_OUT") {
           navigate("/?expired=1", { replace: true });
         }
         setLoading(false);

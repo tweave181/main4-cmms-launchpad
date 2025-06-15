@@ -21,9 +21,9 @@ export const useAssets = () => {
 
         if (error) {
           if (
-            error.status === 401 ||
-            error.status === 403 ||
-            error.status === 400 ||
+            error.code === "401" ||
+            error.code === "403" ||
+            error.code === "400" ||
             (typeof error.message === "string" &&
               (error.message.toLowerCase().includes("token") ||
                 error.message.toLowerCase().includes("refresh") ||
