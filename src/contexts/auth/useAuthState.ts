@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserProfile } from './useUserProfile';
@@ -25,7 +25,11 @@ const hasValidJWTClaims = (session: any): boolean => {
 
 import { useNavigate } from "react-router-dom";
 
-export type ProfileStatus = 'loading' | 'ready' | 'missing' | 'error' | 'expired';
+// Add short-lived local rate limit backoff flag
+const RATE_LIMIT_BACKOFF_KEY = 'lovableRateLimitBackoff';
+const RATE_LIMIT_BACKOFF_DURATION = 2500;
+
+export type ProfileStatus = 'loading' | 'ready' | 'missing' | 'error' | 'expired' | 'rate-limit';
 
 export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -35,6 +39,27 @@ export const useAuthState = () => {
   const [profileError, setProfileError] = useState<string | null>(null);
   const { userProfile, tenant, profileLoading, fetchUserProfile, clearUserData } = useUserProfile();
   const navigate = useNavigate();
+  const [backoffActive, setBackoffActive] = useState(false);
+  const backoffTimeout = useRef<NodeJS.Timeout | null>(null);
+  // local (per tab) session validation cache
+  const sessionChecked = useRef<string | null>(null);
+
+  // Helper to apply a backoff: disables auth/profile reload during rate limit window
+  const activateBackoff = useCallback((msg?: string) => {
+    setProfileStatus('rate-limit');
+    setProfileError(msg ?? "We’re reconnecting you. Please wait...");
+    setBackoffActive(true);
+    localStorage.setItem(RATE_LIMIT_BACKOFF_KEY, Date.now().toString()); // simple flag
+
+    // Reset after N ms
+    if (backoffTimeout.current) clearTimeout(backoffTimeout.current);
+    backoffTimeout.current = setTimeout(() => {
+      setBackoffActive(false);
+      setProfileStatus('loading');
+      setProfileError(null);
+      localStorage.removeItem(RATE_LIMIT_BACKOFF_KEY);
+    }, RATE_LIMIT_BACKOFF_DURATION);
+  }, []);
 
   // Helper to handle forced logout + redirect on expired/invalid session
   const handleExpiredSession = useCallback(async (customMsg?: string) => {
@@ -44,13 +69,12 @@ export const useAuthState = () => {
     setUser(null);
     setReady(false);
     setProfileStatus('expired');
-    setProfileError(customMsg || 'Your session expired. Please sign in again.');
+    setProfileError(customMsg || 'You were logged out. Please sign in again.');
     clearUserData();
-    // Go to login with message param
     navigate("/?expired=1", { replace: true });
   }, [clearUserData, navigate]);
 
-  // Memoized function to handle session validation and profile fetching
+  // Memoized function to handle session validation and profile fetching, with 429/401 awareness
   const handleSessionReady = useCallback(async (session: any) => {
     if (!session?.user) {
       setReady(false);
@@ -60,20 +84,34 @@ export const useAuthState = () => {
       return;
     }
 
-    if (!hasValidJWTClaims(session)) {
-      setReady(false);
+    // Only check claims once per session
+    if (sessionChecked.current === session.access_token) {
+      // Already checked for this session/token
+      setReady(true);
       setProfileStatus('loading');
-      return;
+      setProfileError(null);
+    } else {
+      if (!hasValidJWTClaims(session)) {
+        setReady(false);
+        setProfileStatus('loading');
+        return;
+      }
+      sessionChecked.current = session.access_token;
+      setReady(true);
+      setProfileStatus('loading');
+      setProfileError(null);
     }
 
-    setReady(true);
-    setProfileStatus('loading');
-    setProfileError(null);
-
+    // Try fetching the profile, with error signaling handled in catching block
     try {
       await fetchUserProfile(session.user.id);
     } catch (error: any) {
-      // Detect token or session errors
+      // 429 = Rate Limit. Activate backoff.
+      if (error?.status === 429 || error?.message?.includes('rate limit')) {
+        activateBackoff("We hit a temporary connection limit. Retrying...");
+        return;
+      }
+      // Usual session expiry errors
       if (
         error?.status === 400 ||
         error?.status === 401 ||
@@ -81,25 +119,37 @@ export const useAuthState = () => {
         error?.message?.toLowerCase().includes('token') ||
         error?.message?.toLowerCase().includes('refresh') ||
         error?.message?.toLowerCase().includes('invalid') ||
-        error?.message?.toLowerCase().includes('session') 
+        error?.message?.toLowerCase().includes('session')
       ) {
         await handleExpiredSession();
         return;
       }
-
       setProfileError(error.message || 'Failed to load profile');
       setProfileStatus('error');
     }
-  }, [fetchUserProfile, clearUserData, handleExpiredSession]);
+  }, [fetchUserProfile, clearUserData, activateBackoff, handleExpiredSession]);
 
-  // Function to retry profile fetching with 401/403 guard
+  // Retry, respecting rate limit
   const retryProfileFetch = useCallback(async () => {
+    // Short-circuit if rate limit window is active
+    const backoffUntil = parseInt(localStorage.getItem(RATE_LIMIT_BACKOFF_KEY) || '0', 10);
+    if (backoffActive || (backoffUntil && (Date.now() - backoffUntil < RATE_LIMIT_BACKOFF_DURATION))) {
+      setProfileStatus('rate-limit');
+      setProfileError("We’re reconnecting you. Please wait...");
+      return;
+    }
     if (user) {
       setProfileStatus('loading');
       setProfileError(null);
       try {
         await fetchUserProfile(user.id);
       } catch (error: any) {
+        if (
+          error?.status === 429 || error?.message?.includes('rate limit')
+        ) {
+          activateBackoff();
+          return;
+        }
         if (
           error?.status === 400 ||
           error?.status === 401 ||
@@ -116,11 +166,11 @@ export const useAuthState = () => {
         setProfileStatus('error');
       }
     }
-  }, [user, fetchUserProfile, handleExpiredSession]);
+  }, [user, backoffActive, fetchUserProfile, activateBackoff, handleExpiredSession]);
 
-  // Update profile status based on userProfile state
   useEffect(() => {
     if (!loading && ready && !profileLoading) {
+      if (profileStatus === 'rate-limit') return; // stay on reconnecting message
       if (userProfile) {
         setProfileStatus('ready');
         setProfileError(null);
@@ -130,11 +180,12 @@ export const useAuthState = () => {
         setProfileStatus('missing');
       }
     }
-  }, [userProfile, loading, ready, profileLoading, profileError]);
+  }, [userProfile, loading, ready, profileLoading, profileError, profileStatus]);
 
   useEffect(() => {
     let mounted = true;
 
+    // Remove extra/session-refresh logic!
     const handleInitialSession = async (session: any) => {
       if (!session?.user) {
         setUser(null);
@@ -145,30 +196,10 @@ export const useAuthState = () => {
         return;
       }
 
-      // Try a cheap token refresh to detect locked-out state early
-      try {
-        // If refreshSession fails due to bad token, forcibly expire
-        const { error } = await supabase.auth.refreshSession();
-        if (error && (error.status === 400 ||
-          (error.message && (
-            error.message.toLowerCase().includes("invalid") ||
-            error.message.toLowerCase().includes("refresh") ||
-            error.message.toLowerCase().includes("expired")
-          ))
-        )) {
-          await handleExpiredSession();
-          return;
-        }
-      } catch (err: any) {
-        await handleExpiredSession();
-        return;
-      }
-
       setUser(session.user);
       await handleSessionReady(session);
     };
 
-    // Get initial session
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -192,7 +223,22 @@ export const useAuthState = () => {
       }
     };
 
-    // Listen for auth changes
+    // Handle 429 (rate limit) from other tabs
+    const handleStorage = () => {
+      const backoffUntil = parseInt(localStorage.getItem(RATE_LIMIT_BACKOFF_KEY) || '0', 10);
+      if (backoffUntil && (Date.now() - backoffUntil < RATE_LIMIT_BACKOFF_DURATION)) {
+        setProfileStatus('rate-limit');
+        setProfileError("We’re reconnecting you. Please wait...");
+        setBackoffActive(true);
+      } else if (backoffActive) {
+        setProfileStatus('loading');
+        setProfileError(null);
+        setBackoffActive(false);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // Listen for auth changes (without preventive session refresh!)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
 
@@ -209,26 +255,8 @@ export const useAuthState = () => {
         return;
       }
 
-      // Defensive check for token expiry on auth change
+      setUser(session.user);
       setTimeout(async () => {
-        try {
-          const { error } = await supabase.auth.refreshSession();
-          if (error && (
-            error.status === 400
-            || (error.message && (
-              error.message.toLowerCase().includes('invalid') ||
-              error.message.toLowerCase().includes('expired') ||
-              error.message.toLowerCase().includes('refresh')
-            ))
-          )) {
-            await handleExpiredSession();
-            return;
-          }
-        } catch (err) {
-          await handleExpiredSession();
-          return;
-        }
-        setUser(session.user);
         await handleSessionReady(session);
       }, 0);
 
@@ -240,8 +268,10 @@ export const useAuthState = () => {
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      window.removeEventListener('storage', handleStorage);
+      if (backoffTimeout.current) clearTimeout(backoffTimeout.current);
     };
-  }, [handleSessionReady, clearUserData, handleExpiredSession, navigate]);
+  }, [handleSessionReady, clearUserData, activateBackoff, handleExpiredSession, navigate, backoffActive]);
 
   return {
     user,
