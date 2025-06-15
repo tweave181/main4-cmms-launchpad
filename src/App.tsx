@@ -75,24 +75,22 @@ const AppContent = () => {
 
   // Show main app when profile is ready
   return (
-    <BrowserRouter>
-      <AppLayout>
-        <OfflineIndicator />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/work-orders" element={<WorkOrders />} />
-          <Route path="/assets" element={<Assets />} />
-          <Route path="/maintenance" element={<Maintenance />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/vendors" element={<Vendors />} />
-          <Route path="/departments" element={<Departments />} />
-          <Route path="/settings" element={<AdminSettings />} />
-          <Route path="/users" element={<UserManagement />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AppLayout>
-    </BrowserRouter>
+    <AppLayout>
+      <OfflineIndicator />
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/work-orders" element={<WorkOrders />} />
+        <Route path="/assets" element={<Assets />} />
+        <Route path="/maintenance" element={<Maintenance />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/vendors" element={<Vendors />} />
+        <Route path="/departments" element={<Departments />} />
+        <Route path="/settings" element={<AdminSettings />} />
+        <Route path="/users" element={<UserManagement />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AppLayout>
   );
 };
 
@@ -101,9 +99,11 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
