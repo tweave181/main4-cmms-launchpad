@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import type { UserProfile } from '../types';
 import { 
   createMissingProfile, 
@@ -36,10 +36,10 @@ export const useProfileFetching = () => {
       try {
         profile = await fetchProfileWithRetry(userId);
       } catch (error: any) {
-        console.error('Profile fetch failed after all retries:', error);
+        console.error('Profile fetch failed:', error);
 
-        // Check if this is a "row not found" error (PGRST116 or similar)
-        if (error.code === 'PGRST116' || error.message?.includes('no rows returned')) {
+        // Handle specific error types
+        if (error.message === 'PROFILE_NOT_FOUND') {
           console.log('Profile not found, attempting to create missing profile...');
           
           try {
@@ -47,22 +47,25 @@ export const useProfileFetching = () => {
             console.log('Successfully created and retrieved missing profile');
           } catch (createError: any) {
             console.error('Failed to create missing profile:', createError);
-            // Don't show toast here, let the parent component handle the error state
             setProfileLoading(false);
-            throw new Error('Unable to create your profile. Please contact support.');
+            throw new Error('Unable to create your profile. Please contact support for assistance.');
           }
+        } else if (error.message === 'PROFILE_ACCESS_DENIED') {
+          console.error('Profile access denied:', error);
+          setProfileLoading(false);
+          throw new Error('You do not have permission to access this profile. Please contact an administrator.');
         } else {
-          // Some other error occurred - this could be a permissions issue
+          // Some other error occurred
           console.error('Profile access error:', error);
           setProfileLoading(false);
-          throw new Error(error.message || 'Unable to access your profile. Please try again or contact support.');
+          throw new Error('Unable to access your profile. Please try again or contact support if the problem persists.');
         }
       }
 
       if (!profile) {
         console.error('No profile found and creation failed for user:', userId);
         setProfileLoading(false);
-        throw new Error('Your user profile was not found. Please contact support.');
+        throw new Error('Your user profile could not be found or created. Please contact support.');
       }
 
       console.log('User profile ready:', profile);
@@ -78,8 +81,8 @@ export const useProfileFetching = () => {
           console.error('Error fetching tenant data:', tenantError);
           // Don't fail the entire profile fetch for tenant errors
           toast({
-            title: "Organization Data Error",
-            description: "Unable to load organization information.",
+            title: "Organization Data Warning",
+            description: "Unable to load organization information, but you can still use the app.",
             variant: "destructive",
           });
         }

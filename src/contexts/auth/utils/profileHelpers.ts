@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import type { UserProfile } from '../types';
 
 // Helper function to create missing profile using session data
@@ -43,7 +43,7 @@ export const createMissingProfile = async (session: any): Promise<UserProfile> =
 };
 
 // Helper function to retry profile fetch with exponential backoff
-export const fetchProfileWithRetry = async (userId: string, maxRetries = 3): Promise<UserProfile | null> => {
+export const fetchProfileWithRetry = async (userId: string, maxRetries = 2): Promise<UserProfile | null> => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`Profile fetch attempt ${attempt}/${maxRetries} for user:`, userId);
@@ -62,12 +62,23 @@ export const fetchProfileWithRetry = async (userId: string, maxRetries = 3): Pro
           hint: error.hint
         });
 
-        // If it's the last attempt, throw the error
+        // Check for specific error types
+        if (error.code === 'PGRST116' || error.message?.includes('no rows returned')) {
+          // Profile doesn't exist - this is not a retry-able error
+          throw new Error('PROFILE_NOT_FOUND');
+        }
+
+        if (error.code === 'PGRST301' || error.message?.includes('permission denied')) {
+          // Permission denied - this is not a retry-able error
+          throw new Error('PROFILE_ACCESS_DENIED');
+        }
+
+        // If it's the last attempt, throw the original error
         if (attempt === maxRetries) {
           throw error;
         }
 
-        // Wait before retrying (exponential backoff: 500ms, 1s, 2s)
+        // Wait before retrying (exponential backoff: 500ms, 1s)
         const delay = Math.pow(2, attempt - 1) * 500;
         console.log(`Retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -80,11 +91,17 @@ export const fetchProfileWithRetry = async (userId: string, maxRetries = 3): Pro
       } else {
         console.log(`Profile fetch attempt ${attempt} returned null`);
         if (attempt === maxRetries) {
-          return null;
+          throw new Error('PROFILE_NOT_FOUND');
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Profile fetch attempt ${attempt} threw error:`, error);
+      
+      // Don't retry for specific error types
+      if (error.message === 'PROFILE_NOT_FOUND' || error.message === 'PROFILE_ACCESS_DENIED') {
+        throw error;
+      }
+      
       if (attempt === maxRetries) {
         throw error;
       }
@@ -109,11 +126,6 @@ export const fetchTenantData = async (tenantId: string) => {
 
   if (tenantError) {
     console.error('Error fetching tenant:', tenantError);
-    toast({
-      title: "Organization Data Error",
-      description: "Unable to load organization information.",
-      variant: "destructive",
-    });
     throw tenantError;
   }
 

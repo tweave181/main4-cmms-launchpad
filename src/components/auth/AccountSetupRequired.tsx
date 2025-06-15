@@ -4,13 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/auth';
-import { AlertCircle, LogOut, RefreshCw } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { AlertCircle, LogOut, RefreshCw, HelpCircle } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface AccountSetupRequiredProps {
   reason: 'missing' | 'error';
   errorMessage?: string;
-  onRetry?: () => void;
+  onRetry?: () => Promise<void>;
 }
 
 const AccountSetupRequired: React.FC<AccountSetupRequiredProps> = ({ 
@@ -42,9 +42,48 @@ const AccountSetupRequired: React.FC<AccountSetupRequiredProps> = ({
       setIsRetrying(true);
       try {
         await onRetry();
+      } catch (error: any) {
+        toast({
+          title: "Retry Failed",
+          description: error.message || "Unable to load your profile. Please try again later.",
+          variant: "destructive",
+        });
       } finally {
         setIsRetrying(false);
       }
+    }
+  };
+
+  const getTitle = () => {
+    switch (reason) {
+      case 'missing':
+        return 'Account Setup Required';
+      case 'error':
+        return 'Profile Access Issue';
+      default:
+        return 'Account Setup Required';
+    }
+  };
+
+  const getDescription = () => {
+    switch (reason) {
+      case 'missing':
+        return 'Your account profile could not be found in our system';
+      case 'error':
+        return 'There was an issue accessing your account profile';
+      default:
+        return 'Your account needs additional configuration';
+    }
+  };
+
+  const getAlertMessage = () => {
+    switch (reason) {
+      case 'missing':
+        return 'Your account is not fully configured in our system. This usually happens when your account was created but the profile setup was not completed. Please contact an administrator to complete your account setup.';
+      case 'error':
+        return errorMessage || 'There was an error accessing your profile. This could be a temporary issue or a permissions problem. Please try again or contact support if the problem persists.';
+      default:
+        return 'There was an issue with your account setup. Please contact support for assistance.';
     }
   };
 
@@ -54,30 +93,23 @@ const AccountSetupRequired: React.FC<AccountSetupRequiredProps> = ({
         <Card>
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
-              <AlertCircle className="h-6 w-6 text-orange-600" />
+              {reason === 'error' ? (
+                <AlertCircle className="h-6 w-6 text-orange-600" />
+              ) : (
+                <HelpCircle className="h-6 w-6 text-orange-600" />
+              )}
             </div>
-            <CardTitle>Account Setup Required</CardTitle>
+            <CardTitle>{getTitle()}</CardTitle>
             <CardDescription>
-              {reason === 'missing' 
-                ? "Your account is not fully configured" 
-                : "There was an issue accessing your account"}
+              {getDescription()}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {reason === 'missing' ? (
-              <Alert>
-                <AlertDescription>
-                  Your account is not fully configured. Please contact an admin to complete your account setup, 
-                  or if you were recently invited to join an organization, please ensure you accepted the invitation properly.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <Alert variant="destructive">
-                <AlertDescription>
-                  {errorMessage || "There was an error accessing your profile. Please try again or contact support."}
-                </AlertDescription>
-              </Alert>
-            )}
+            <Alert variant={reason === 'error' ? 'destructive' : 'default'}>
+              <AlertDescription>
+                {getAlertMessage()}
+              </AlertDescription>
+            </Alert>
 
             <div className="space-y-2">
               {reason === 'error' && onRetry && (
@@ -112,10 +144,14 @@ const AccountSetupRequired: React.FC<AccountSetupRequiredProps> = ({
             </div>
 
             {user?.email && (
-              <div className="text-center text-sm text-muted-foreground">
+              <div className="text-center text-sm text-muted-foreground border-t pt-4">
                 Signed in as: {user.email}
               </div>
             )}
+
+            <div className="text-center text-xs text-muted-foreground">
+              If you continue to experience issues, please contact your system administrator for assistance.
+            </div>
           </CardContent>
         </Card>
       </div>
