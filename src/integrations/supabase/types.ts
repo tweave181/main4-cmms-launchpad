@@ -529,10 +529,15 @@ export type Database = {
       users: {
         Row: {
           created_at: string
+          department_id: string | null
           email: string
+          employment_status:
+            | Database["public"]["Enums"]["employment_status"]
+            | null
           id: string
           last_login: string | null
           name: string
+          phone_number: string | null
           role: Database["public"]["Enums"]["user_role"]
           status: string
           tenant_id: string
@@ -540,10 +545,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          department_id?: string | null
           email: string
+          employment_status?:
+            | Database["public"]["Enums"]["employment_status"]
+            | null
           id: string
           last_login?: string | null
           name?: string
+          phone_number?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: string
           tenant_id: string
@@ -551,16 +561,28 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          department_id?: string | null
           email?: string
+          employment_status?:
+            | Database["public"]["Enums"]["employment_status"]
+            | null
           id?: string
           last_login?: string | null
           name?: string
+          phone_number?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: string
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "users_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "users_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -748,6 +770,7 @@ export type Database = {
     Enums: {
       asset_priority: "low" | "medium" | "high" | "critical"
       asset_status: "active" | "inactive" | "maintenance" | "disposed"
+      employment_status: "Full Time" | "Part Time" | "Bank Staff" | "Contractor"
       part_unit:
         | "pieces"
         | "kg"
@@ -876,6 +899,7 @@ export const Constants = {
     Enums: {
       asset_priority: ["low", "medium", "high", "critical"],
       asset_status: ["active", "inactive", "maintenance", "disposed"],
+      employment_status: ["Full Time", "Part Time", "Bank Staff", "Contractor"],
       part_unit: [
         "pieces",
         "kg",

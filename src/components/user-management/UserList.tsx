@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, UserX, UserCheck, Shield, Users as UsersIcon, Wrench, Building } from 'lucide-react';
+import { MoreHorizontal, UserX, UserCheck, Shield, Users as UsersIcon, Wrench, Building, Phone, Edit } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useUsers } from '@/hooks/queries/useUsers';
 import { useUpdateUserStatus } from '@/hooks/mutations/useUpdateUserStatus';
+import { EditUserDialog } from './EditUserDialog';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 
@@ -50,6 +51,21 @@ const getRoleBadgeVariant = (role: string) => {
       return 'outline';
     default:
       return 'secondary';
+  }
+};
+
+const getEmploymentStatusColor = (status: string) => {
+  switch (status) {
+    case 'Full Time':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'Part Time':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'Bank Staff':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    case 'Contractor':
+      return 'bg-orange-100 text-orange-800 border-orange-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
   }
 };
 
@@ -115,6 +131,9 @@ export const UserList: React.FC = () => {
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
+            <TableHead>Employment</TableHead>
+            <TableHead>Department</TableHead>
+            <TableHead>Phone</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Last Login</TableHead>
             <TableHead>Joined</TableHead>
@@ -134,6 +153,26 @@ export const UserList: React.FC = () => {
                   {getRoleIcon(user.role)}
                   <span className="capitalize">{user.role}</span>
                 </Badge>
+              </TableCell>
+              <TableCell>
+                {user.employment_status && (
+                  <Badge className={`text-xs ${getEmploymentStatusColor(user.employment_status)}`}>
+                    {user.employment_status}
+                  </Badge>
+                )}
+              </TableCell>
+              <TableCell>
+                {user.departments?.name || 'No department'}
+              </TableCell>
+              <TableCell>
+                {user.phone_number ? (
+                  <div className="flex items-center space-x-1">
+                    <Phone className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-sm">{user.phone_number}</span>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground text-sm">-</span>
+                )}
               </TableCell>
               <TableCell>
                 <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
@@ -157,6 +196,15 @@ export const UserList: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <EditUserDialog 
+                      user={user}
+                      trigger={
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit User
+                        </DropdownMenuItem>
+                      }
+                    />
                     <DropdownMenuItem
                       onClick={() => handleToggleUserStatus(user.id, user.status)}
                       disabled={updateUserStatusMutation.isPending}

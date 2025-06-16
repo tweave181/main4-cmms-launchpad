@@ -13,7 +13,13 @@ export const useUsers = () => {
       
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          departments:department_id (
+            id,
+            name
+          )
+        `)
         .eq('tenant_id', userProfile?.tenant_id)
         .order('created_at', { ascending: false });
 
