@@ -1,73 +1,13 @@
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, UserX, UserCheck, Shield, Users as UsersIcon, Wrench, Building, Phone, Edit } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useUsers } from '@/hooks/queries/useUsers';
 import { useUpdateUserStatus } from '@/hooks/mutations/useUpdateUserStatus';
-import { EditUserDialog } from './EditUserDialog';
+import { UserTableHeader } from './UserTableHeader';
+import { UserTableRow } from './UserTableRow';
+import { UserListEmptyState } from './UserListEmptyState';
 import { toast } from '@/components/ui/use-toast';
-import { format } from 'date-fns';
-
-const getRoleIcon = (role: string) => {
-  switch (role) {
-    case 'admin':
-      return <Shield className="h-4 w-4" />;
-    case 'manager':
-      return <UsersIcon className="h-4 w-4" />;
-    case 'technician':
-      return <Wrench className="h-4 w-4" />;
-    case 'contractor':
-      return <Building className="h-4 w-4" />;
-    default:
-      return <UsersIcon className="h-4 w-4" />;
-  }
-};
-
-const getRoleBadgeVariant = (role: string) => {
-  switch (role) {
-    case 'admin':
-      return 'destructive';
-    case 'manager':
-      return 'default';
-    case 'technician':
-      return 'secondary';
-    case 'contractor':
-      return 'outline';
-    default:
-      return 'secondary';
-  }
-};
-
-const getEmploymentStatusColor = (status: string) => {
-  switch (status) {
-    case 'Full Time':
-      return 'bg-green-100 text-green-800 border-green-200';
-    case 'Part Time':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'Bank Staff':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    case 'Contractor':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
 
 export const UserList: React.FC = () => {
   const { data: users, isLoading, error } = useUsers();
@@ -115,116 +55,21 @@ export const UserList: React.FC = () => {
   }
 
   if (!users || users.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <UsersIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <p className="text-muted-foreground">No users found.</p>
-      </div>
-    );
+    return <UserListEmptyState />;
   }
 
   return (
     <div className="rounded-md border">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Employment</TableHead>
-            <TableHead>Department</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Last Login</TableHead>
-            <TableHead>Joined</TableHead>
-            <TableHead className="w-[70px]"></TableHead>
-          </TableRow>
-        </TableHeader>
+        <UserTableHeader />
         <TableBody>
           {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.name}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>
-                <Badge 
-                  variant={getRoleBadgeVariant(user.role)} 
-                  className="flex items-center space-x-1 w-fit"
-                >
-                  {getRoleIcon(user.role)}
-                  <span className="capitalize">{user.role}</span>
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {user.employment_status && (
-                  <Badge className={`text-xs ${getEmploymentStatusColor(user.employment_status)}`}>
-                    {user.employment_status}
-                  </Badge>
-                )}
-              </TableCell>
-              <TableCell>
-                {user.departments?.name || 'No department'}
-              </TableCell>
-              <TableCell>
-                {user.phone_number ? (
-                  <div className="flex items-center space-x-1">
-                    <Phone className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-sm">{user.phone_number}</span>
-                  </div>
-                ) : (
-                  <span className="text-muted-foreground text-sm">-</span>
-                )}
-              </TableCell>
-              <TableCell>
-                <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                  {user.status === 'active' ? 'Active' : 'Inactive'}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {user.last_login 
-                  ? format(new Date(user.last_login), 'MMM d, yyyy')
-                  : 'Never'
-                }
-              </TableCell>
-              <TableCell>
-                {format(new Date(user.created_at), 'MMM d, yyyy')}
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <EditUserDialog 
-                      user={user}
-                      trigger={
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit User
-                        </DropdownMenuItem>
-                      }
-                    />
-                    <DropdownMenuItem
-                      onClick={() => handleToggleUserStatus(user.id, user.status)}
-                      disabled={updateUserStatusMutation.isPending}
-                    >
-                      {user.status === 'active' ? (
-                        <>
-                          <UserX className="h-4 w-4 mr-2" />
-                          Deactivate
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck className="h-4 w-4 mr-2" />
-                          Activate
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
+            <UserTableRow
+              key={user.id}
+              user={user}
+              onToggleStatus={handleToggleUserStatus}
+              isUpdating={updateUserStatusMutation.isPending}
+            />
           ))}
         </TableBody>
       </Table>
