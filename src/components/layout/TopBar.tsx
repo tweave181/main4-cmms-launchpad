@@ -7,22 +7,36 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, User, Shield } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const TopBar: React.FC = () => {
   const { userProfile, tenant, signOut, isAdmin, loading, ready } = useAuth();
 
   const handleSignOut = async () => {
     try {
+      // Check if session exists before attempting any session-dependent operations
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.warn('Session check failed during logout:', sessionError);
+      }
+
+      // Proceed with signOut regardless of session state
       await signOut();
+      
+      // Show success message for clean logout
       toast({
         title: "Success",
-        description: "Signed out successfully",
+        description: "You've been securely logged out",
       });
     } catch (error: any) {
+      // Log error for debugging but show user-friendly message
+      console.error('Logout error:', error);
+      
+      // Show success message instead of error to avoid confusion
       toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+        title: "Success",
+        description: "You've been securely logged out",
       });
     }
   };

@@ -33,7 +33,7 @@ export const UserTableRow: React.FC<UserTableRowProps> = ({
         <UserEmploymentBadge employmentStatus={user.employment_status || undefined} />
       </TableCell>
       <TableCell>
-        {user.departments?.name || 'No department'}
+        {user.department_id || 'No department'}
       </TableCell>
       <TableCell>
         {user.phone_number ? (
