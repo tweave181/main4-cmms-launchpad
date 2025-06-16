@@ -61,7 +61,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       email: initialData?.email || '',
       role: initialData?.role || 'technician',
       employment_status: initialData?.employment_status || 'Full Time',
-      department_id: initialData?.department_id || '',
+      department_id: initialData?.department_id || 'none',
       phone_number: initialData?.phone_number || '',
       status: initialData?.status || 'active',
     },
@@ -71,7 +71,7 @@ export const UserForm: React.FC<UserFormProps> = ({
     // Clean up empty strings to undefined for optional fields
     const cleanedData = {
       ...data,
-      department_id: data.department_id === '' ? undefined : data.department_id,
+      department_id: data.department_id === 'none' ? undefined : data.department_id,
       phone_number: data.phone_number === '' ? undefined : data.phone_number,
       employment_status: data.employment_status || 'Full Time',
     };
@@ -171,7 +171,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No department</SelectItem>
+                    <SelectItem value="none">No department</SelectItem>
                     {departments.map((department) => (
                       <SelectItem key={department.id} value={department.id}>
                         {department.name}
