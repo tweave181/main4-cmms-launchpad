@@ -71,6 +71,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, trigger })
             role: user.role,
             employment_status: user.employment_status || undefined,
             department_id: user.department_id || undefined,
+            job_title_id: user.job_title_id || undefined,
             phone_number: user.phone_number || undefined,
             status: user.status as 'active' | 'inactive',
           }}

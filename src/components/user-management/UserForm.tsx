@@ -6,6 +6,7 @@ import { useUserForm } from './useUserForm';
 import { UserBasicFields } from './UserBasicFields';
 import { UserRoleFields } from './UserRoleFields';
 import { UserDepartmentField } from './UserDepartmentField';
+import { UserJobTitleField } from './UserJobTitleField';
 import type { UserFormData } from './userFormSchema';
 
 interface UserFormProps {
@@ -30,6 +31,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           <UserBasicFields control={form.control} />
           <UserRoleFields control={form.control} />
           <UserDepartmentField control={form.control} />
+          <UserJobTitleField control={form.control} />
         </div>
 
         <div className="flex justify-end space-x-2">

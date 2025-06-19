@@ -58,12 +58,14 @@ export const useDashboardStats = () => {
         throw new Error('No tenant found');
       }
 
+      // Get count of outstanding PM schedules where next_due_date is in the past or today
+      // and last_completed_date is null or before next_due_date
       const { count, error } = await supabase
-        .from('work_orders')
+        .from('preventive_maintenance_schedules')
         .select('*', { count: 'exact', head: true })
         .eq('tenant_id', userProfile.tenant_id)
-        .eq('work_type', 'preventive')
-        .in('status', ['open', 'in_progress']);
+        .eq('is_active', true)
+        .lte('next_due_date', new Date().toISOString().split('T')[0]); // Due today or overdue
 
       if (error) {
         console.error('Error fetching scheduled tasks count:', error);

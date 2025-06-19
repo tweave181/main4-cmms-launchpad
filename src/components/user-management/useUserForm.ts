@@ -17,6 +17,7 @@ export const useUserForm = ({ initialData, onSubmit }: UseUserFormProps) => {
       role: initialData?.role || 'technician',
       employment_status: initialData?.employment_status || 'Full Time',
       department_id: initialData?.department_id || 'none',
+      job_title_id: initialData?.job_title_id || 'none',
       phone_number: initialData?.phone_number || '',
       status: initialData?.status || 'active',
     },
@@ -27,6 +28,7 @@ export const useUserForm = ({ initialData, onSubmit }: UseUserFormProps) => {
     const cleanedData = {
       ...data,
       department_id: data.department_id === 'none' ? undefined : data.department_id,
+      job_title_id: data.job_title_id === 'none' ? undefined : data.job_title_id,
       phone_number: data.phone_number === '' ? undefined : data.phone_number,
       employment_status: data.employment_status || 'Full Time',
     };

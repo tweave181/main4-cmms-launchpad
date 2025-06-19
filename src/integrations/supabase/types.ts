@@ -182,6 +182,38 @@ export type Database = {
         }
         Relationships: []
       }
+      job_titles: {
+        Row: {
+          created_at: string
+          id: string
+          tenant_id: string
+          title_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tenant_id: string
+          title_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tenant_id?: string
+          title_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_titles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       part_asset_associations: {
         Row: {
           asset_id: string
@@ -535,6 +567,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_status"]
             | null
           id: string
+          job_title_id: string | null
           last_login: string | null
           name: string
           phone_number: string | null
@@ -551,6 +584,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_status"]
             | null
           id: string
+          job_title_id?: string | null
           last_login?: string | null
           name?: string
           phone_number?: string | null
@@ -567,6 +601,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_status"]
             | null
           id?: string
+          job_title_id?: string | null
           last_login?: string | null
           name?: string
           phone_number?: string | null
@@ -581,6 +616,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_job_title_id_fkey"
+            columns: ["job_title_id"]
+            isOneToOne: false
+            referencedRelation: "job_titles"
             referencedColumns: ["id"]
           },
           {

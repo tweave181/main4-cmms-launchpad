@@ -9,7 +9,10 @@ import { UserEmploymentBadge } from './UserEmploymentBadge';
 import { UserActionsDropdown } from './UserActionsDropdown';
 import type { Database } from '@/integrations/supabase/types';
 
-type User = Database['public']['Tables']['users']['Row'];
+type User = Database['public']['Tables']['users']['Row'] & {
+  departments?: { id: string; name: string } | null;
+  job_titles?: { id: string; title_name: string } | null;
+};
 
 interface UserTableRowProps {
   user: User;
@@ -33,7 +36,10 @@ export const UserTableRow: React.FC<UserTableRowProps> = ({
         <UserEmploymentBadge employmentStatus={user.employment_status || undefined} />
       </TableCell>
       <TableCell>
-        {user.department_id || 'No department'}
+        {user.departments?.name || 'No department'}
+      </TableCell>
+      <TableCell>
+        {user.job_titles?.title_name || 'No job title'}
       </TableCell>
       <TableCell>
         {user.phone_number ? (

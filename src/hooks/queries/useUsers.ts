@@ -18,6 +18,10 @@ export const useUsers = () => {
           departments:department_id (
             id,
             name
+          ),
+          job_titles:job_title_id (
+            id,
+            title_name
           )
         `)
         .eq('tenant_id', userProfile?.tenant_id)
