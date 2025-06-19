@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Control } from 'react-hook-form';
+import React, { useState } from 'react';
+import { Control, useWatch } from 'react-hook-form';
 import {
   FormControl,
   FormField,
@@ -16,7 +15,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tag } from 'lucide-react';
 import { useDepartments } from '@/hooks/useDepartments';
+import { AssetTagModal } from './AssetTagModal';
 import type { AssetFormData } from './types';
 
 interface AssetBasicFieldsProps {
@@ -25,6 +27,13 @@ interface AssetBasicFieldsProps {
 
 export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control }) => {
   const { departments } = useDepartments();
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  
+  // Watch the asset_tag field value
+  const assetTagValue = useWatch({
+    control,
+    name: 'asset_tag',
+  });
 
   return (
     <>
@@ -48,10 +57,34 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control }) =
         render={({ field }) => (
           <FormItem>
             <FormLabel>Asset Tag</FormLabel>
-            <FormControl>
-              <Input placeholder="Enter asset tag" {...field} />
-            </FormControl>
+            <div className="flex space-x-2">
+              <FormControl>
+                <Input 
+                  placeholder="Enter or select asset tag" 
+                  {...field}
+                  className="flex-1"
+                />
+              </FormControl>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsTagModalOpen(true)}
+                className="px-3"
+              >
+                <Tag className="h-4 w-4" />
+              </Button>
+            </div>
             <FormMessage />
+            
+            <AssetTagModal
+              isOpen={isTagModalOpen}
+              onClose={() => setIsTagModalOpen(false)}
+              onTagSelect={(tag) => {
+                field.onChange(tag);
+              }}
+              currentTag={assetTagValue}
+            />
           </FormItem>
         )}
       />
