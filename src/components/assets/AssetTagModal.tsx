@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -44,8 +43,9 @@ export const AssetTagModal: React.FC<AssetTagModalProps> = ({
 }) => {
   const { userProfile } = useAuth();
   const [selectedPrefix, setSelectedPrefix] = useState<AssetTagPrefix | null>(null);
-  const [sequenceNumber, setSequenceNumber] = useState('');
-  const [isValidating, setIsValidating] = useState(false);
+  const [nextSequence, setNextSequence] = useState<string>('');
+  const [generatedTag, setGeneratedTag] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const [validationError, setValidationError] = useState('');
 
   // Fetch available asset tag prefixes
@@ -64,57 +64,114 @@ export const AssetTagModal: React.FC<AssetTagModalProps> = ({
     enabled: !!userProfile?.tenant_id,
   });
 
+  // Generate next available sequence number for selected prefix
+  const generateNextSequence = async (prefix: AssetTagPrefix) => {
+    if (!userProfile?.tenant_id) return;
+
+    setIsGenerating(true);
+    setValidationError('');
+
+    try {
+      // Convert number_code to single digit (remove leading zeros)
+      const singleDigitCode = parseInt(prefix.number_code).toString();
+      const basePattern = `${prefix.prefix_letter}${singleDigitCode}/`;
+
+      // Query existing assets to find the highest sequence number
+      const { data, error } = await supabase
+        .from('assets')
+        .select('asset_tag')
+        .eq('tenant_id', userProfile.tenant_id)
+        .like('asset_tag', `${basePattern}%`);
+
+      if (error) throw error;
+
+      let maxSequence = 0;
+      
+      if (data && data.length > 0) {
+        // Extract sequence numbers from existing tags
+        data.forEach(asset => {
+          if (asset.asset_tag) {
+            const match = asset.asset_tag.match(new RegExp(`^${prefix.prefix_letter}${singleDigitCode}/([0-9]{3})$`));
+            if (match) {
+              const sequence = parseInt(match[1]);
+              if (sequence > maxSequence) {
+                maxSequence = sequence;
+              }
+            }
+          }
+        });
+      }
+
+      // Generate next sequence number (3 digits, zero-padded)
+      const nextSeq = (maxSequence + 1).toString().padStart(3, '0');
+      const newTag = `${prefix.prefix_letter}${singleDigitCode}/${nextSeq}`;
+
+      setNextSequence(nextSeq);
+      setGeneratedTag(newTag);
+    } catch (error) {
+      console.error('Error generating next sequence:', error);
+      setValidationError('Error generating next sequence number. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Effect to generate sequence when prefix is selected
+  useEffect(() => {
+    if (selectedPrefix) {
+      generateNextSequence(selectedPrefix);
+    } else {
+      setNextSequence('');
+      setGeneratedTag('');
+    }
+  }, [selectedPrefix, userProfile?.tenant_id]);
+
+  const handlePrefixChange = (prefixId: string) => {
+    const prefix = prefixes.find(p => p.id === prefixId);
+    setSelectedPrefix(prefix || null);
+    setValidationError('');
+  };
+
   const validateAndSelectTag = async () => {
-    if (!selectedPrefix || !sequenceNumber) {
-      setValidationError('Please select a prefix and enter a sequence number');
+    if (!selectedPrefix || !generatedTag) {
+      setValidationError('Please select a prefix to generate an asset tag');
       return;
     }
 
-    if (!/^\d{4}$/.test(sequenceNumber)) {
-      setValidationError('Sequence number must be exactly 4 digits');
-      return;
-    }
-
-    const proposedTag = `${selectedPrefix.prefix_letter}${selectedPrefix.number_code}-${sequenceNumber}`;
-    
     // Skip validation if this is the current tag (editing existing asset)
-    if (proposedTag === currentTag) {
-      onTagSelect(proposedTag);
+    if (generatedTag === currentTag) {
+      onTagSelect(generatedTag);
       handleClose();
       return;
     }
 
-    setIsValidating(true);
-    setValidationError('');
-
+    // Final validation - check if the generated tag already exists
     try {
-      // Check if tag already exists
       const { data, error } = await supabase
         .from('assets')
         .select('id')
-        .eq('asset_tag', proposedTag)
+        .eq('asset_tag', generatedTag)
         .eq('tenant_id', userProfile?.tenant_id);
 
       if (error) throw error;
 
       if (data && data.length > 0) {
-        setValidationError('This asset tag is already in use. Please choose a different sequence number.');
+        setValidationError('Generated asset tag already exists. Please try refreshing the modal.');
         return;
       }
 
-      onTagSelect(proposedTag);
+      onTagSelect(generatedTag);
       handleClose();
     } catch (error) {
       console.error('Error validating asset tag:', error);
       setValidationError('Error validating asset tag. Please try again.');
-    } finally {
-      setIsValidating(false);
     }
   };
 
   const handleClose = () => {
     setSelectedPrefix(null);
-    setSequenceNumber('');
+    setNextSequence('');
+    setGeneratedTag('');
     setValidationError('');
     onClose();
   };
@@ -144,45 +201,35 @@ export const AssetTagModal: React.FC<AssetTagModalProps> = ({
         <div className="space-y-4">
           <div>
             <Label htmlFor="prefix-select">Asset Type Prefix</Label>
-            <Select onValueChange={(value) => {
-              const prefix = prefixes.find(p => p.id === value);
-              setSelectedPrefix(prefix || null);
-              setValidationError('');
-            }}>
+            <Select onValueChange={handlePrefixChange}>
               <SelectTrigger id="prefix-select">
                 <SelectValue placeholder="Select asset type" />
               </SelectTrigger>
               <SelectContent>
                 {prefixes.map((prefix) => (
                   <SelectItem key={prefix.id} value={prefix.id}>
-                    {prefix.prefix_letter}{prefix.number_code} - {prefix.description}
+                    {prefix.prefix_letter}{parseInt(prefix.number_code)} - {prefix.description}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div>
-            <Label htmlFor="sequence-input">Sequence Number (4 digits)</Label>
-            <Input
-              id="sequence-input"
-              type="text"
-              placeholder="0001"
-              value={sequenceNumber}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-                setSequenceNumber(value);
-                setValidationError('');
-              }}
-              maxLength={4}
-            />
-          </div>
+          {isGenerating && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <span className="text-sm text-gray-600">Generating next available tag...</span>
+            </div>
+          )}
 
-          {selectedPrefix && sequenceNumber && (
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <Label className="text-sm text-gray-600">Generated Asset Tag:</Label>
-              <div className="text-lg font-mono font-semibold">
-                {selectedPrefix.prefix_letter}{selectedPrefix.number_code}-{sequenceNumber.padStart(4, '0')}
+          {generatedTag && !isGenerating && (
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <Label className="text-sm text-blue-800 font-medium">Generated Asset Tag:</Label>
+              <div className="text-xl font-mono font-bold text-blue-900 mt-1">
+                {generatedTag}
+              </div>
+              <div className="text-xs text-blue-600 mt-1">
+                Next available sequence: {nextSequence}
               </div>
             </div>
           )}
@@ -200,12 +247,12 @@ export const AssetTagModal: React.FC<AssetTagModalProps> = ({
             </Button>
             <Button 
               onClick={validateAndSelectTag}
-              disabled={!selectedPrefix || !sequenceNumber || isValidating}
+              disabled={!generatedTag || isGenerating}
             >
-              {isValidating ? (
+              {isGenerating ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Validating...
+                  Generating...
                 </>
               ) : (
                 'Select Tag'

@@ -41,11 +41,12 @@ CREATE POLICY "Users can delete asset tag prefixes in their tenant"
   FOR DELETE 
   USING (tenant_id = (SELECT tenant_id FROM public.users WHERE id = auth.uid()));
 
--- Insert some sample data for testing
+-- Insert sample data for testing (updated to support new E3/001 format)
+-- The number_code stores the full 3-digit code but will be displayed as single digit
 INSERT INTO public.asset_tag_prefixes (tenant_id, prefix_letter, number_code, description) VALUES
 -- Get a sample tenant_id from existing tenants
 ((SELECT id FROM public.tenants LIMIT 1), 'E', '001', 'Chillers'),
-((SELECT id FROM public.tenants LIMIT 1), 'E', '002', 'Boilers'),
+((SELECT id FROM public.tenants LIMIT 1), 'E', '002', 'Boilers'), 
 ((SELECT id FROM public.tenants LIMIT 1), 'E', '003', 'Generators'),
 ((SELECT id FROM public.tenants LIMIT 1), 'M', '001', 'Motors'),
 ((SELECT id FROM public.tenants LIMIT 1), 'P', '001', 'Pumps'),
