@@ -1,18 +1,17 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Building2, Plus } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { CompanyForm } from '@/components/companies/CompanyForm';
-import { CompanyList } from '@/components/companies/CompanyList';
-import { useCompanies } from '@/hooks/useCompanies';
+import { CompanyManagementTable } from '@/components/companies/CompanyManagementTable';
+import { CompanyHistoryModal } from '@/components/companies/CompanyHistoryModal';
 import type { CompanyDetails } from '@/types/company';
 
 const Companies: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<CompanyDetails | null>(null);
-
-  const { data: companies = [], isLoading } = useCompanies();
+  const [historyCompany, setHistoryCompany] = useState<CompanyDetails | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   const handleCreateCompany = () => {
     setEditingCompany(null);
@@ -24,35 +23,35 @@ const Companies: React.FC = () => {
     setIsFormOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
+  const handleViewHistory = (company: CompanyDetails) => {
+    setHistoryCompany(company);
+    setIsHistoryModalOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingCompany(null);
+  };
+
+  const handleCloseHistory = () => {
+    setIsHistoryModalOpen(false);
+    setHistoryCompany(null);
+  };
 
   return (
     <div className="p-6">
       <Card className="rounded-2xl shadow-sm border border-gray-200">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
-              <Building2 className="h-6 w-6 text-primary" />
-              <span>Company Management</span>
-            </CardTitle>
-            <Button onClick={handleCreateCompany} className="rounded-2xl">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Company
-            </Button>
-          </div>
+          <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
+            <Building2 className="h-6 w-6 text-primary" />
+            <span>Company Details Management</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <CompanyList
-            companies={companies}
+          <CompanyManagementTable
+            onCreateCompany={handleCreateCompany}
             onEditCompany={handleEditCompany}
+            onViewHistory={handleViewHistory}
           />
         </CardContent>
       </Card>
@@ -61,16 +60,16 @@ const Companies: React.FC = () => {
         <CompanyForm
           company={editingCompany}
           isOpen={isFormOpen}
-          onClose={() => {
-            setIsFormOpen(false);
-            setEditingCompany(null);
-          }}
-          onSuccess={() => {
-            setIsFormOpen(false);
-            setEditingCompany(null);
-          }}
+          onClose={handleCloseForm}
+          onSuccess={handleCloseForm}
         />
       )}
+
+      <CompanyHistoryModal
+        company={historyCompany}
+        isOpen={isHistoryModalOpen}
+        onClose={handleCloseHistory}
+      />
     </div>
   );
 };

@@ -22,6 +22,7 @@ export const AppSidebar = () => {
     { icon: Users, label: 'User Management', href: '/users' },
     { icon: Building2, label: 'Departments', href: '/departments' },
     { icon: Briefcase, label: 'Job Titles', href: '/job-titles' },
+    { icon: Building2, label: 'Company Details', href: '/companies' },
     { icon: Cog, label: 'Asset Prefixes', href: '/asset-prefixes' },
     { icon: FileText, label: 'System Audit Log', href: '/system-audit-log' },
     { icon: Settings, label: 'Settings', href: '/settings' },

@@ -19,6 +19,7 @@ import UserManagement from '@/pages/UserManagement';
 import Departments from '@/pages/Departments';
 import AssetPrefixManager from '@/pages/AssetPrefixManager';
 import JobTitles from '@/pages/JobTitles';
+import Companies from '@/pages/Companies';
 import SystemAuditLog from '@/pages/SystemAuditLog';
 import AdminSettings from '@/pages/AdminSettings';
 import NotFound from '@/pages/NotFound';
@@ -48,6 +49,7 @@ function App() {
                       <Route path="/departments" element={<Departments />} />
                       <Route path="/asset-prefixes" element={<AssetPrefixManager />} />
                       <Route path="/job-titles" element={<JobTitles />} />
+                      <Route path="/companies" element={<Companies />} />
                       <Route path="/system-audit-log" element={<SystemAuditLog />} />
                       <Route path="/settings" element={<AdminSettings />} />
                       <Route path="*" element={<NotFound />} />
