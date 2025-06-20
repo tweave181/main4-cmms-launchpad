@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Settings, Plus } from 'lucide-react';
 import { AssetPrefixList } from '@/components/asset-prefixes/AssetPrefixList';
 import { AssetPrefixForm } from '@/components/asset-prefixes/AssetPrefixForm';
+import { AssetPrefixAuditLog } from '@/components/asset-prefixes/AssetPrefixAuditLog';
 import { useAssetPrefixes } from '@/hooks/useAssetPrefixes';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -44,27 +45,37 @@ const AssetPrefixManager: React.FC = () => {
 
   return (
     <div className="p-6">
-      <Card className="rounded-2xl shadow-sm border border-gray-200">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
-              <Settings className="h-6 w-6 text-primary" />
-              <span>Asset Tag Prefix Manager</span>
-            </CardTitle>
-            <Button onClick={handleCreatePrefix} className="rounded-2xl">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Prefix
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <AssetPrefixList
-            prefixes={prefixes}
-            onEditPrefix={handleEditPrefix}
-            onDeletePrefix={deletePrefix}
-          />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content - Asset Prefixes */}
+        <div className="lg:col-span-2">
+          <Card className="rounded-2xl shadow-sm border border-gray-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
+                  <Settings className="h-6 w-6 text-primary" />
+                  <span>Asset Tag Prefix Manager</span>
+                </CardTitle>
+                <Button onClick={handleCreatePrefix} className="rounded-2xl">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Prefix
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <AssetPrefixList
+                prefixes={prefixes}
+                onEditPrefix={handleEditPrefix}
+                onDeletePrefix={deletePrefix}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar - Audit Log */}
+        <div className="lg:col-span-1">
+          <AssetPrefixAuditLog />
+        </div>
+      </div>
 
       {isFormOpen && (
         <AssetPrefixForm

@@ -9,6 +9,58 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      asset_tag_prefix_audit_log: {
+        Row: {
+          action: string
+          change_summary: string
+          changed_by: string
+          id: string
+          prefix_id: string
+          tenant_id: string
+          timestamp: string
+        }
+        Insert: {
+          action: string
+          change_summary: string
+          changed_by: string
+          id?: string
+          prefix_id: string
+          tenant_id: string
+          timestamp?: string
+        }
+        Update: {
+          action?: string
+          change_summary?: string
+          changed_by?: string
+          id?: string
+          prefix_id?: string
+          tenant_id?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_tag_prefix_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_tag_prefix_audit_log_prefix_id_fkey"
+            columns: ["prefix_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tag_prefixes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_tag_prefix_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_tag_prefixes: {
         Row: {
           created_at: string
