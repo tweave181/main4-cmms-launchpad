@@ -16,6 +16,8 @@ export interface WorkOrder {
   actual_cost?: number;
   due_date?: string;
   completed_at?: string;
+  assigned_to_contractor?: boolean;
+  contractor_company_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -40,6 +42,8 @@ export interface WorkOrderFormData {
   estimated_hours?: string;
   estimated_cost?: string;
   due_date?: string;
+  assigned_to_contractor?: boolean;
+  contractor_company_id?: string;
 }
 
 // Updated WorkOrderFilters to use valid enum values or undefined (never empty strings)

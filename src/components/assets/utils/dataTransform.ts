@@ -14,6 +14,7 @@ export const transformFormDataToAsset = (
     serial_number: data.serial_number?.trim() || null,
     model: data.model?.trim() || null,
     manufacturer: data.manufacturer?.trim() || null,
+    manufacturer_company_id: data.manufacturer_company_id || null,
     category: data.category?.trim() || null,
     location: data.location?.trim() || null,
     purchase_date: data.purchase_date?.trim() || null,

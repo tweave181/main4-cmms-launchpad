@@ -110,6 +110,7 @@ export type Database = {
           id: string
           location: string | null
           manufacturer: string | null
+          manufacturer_company_id: string | null
           model: string | null
           name: string
           notes: string | null
@@ -133,6 +134,7 @@ export type Database = {
           id?: string
           location?: string | null
           manufacturer?: string | null
+          manufacturer_company_id?: string | null
           model?: string | null
           name: string
           notes?: string | null
@@ -156,6 +158,7 @@ export type Database = {
           id?: string
           location?: string | null
           manufacturer?: string | null
+          manufacturer_company_id?: string | null
           model?: string | null
           name?: string
           notes?: string | null
@@ -178,7 +181,71 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "assets_manufacturer_company_id_fkey"
+            columns: ["manufacturer_company_id"]
+            isOneToOne: false
+            referencedRelation: "company_details"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_details: {
+        Row: {
+          address: string | null
+          company_name: string
+          contact_name: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          phone: string | null
+          tenant_id: string
+          type: string[]
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company_name: string
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          tenant_id: string
+          type?: string[]
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          tenant_id?: string
+          type?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_details_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_details_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -876,7 +943,9 @@ export type Database = {
           actual_hours: number | null
           asset_id: string | null
           assigned_to: string | null
+          assigned_to_contractor: boolean | null
           completed_at: string | null
+          contractor_company_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -896,7 +965,9 @@ export type Database = {
           actual_hours?: number | null
           asset_id?: string | null
           assigned_to?: string | null
+          assigned_to_contractor?: boolean | null
           completed_at?: string | null
+          contractor_company_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -916,7 +987,9 @@ export type Database = {
           actual_hours?: number | null
           asset_id?: string | null
           assigned_to?: string | null
+          assigned_to_contractor?: boolean | null
           completed_at?: string | null
+          contractor_company_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -944,6 +1017,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_contractor_company_id_fkey"
+            columns: ["contractor_company_id"]
+            isOneToOne: false
+            referencedRelation: "company_details"
             referencedColumns: ["id"]
           },
           {

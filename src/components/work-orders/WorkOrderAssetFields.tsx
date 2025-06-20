@@ -16,8 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
+import { useCompanies } from '@/hooks/useCompanies';
 import type { WorkOrderFormData } from '@/types/workOrder';
 
 interface WorkOrderAssetFieldsProps {
@@ -58,69 +60,126 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
     enabled: !!userProfile?.tenant_id,
   });
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <FormField
-        control={control}
-        name="asset_id"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Asset</FormLabel>
-            <Select 
-              onValueChange={(value) => {
-                field.onChange(value === 'no-asset' ? undefined : value);
-              }} 
-              value={field.value || 'no-asset'}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an asset" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="no-asset">No Asset</SelectItem>
-                {assets.map((asset) => (
-                  <SelectItem key={asset.id} value={asset.id}>
-                    {asset.name} {asset.asset_tag && `(${asset.asset_tag})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+  const { data: contractors = [] } = useCompanies('contractor');
 
-      <FormField
-        control={control}
-        name="assigned_to"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Assigned To</FormLabel>
-            <Select 
-              onValueChange={(value) => {
-                field.onChange(value === 'unassigned' ? undefined : value);
-              }} 
-              value={field.value || 'unassigned'}
-            >
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={control}
+          name="asset_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Asset</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  field.onChange(value === 'no-asset' ? undefined : value);
+                }} 
+                value={field.value || 'no-asset'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an asset" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="no-asset">No Asset</SelectItem>
+                  {assets.map((asset) => (
+                    <SelectItem key={asset.id} value={asset.id}>
+                      {asset.name} {asset.asset_tag && `(${asset.asset_tag})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="assigned_to"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Assigned To</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  field.onChange(value === 'unassigned' ? undefined : value);
+                }} 
+                value={field.value || 'unassigned'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Assign to user" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name} ({user.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="space-y-4">
+        <FormField
+          control={control}
+          name="assigned_to_contractor"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Assign to user" />
-                </SelectTrigger>
+                <Checkbox
+                  checked={field.value || false}
+                  onCheckedChange={field.onChange}
+                />
               </FormControl>
-              <SelectContent>
-                <SelectItem value="unassigned">Unassigned</SelectItem>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.name} ({user.email})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Assign to contractor
+                </FormLabel>
+              </div>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="contractor_company_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Contractor Company</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  field.onChange(value === 'no-contractor' ? undefined : value);
+                }} 
+                value={field.value || 'no-contractor'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select contractor company" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="no-contractor">No Contractor</SelectItem>
+                  {contractors.map((contractor) => (
+                    <SelectItem key={contractor.id} value={contractor.id}>
+                      {contractor.company_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
     </div>
   );
 };
