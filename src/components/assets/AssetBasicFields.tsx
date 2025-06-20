@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Control, useWatch } from 'react-hook-form';
 import {
   FormControl,
@@ -19,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Tag } from 'lucide-react';
 import { useDepartments } from '@/hooks/useDepartments';
 import { AssetTagModal } from './AssetTagModal';
+import { useAssetPrefixes } from '@/hooks/useAssetPrefixes';
 import type { AssetFormData } from './types';
 
 interface AssetBasicFieldsProps {
@@ -27,13 +29,49 @@ interface AssetBasicFieldsProps {
 
 export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control }) => {
   const { departments } = useDepartments();
+  const { prefixes } = useAssetPrefixes();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [categoryManuallyEdited, setCategoryManuallyEdited] = useState(false);
   
   // Watch the asset_tag field value
   const assetTagValue = useWatch({
     control,
     name: 'asset_tag',
   });
+
+  const categoryValue = useWatch({
+    control,
+    name: 'category',
+  });
+
+  // Auto-populate category when asset tag changes
+  useEffect(() => {
+    if (assetTagValue && !categoryManuallyEdited) {
+      // Extract prefix from asset tag (e.g., "E3/001" -> "E3")
+      const prefixMatch = assetTagValue.match(/^([A-Z]+\d+)/);
+      if (prefixMatch) {
+        const prefixCode = prefixMatch[1];
+        // Find the matching prefix in our data
+        const matchingPrefix = prefixes.find(prefix => {
+          const singleDigitCode = parseInt(prefix.number_code).toString();
+          return `${prefix.prefix_letter}${singleDigitCode}` === prefixCode;
+        });
+        
+        if (matchingPrefix) {
+          // Set the category to the prefix description
+          const categoryField = control._getFieldState('category');
+          if (!categoryField.isDirty || !categoryValue) {
+            control._setValue('category', matchingPrefix.description);
+          }
+        }
+      }
+    }
+  }, [assetTagValue, prefixes, categoryManuallyEdited, control, categoryValue]);
+
+  const handleCategoryChange = (value: string) => {
+    setCategoryManuallyEdited(true);
+    control._setValue('category', value);
+  };
 
   return (
     <>
@@ -82,6 +120,7 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control }) =
               onClose={() => setIsTagModalOpen(false)}
               onTagSelect={(tag) => {
                 field.onChange(tag);
+                setCategoryManuallyEdited(false); // Reset manual edit flag when new tag is selected
               }}
               currentTag={assetTagValue}
             />
@@ -96,7 +135,14 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control }) =
           <FormItem>
             <FormLabel>Category</FormLabel>
             <FormControl>
-              <Input placeholder="Enter category" {...field} />
+              <Input 
+                placeholder="Enter category" 
+                {...field}
+                onChange={(e) => {
+                  field.onChange(e);
+                  setCategoryManuallyEdited(true);
+                }}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

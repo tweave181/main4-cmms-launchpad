@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader } from '@/components/ui/sidebar';
-import { Home, Wrench, Package, Calendar, BarChart3, Building2, Users, Settings, Tag, Cog } from 'lucide-react';
+import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,11 +16,11 @@ export const AppSidebar = () => {
     { icon: Calendar, label: 'Maintenance', href: '/maintenance' },
     { icon: Package, label: 'Inventory', href: '/inventory' },
     { icon: BarChart3, label: 'Reports', href: '/reports' },
-    { icon: Building2, label: 'Departments', href: '/departments' },
   ];
 
   const adminItems = [
     { icon: Users, label: 'User Management', href: '/users' },
+    { icon: Building2, label: 'Departments', href: '/departments' },
     { icon: Cog, label: 'Asset Prefixes', href: '/asset-prefixes' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];

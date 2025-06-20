@@ -20,47 +20,50 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
 }) => {
   return (
     <>
-      <FormField
-        control={control}
-        name="prefix_letter"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Prefix Letter</FormLabel>
-            <FormControl>
-              <Input
-                {...field}
-                placeholder="E"
-                maxLength={1}
-                style={{ textTransform: 'uppercase' }}
-                onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="flex gap-3">
+        <FormField
+          control={control}
+          name="prefix_letter"
+          render={({ field }) => (
+            <FormItem className="w-20">
+              <FormLabel>Prefix Letter</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="E"
+                  maxLength={1}
+                  style={{ textTransform: 'uppercase' }}
+                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                  className="text-center"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <FormField
-        control={control}
-        name="number_code"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Number Code</FormLabel>
-            <FormControl>
-              <Input
-                {...field}
-                placeholder="001"
-                maxLength={3}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
-                  field.onChange(value.padStart(3, '0').slice(0, 3));
-                }}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+        <FormField
+          control={control}
+          name="number_code"
+          render={({ field }) => (
+            <FormItem className="flex-1">
+              <FormLabel>Number Code</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="001"
+                  maxLength={3}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    field.onChange(value.padStart(3, '0').slice(0, 3));
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
 
       <FormField
         control={control}
