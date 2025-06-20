@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Control } from 'react-hook-form';
+import { Control, useWatch } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import {
   FormControl,
@@ -30,6 +30,12 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
   control,
 }) => {
   const { userProfile } = useAuth();
+
+  // Watch the assigned_to_contractor field to conditionally show contractor company
+  const assignedToContractor = useWatch({
+    control,
+    name: 'assigned_to_contractor',
+  });
 
   const { data: assets = [] } = useQuery({
     queryKey: ['assets', userProfile?.tenant_id],
@@ -137,7 +143,14 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
               <FormControl>
                 <Checkbox
                   checked={field.value || false}
-                  onCheckedChange={field.onChange}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    // If unchecking, clear the contractor company selection
+                    if (!checked) {
+                      // We need to access the form's setValue method to clear contractor_company_id
+                      // This will be handled by the parent form's logic
+                    }
+                  }}
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
@@ -149,36 +162,38 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
           )}
         />
 
-        <FormField
-          control={control}
-          name="contractor_company_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contractor Company</FormLabel>
-              <Select 
-                onValueChange={(value) => {
-                  field.onChange(value === 'no-contractor' ? undefined : value);
-                }} 
-                value={field.value || 'no-contractor'}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select contractor company" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="no-contractor">No Contractor</SelectItem>
-                  {contractors.map((contractor) => (
-                    <SelectItem key={contractor.id} value={contractor.id}>
-                      {contractor.company_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {assignedToContractor && (
+          <FormField
+            control={control}
+            name="contractor_company_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contractor Company</FormLabel>
+                <Select 
+                  onValueChange={(value) => {
+                    field.onChange(value === 'no-contractor' ? undefined : value);
+                  }} 
+                  value={field.value || 'no-contractor'}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select contractor company" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="no-contractor">No Contractor</SelectItem>
+                    {contractors.map((contractor) => (
+                      <SelectItem key={contractor.id} value={contractor.id}>
+                        {contractor.company_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
       </div>
     </div>
   );

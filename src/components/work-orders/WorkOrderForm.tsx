@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
@@ -30,6 +30,17 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     resolver: zodResolver(workOrderSchema),
     defaultValues: getDefaultFormValues(workOrder),
   });
+
+  // Watch for changes to assigned_to_contractor and clear contractor_company_id when unchecked
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'assigned_to_contractor' && !value.assigned_to_contractor) {
+        form.setValue('contractor_company_id', undefined);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   return (
     <Form {...form}>
