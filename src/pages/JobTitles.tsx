@@ -2,34 +2,34 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building, Plus } from 'lucide-react';
-import { DepartmentList } from '@/components/departments/DepartmentList';
-import { DepartmentForm } from '@/components/departments/DepartmentForm';
-import { DepartmentAuditLog } from '@/components/departments/DepartmentAuditLog';
-import { useDepartments } from '@/hooks/useDepartments';
+import { Briefcase, Plus } from 'lucide-react';
+import { JobTitleList } from '@/components/job-titles/JobTitleList';
+import { JobTitleForm } from '@/components/job-titles/JobTitleForm';
+import { JobTitleAuditLog } from '@/components/job-titles/JobTitleAuditLog';
+import { useJobTitles } from '@/hooks/useJobTitles';
 import type { Database } from '@/integrations/supabase/types';
 
-type Department = Database['public']['Tables']['departments']['Row'];
+type JobTitle = Database['public']['Tables']['job_titles']['Row'];
 
-const Departments: React.FC = () => {
+const JobTitles: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [editingJobTitle, setEditingJobTitle] = useState<JobTitle | null>(null);
   
-  const { departments, isLoading, refetch, deleteDepartment } = useDepartments();
+  const { jobTitles, isLoading, refetch, deleteJobTitle } = useJobTitles();
 
-  const handleCreateDepartment = () => {
-    setEditingDepartment(null);
+  const handleCreateJobTitle = () => {
+    setEditingJobTitle(null);
     setIsFormOpen(true);
   };
 
-  const handleEditDepartment = (department: Department) => {
-    setEditingDepartment(department);
+  const handleEditJobTitle = (jobTitle: JobTitle) => {
+    setEditingJobTitle(jobTitle);
     setIsFormOpen(true);
   };
 
   const handleFormSuccess = () => {
     setIsFormOpen(false);
-    setEditingDepartment(null);
+    setEditingJobTitle(null);
     refetch();
   };
 
@@ -46,26 +46,26 @@ const Departments: React.FC = () => {
   return (
     <div className="p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content - Departments */}
+        {/* Main Content - Job Titles */}
         <div className="lg:col-span-2">
           <Card className="rounded-2xl shadow-sm border border-gray-200">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
-                  <Building className="h-6 w-6 text-primary" />
-                  <span>Departments</span>
+                  <Briefcase className="h-6 w-6 text-primary" />
+                  <span>Job Titles</span>
                 </CardTitle>
-                <Button onClick={handleCreateDepartment} className="rounded-2xl">
+                <Button onClick={handleCreateJobTitle} className="rounded-2xl">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Department
+                  Add Job Title
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <DepartmentList
-                departments={departments}
-                onEditDepartment={handleEditDepartment}
-                onDeleteDepartment={deleteDepartment}
+              <JobTitleList
+                jobTitles={jobTitles}
+                onEditJobTitle={handleEditJobTitle}
+                onDeleteJobTitle={deleteJobTitle}
               />
             </CardContent>
           </Card>
@@ -73,17 +73,17 @@ const Departments: React.FC = () => {
 
         {/* Sidebar - Audit Log */}
         <div className="lg:col-span-1">
-          <DepartmentAuditLog />
+          <JobTitleAuditLog />
         </div>
       </div>
 
       {isFormOpen && (
-        <DepartmentForm
-          department={editingDepartment}
+        <JobTitleForm
+          jobTitle={editingJobTitle}
           isOpen={isFormOpen}
           onClose={() => {
             setIsFormOpen(false);
-            setEditingDepartment(null);
+            setEditingJobTitle(null);
           }}
           onSuccess={handleFormSuccess}
         />
@@ -92,4 +92,4 @@ const Departments: React.FC = () => {
   );
 };
 
-export default Departments;
+export default JobTitles;
