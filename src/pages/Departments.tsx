@@ -1,36 +1,32 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building, Plus } from 'lucide-react';
-import { DepartmentList } from '@/components/departments/DepartmentList';
+import { Building, Plus, History } from 'lucide-react';
+import { DepartmentClickableList } from '@/components/departments/DepartmentClickableList';
 import { DepartmentForm } from '@/components/departments/DepartmentForm';
-import { DepartmentAuditLog } from '@/components/departments/DepartmentAuditLog';
+import { DepartmentAuditLogModal } from '@/components/departments/DepartmentAuditLogModal';
 import { useDepartments } from '@/hooks/useDepartments';
-import type { Database } from '@/integrations/supabase/types';
-
-type Department = Database['public']['Tables']['departments']['Row'];
 
 const Departments: React.FC = () => {
+  const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [isAuditLogOpen, setIsAuditLogOpen] = useState(false);
   
-  const { departments, isLoading, refetch, deleteDepartment } = useDepartments();
+  const { departments, isLoading, refetch } = useDepartments();
 
   const handleCreateDepartment = () => {
-    setEditingDepartment(null);
-    setIsFormOpen(true);
-  };
-
-  const handleEditDepartment = (department: Department) => {
-    setEditingDepartment(department);
     setIsFormOpen(true);
   };
 
   const handleFormSuccess = () => {
     setIsFormOpen(false);
-    setEditingDepartment(null);
     refetch();
+  };
+
+  const handleDepartmentClick = (departmentId: string) => {
+    navigate(`/departments/${departmentId}`);
   };
 
   if (isLoading) {
@@ -45,49 +41,50 @@ const Departments: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content - Departments */}
-        <div className="lg:col-span-2">
-          <Card className="rounded-2xl shadow-sm border border-gray-200">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
-                  <Building className="h-6 w-6 text-primary" />
-                  <span>Departments</span>
-                </CardTitle>
-                <Button onClick={handleCreateDepartment} className="rounded-2xl">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Department
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <DepartmentList
-                departments={departments}
-                onEditDepartment={handleEditDepartment}
-                onDeleteDepartment={deleteDepartment}
-              />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar - Audit Log */}
-        <div className="lg:col-span-1">
-          <DepartmentAuditLog />
-        </div>
-      </div>
+      <Card className="rounded-2xl shadow-sm border border-gray-200">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
+              <Building className="h-6 w-6 text-primary" />
+              <span>Departments</span>
+            </CardTitle>
+            <Button onClick={handleCreateDepartment} className="rounded-2xl">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Department
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DepartmentClickableList
+            departments={departments}
+            onDepartmentClick={handleDepartmentClick}
+          />
+          
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAuditLogOpen(true)}
+              className="rounded-2xl"
+            >
+              <History className="w-4 h-4 mr-2" />
+              Click to see the Department Audit Log
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {isFormOpen && (
         <DepartmentForm
-          department={editingDepartment}
           isOpen={isFormOpen}
-          onClose={() => {
-            setIsFormOpen(false);
-            setEditingDepartment(null);
-          }}
+          onClose={() => setIsFormOpen(false)}
           onSuccess={handleFormSuccess}
         />
       )}
+
+      <DepartmentAuditLogModal
+        isOpen={isAuditLogOpen}
+        onClose={() => setIsAuditLogOpen(false)}
+      />
     </div>
   );
 };

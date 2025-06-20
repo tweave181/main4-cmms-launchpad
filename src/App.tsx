@@ -17,6 +17,7 @@ import Inventory from '@/pages/Inventory';
 import Reports from '@/pages/Reports';
 import UserManagement from '@/pages/UserManagement';
 import Departments from '@/pages/Departments';
+import DepartmentDetails from '@/pages/DepartmentDetails';
 import AssetPrefixManager from '@/pages/AssetPrefixManager';
 import JobTitles from '@/pages/JobTitles';
 import JobTitleDetails from '@/pages/JobTitleDetails';
@@ -48,6 +49,7 @@ function App() {
                       <Route path="/reports" element={<Reports />} />
                       <Route path="/users" element={<UserManagement />} />
                       <Route path="/departments" element={<Departments />} />
+                      <Route path="/departments/:id" element={<DepartmentDetails />} />
                       <Route path="/asset-prefixes" element={<AssetPrefixManager />} />
                       <Route path="/job-titles" element={<JobTitles />} />
                       <Route path="/job-titles/:id" element={<JobTitleDetails />} />
