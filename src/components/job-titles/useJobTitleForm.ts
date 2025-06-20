@@ -32,10 +32,45 @@ export const useJobTitleForm = ({ jobTitle, onSuccess }: UseJobTitleFormProps) =
     },
   });
 
+  const checkTitleUniqueness = async (titleName: string, excludeId?: string): Promise<boolean> => {
+    let query = supabase
+      .from('job_titles')
+      .select('id')
+      .eq('tenant_id', userProfile?.tenant_id)
+      .ilike('title_name', titleName);
+
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
+
+    const { data, error } = await query.limit(1);
+
+    if (error) {
+      console.error('Error checking title uniqueness:', error);
+      return false; // Assume not unique if check fails
+    }
+
+    return data && data.length > 0;
+  };
+
   const onSubmit = async (data: JobTitleFormData) => {
     try {
       if (!userProfile?.tenant_id) {
         throw new Error('No tenant found');
+      }
+
+      // Check for uniqueness
+      const titleExists = await checkTitleUniqueness(
+        data.title_name,
+        isEditing ? jobTitle!.id : undefined
+      );
+
+      if (titleExists) {
+        form.setError('title_name', {
+          type: 'manual',
+          message: 'A job title with this name already exists',
+        });
+        return;
       }
 
       const jobTitleData: JobTitleInsert = {

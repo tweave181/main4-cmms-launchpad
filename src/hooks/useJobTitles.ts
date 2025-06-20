@@ -24,10 +24,37 @@ export const useJobTitles = () => {
     enabled: !!userProfile?.tenant_id,
   });
 
-  const deleteJobTitle = async (jobTitleId: string) => {
-    if (!confirm('Are you sure you want to delete this job title?')) return;
+  const checkJobTitleUsage = async (jobTitleId: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id')
+      .eq('job_title_id', jobTitleId)
+      .limit(1);
 
+    if (error) {
+      console.error('Error checking job title usage:', error);
+      return true; // Assume it's in use if we can't check
+    }
+
+    return data && data.length > 0;
+  };
+
+  const deleteJobTitle = async (jobTitleId: string) => {
     try {
+      // Check if the job title is in use
+      const isInUse = await checkJobTitleUsage(jobTitleId);
+      
+      if (isInUse) {
+        toast({
+          title: "Cannot Delete",
+          description: "This job title is currently assigned to users and cannot be deleted.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!confirm('Are you sure you want to delete this job title?')) return;
+
       const { error } = await supabase
         .from('job_titles')
         .delete()
@@ -54,5 +81,6 @@ export const useJobTitles = () => {
     isLoading,
     refetch,
     deleteJobTitle,
+    checkJobTitleUsage,
   };
 };
