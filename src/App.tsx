@@ -20,6 +20,7 @@ import Vendors from "@/pages/Vendors";
 import Departments from "@/pages/Departments";
 import AdminSettings from "@/pages/AdminSettings";
 import UserManagement from "@/pages/UserManagement";
+import AssetPrefixManager from "@/pages/AssetPrefixManager";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,6 +89,7 @@ const AppContent = () => {
         <Route path="/departments" element={<Departments />} />
         <Route path="/settings" element={<AdminSettings />} />
         <Route path="/users" element={<UserManagement />} />
+        <Route path="/asset-prefixes" element={<AssetPrefixManager />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
