@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Control, useWatch } from 'react-hook-form';
+import { Control, useWatch, useFormContext } from 'react-hook-form';
 import {
   FormControl,
   FormField,
@@ -32,6 +32,7 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control }) =
   const { prefixes } = useAssetPrefixes();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [categoryManuallyEdited, setCategoryManuallyEdited] = useState(false);
+  const { setValue, getFieldState } = useFormContext<AssetFormData>();
   
   // Watch the asset_tag field value
   const assetTagValue = useWatch({
@@ -59,18 +60,18 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control }) =
         
         if (matchingPrefix) {
           // Set the category to the prefix description
-          const categoryField = control._getFieldState('category');
+          const categoryField = getFieldState('category');
           if (!categoryField.isDirty || !categoryValue) {
-            control._setValue('category', matchingPrefix.description);
+            setValue('category', matchingPrefix.description);
           }
         }
       }
     }
-  }, [assetTagValue, prefixes, categoryManuallyEdited, control, categoryValue]);
+  }, [assetTagValue, prefixes, categoryManuallyEdited, setValue, getFieldState, categoryValue]);
 
   const handleCategoryChange = (value: string) => {
     setCategoryManuallyEdited(true);
-    control._setValue('category', value);
+    setValue('category', value);
   };
 
   return (
