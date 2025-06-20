@@ -6,7 +6,9 @@ import { Briefcase, Plus } from 'lucide-react';
 import { JobTitleList } from '@/components/job-titles/JobTitleList';
 import { JobTitleForm } from '@/components/job-titles/JobTitleForm';
 import { JobTitleAuditLog } from '@/components/job-titles/JobTitleAuditLog';
+import { JobTitleSearchAndFilters } from '@/components/job-titles/JobTitleSearchAndFilters';
 import { useJobTitles } from '@/hooks/useJobTitles';
+import { useJobTitleFilters } from '@/hooks/useJobTitleFilters';
 import type { Database } from '@/integrations/supabase/types';
 
 type JobTitle = Database['public']['Tables']['job_titles']['Row'];
@@ -16,6 +18,14 @@ const JobTitles: React.FC = () => {
   const [editingJobTitle, setEditingJobTitle] = useState<JobTitle | null>(null);
   
   const { jobTitles, isLoading, refetch, deleteJobTitle } = useJobTitles();
+  
+  const {
+    searchTerm,
+    setSearchTerm,
+    sortOrder,
+    setSortOrder,
+    filteredAndSortedJobTitles,
+  } = useJobTitleFilters(jobTitles);
 
   const handleCreateJobTitle = () => {
     setEditingJobTitle(null);
@@ -62,11 +72,24 @@ const JobTitles: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <JobTitleList
-                jobTitles={jobTitles}
-                onEditJobTitle={handleEditJobTitle}
-                onDeleteJobTitle={deleteJobTitle}
+              <JobTitleSearchAndFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                sortOrder={sortOrder}
+                onSortChange={setSortOrder}
               />
+              
+              {filteredAndSortedJobTitles.length === 0 && searchTerm ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No job titles found matching "{searchTerm}"</p>
+                </div>
+              ) : (
+                <JobTitleList
+                  jobTitles={filteredAndSortedJobTitles}
+                  onEditJobTitle={handleEditJobTitle}
+                  onDeleteJobTitle={deleteJobTitle}
+                />
+              )}
             </CardContent>
           </Card>
         </div>
