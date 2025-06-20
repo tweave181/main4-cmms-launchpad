@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Briefcase, Edit, Trash2, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useJobTitles } from '@/hooks/useJobTitles';
@@ -13,12 +14,16 @@ interface JobTitleListProps {
   jobTitles: JobTitle[];
   onEditJobTitle: (jobTitle: JobTitle) => void;
   onDeleteJobTitle: (jobTitleId: string) => void;
+  selectedJobTitles: string[];
+  onSelectionChange: (jobTitleIds: string[]) => void;
 }
 
 export const JobTitleList: React.FC<JobTitleListProps> = ({
   jobTitles,
   onEditJobTitle,
   onDeleteJobTitle,
+  selectedJobTitles,
+  onSelectionChange,
 }) => {
   const { checkJobTitleUsage } = useJobTitles();
   const [usageStatus, setUsageStatus] = useState<Record<string, boolean>>({});
@@ -45,16 +50,31 @@ export const JobTitleList: React.FC<JobTitleListProps> = ({
     }
   }, [jobTitles, checkJobTitleUsage]);
 
+  const handleCheckboxChange = (jobTitleId: string, checked: boolean) => {
+    if (checked) {
+      onSelectionChange([...selectedJobTitles, jobTitleId]);
+    } else {
+      onSelectionChange(selectedJobTitles.filter(id => id !== jobTitleId));
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {jobTitles.map((jobTitle) => {
           const isInUse = usageStatus[jobTitle.id];
+          const isSelected = selectedJobTitles.includes(jobTitle.id);
           
           return (
             <Card key={jobTitle.id} className="rounded-2xl">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3 mb-4">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={(checked) => 
+                      handleCheckboxChange(jobTitle.id, checked as boolean)
+                    }
+                  />
                   <Briefcase className="h-8 w-8 text-primary" />
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold">{jobTitle.title_name}</h3>

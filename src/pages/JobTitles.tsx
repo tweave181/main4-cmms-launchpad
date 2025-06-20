@@ -7,8 +7,12 @@ import { JobTitleList } from '@/components/job-titles/JobTitleList';
 import { JobTitleForm } from '@/components/job-titles/JobTitleForm';
 import { JobTitleAuditLog } from '@/components/job-titles/JobTitleAuditLog';
 import { JobTitleSearchAndFilters } from '@/components/job-titles/JobTitleSearchAndFilters';
+import { JobTitleBulkActions } from '@/components/job-titles/JobTitleBulkActions';
+import { JobTitleImportModal } from '@/components/job-titles/JobTitleImportModal';
+import { JobTitleBulkEditModal } from '@/components/job-titles/JobTitleBulkEditModal';
 import { useJobTitles } from '@/hooks/useJobTitles';
 import { useJobTitleFilters } from '@/hooks/useJobTitleFilters';
+import { toast } from '@/components/ui/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 type JobTitle = Database['public']['Tables']['job_titles']['Row'];
@@ -16,6 +20,9 @@ type JobTitle = Database['public']['Tables']['job_titles']['Row'];
 const JobTitles: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingJobTitle, setEditingJobTitle] = useState<JobTitle | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false);
+  const [selectedJobTitleIds, setSelectedJobTitleIds] = useState<string[]>([]);
   
   const { jobTitles, isLoading, refetch, deleteJobTitle } = useJobTitles();
   
@@ -26,6 +33,8 @@ const JobTitles: React.FC = () => {
     setSortOrder,
     filteredAndSortedJobTitles,
   } = useJobTitleFilters(jobTitles);
+
+  const selectedJobTitles = jobTitles.filter(jt => selectedJobTitleIds.includes(jt.id));
 
   const handleCreateJobTitle = () => {
     setEditingJobTitle(null);
@@ -40,6 +49,37 @@ const JobTitles: React.FC = () => {
   const handleFormSuccess = () => {
     setIsFormOpen(false);
     setEditingJobTitle(null);
+    refetch();
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedJobTitles.length} job titles?`)) {
+      return;
+    }
+
+    try {
+      for (const jobTitle of selectedJobTitles) {
+        await deleteJobTitle(jobTitle.id);
+      }
+      
+      setSelectedJobTitleIds([]);
+      toast({
+        title: "Success",
+        description: `${selectedJobTitles.length} job titles deleted successfully`,
+      });
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+    }
+  };
+
+  const handleImportSuccess = () => {
+    setIsImportModalOpen(false);
+    refetch();
+  };
+
+  const handleBulkEditSuccess = () => {
+    setIsBulkEditModalOpen(false);
+    setSelectedJobTitleIds([]);
     refetch();
   };
 
@@ -78,6 +118,15 @@ const JobTitles: React.FC = () => {
                 sortOrder={sortOrder}
                 onSortChange={setSortOrder}
               />
+
+              <JobTitleBulkActions
+                selectedJobTitles={selectedJobTitles}
+                allJobTitles={filteredAndSortedJobTitles}
+                onBulkEdit={() => setIsBulkEditModalOpen(true)}
+                onBulkDelete={handleBulkDelete}
+                onImport={() => setIsImportModalOpen(true)}
+                onSelectionChange={setSelectedJobTitleIds}
+              />
               
               {filteredAndSortedJobTitles.length === 0 && searchTerm ? (
                 <div className="text-center py-8">
@@ -88,6 +137,8 @@ const JobTitles: React.FC = () => {
                   jobTitles={filteredAndSortedJobTitles}
                   onEditJobTitle={handleEditJobTitle}
                   onDeleteJobTitle={deleteJobTitle}
+                  selectedJobTitles={selectedJobTitleIds}
+                  onSelectionChange={setSelectedJobTitleIds}
                 />
               )}
             </CardContent>
@@ -100,6 +151,7 @@ const JobTitles: React.FC = () => {
         </div>
       </div>
 
+      {/* Modals */}
       {isFormOpen && (
         <JobTitleForm
           jobTitle={editingJobTitle}
@@ -111,6 +163,20 @@ const JobTitles: React.FC = () => {
           onSuccess={handleFormSuccess}
         />
       )}
+
+      <JobTitleImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={handleImportSuccess}
+        existingJobTitles={jobTitles}
+      />
+
+      <JobTitleBulkEditModal
+        isOpen={isBulkEditModalOpen}
+        onClose={() => setIsBulkEditModalOpen(false)}
+        onSuccess={handleBulkEditSuccess}
+        selectedJobTitles={selectedJobTitles}
+      />
     </div>
   );
 };
