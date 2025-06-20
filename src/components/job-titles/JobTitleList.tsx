@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Briefcase, Edit, Trash2, Lock } from 'lucide-react';
+import { Briefcase, Lock, ChevronRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useJobTitles } from '@/hooks/useJobTitles';
 import type { Database } from '@/integrations/supabase/types';
@@ -12,16 +11,14 @@ type JobTitle = Database['public']['Tables']['job_titles']['Row'];
 
 interface JobTitleListProps {
   jobTitles: JobTitle[];
-  onEditJobTitle: (jobTitle: JobTitle) => void;
-  onDeleteJobTitle: (jobTitleId: string) => void;
+  onJobTitleClick: (jobTitle: JobTitle) => void;
   selectedJobTitles: string[];
   onSelectionChange: (jobTitleIds: string[]) => void;
 }
 
 export const JobTitleList: React.FC<JobTitleListProps> = ({
   jobTitles,
-  onEditJobTitle,
-  onDeleteJobTitle,
+  onJobTitleClick,
   selectedJobTitles,
   onSelectionChange,
 }) => {
@@ -58,78 +55,56 @@ export const JobTitleList: React.FC<JobTitleListProps> = ({
     }
   };
 
+  const handleRowClick = (jobTitle: JobTitle, e: React.MouseEvent) => {
+    // Don't trigger row click if checkbox was clicked
+    if ((e.target as HTMLElement).closest('[role="checkbox"]')) {
+      return;
+    }
+    onJobTitleClick(jobTitle);
+  };
+
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-3">
         {jobTitles.map((jobTitle) => {
           const isInUse = usageStatus[jobTitle.id];
           const isSelected = selectedJobTitles.includes(jobTitle.id);
           
           return (
-            <Card key={jobTitle.id} className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
+            <Card 
+              key={jobTitle.id} 
+              className="rounded-2xl hover:shadow-md transition-shadow cursor-pointer"
+              onClick={(e) => handleRowClick(jobTitle, e)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-4">
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={(checked) => 
                       handleCheckboxChange(jobTitle.id, checked as boolean)
                     }
                   />
-                  <Briefcase className="h-8 w-8 text-primary" />
+                  
+                  <Briefcase className="h-6 w-6 text-primary flex-shrink-0" />
+                  
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold">{jobTitle.title_name}</h3>
                   </div>
-                  {isInUse && (
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Lock className="h-4 w-4 text-yellow-600" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>This job title is assigned to users</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-                
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEditJobTitle(jobTitle)}
-                  >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  {isInUse ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled
-                            className="text-gray-400 cursor-not-allowed"
-                          >
-                            <Lock className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Cannot delete - job title is assigned to users</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onDeleteJobTitle(jobTitle.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  )}
+                  
+                  <div className="flex items-center space-x-2">
+                    {isInUse && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Lock className="h-4 w-4 text-yellow-600" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>This job title is assigned to users</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                    
+                    <ChevronRight className="h-5 w-5 text-gray-400" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
