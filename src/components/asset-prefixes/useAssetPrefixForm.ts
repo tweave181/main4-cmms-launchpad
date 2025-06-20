@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
@@ -35,6 +36,29 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
   const { userProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const isEditing = !!prefix;
+
+  // Check if the current prefix is in use by existing assets
+  const { data: isPrefixInUse = false } = useQuery({
+    queryKey: ['prefixInUse', prefix?.id, userProfile?.tenant_id],
+    queryFn: async () => {
+      if (!prefix || !userProfile?.tenant_id) return false;
+      
+      const singleDigitCode = parseInt(prefix.number_code).toString();
+      const basePattern = `${prefix.prefix_letter}${singleDigitCode}/`;
+      
+      const { data, error } = await supabase
+        .from('assets')
+        .select('id')
+        .eq('tenant_id', userProfile.tenant_id)
+        .like('asset_tag', `${basePattern}%`)
+        .limit(1);
+
+      if (error) throw error;
+      
+      return (data && data.length > 0);
+    },
+    enabled: isEditing && !!prefix && !!userProfile?.tenant_id,
+  });
 
   const form = useForm<AssetPrefixFormData>({
     resolver: zodResolver(assetPrefixSchema),
@@ -122,5 +146,6 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
     onSubmit,
     isEditing,
     isLoading,
+    isPrefixInUse,
   };
 };
