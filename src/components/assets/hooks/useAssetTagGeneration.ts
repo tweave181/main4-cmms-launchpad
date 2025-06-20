@@ -9,6 +9,8 @@ interface AssetTagPrefix {
   prefix_letter: string;
   number_code: string;
   description: string;
+  asset_count?: number;
+  is_at_capacity?: boolean;
 }
 
 export const useAssetTagGeneration = () => {
@@ -19,18 +21,45 @@ export const useAssetTagGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  // Fetch available asset tag prefixes
+  // Fetch available asset tag prefixes with usage counts
   const { data: prefixes = [], isLoading } = useQuery({
     queryKey: ['assetTagPrefixes', userProfile?.tenant_id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get all asset tag prefixes
+      const { data: prefixData, error: prefixError } = await supabase
         .from('asset_tag_prefixes')
         .select('*')
         .order('prefix_letter', { ascending: true })
         .order('number_code', { ascending: true });
 
-      if (error) throw error;
-      return data as AssetTagPrefix[];
+      if (prefixError) throw prefixError;
+
+      // Get all assets to count usage
+      const { data: assetsData, error: assetsError } = await supabase
+        .from('assets')
+        .select('asset_tag')
+        .eq('tenant_id', userProfile?.tenant_id);
+
+      if (assetsError) throw assetsError;
+
+      // Calculate asset counts and filter available prefixes
+      const prefixesWithCount: AssetTagPrefix[] = prefixData.map(prefix => {
+        const singleDigitCode = parseInt(prefix.number_code).toString();
+        const basePattern = `${prefix.prefix_letter}${singleDigitCode}/`;
+        
+        const assetCount = assetsData?.filter(asset => 
+          asset.asset_tag && asset.asset_tag.startsWith(basePattern)
+        ).length || 0;
+
+        return {
+          ...prefix,
+          asset_count: assetCount,
+          is_at_capacity: assetCount >= 999
+        };
+      });
+
+      // Only return prefixes that are not at capacity
+      return prefixesWithCount.filter(prefix => !prefix.is_at_capacity);
     },
     enabled: !!userProfile?.tenant_id,
   });
@@ -71,6 +100,14 @@ export const useAssetTagGeneration = () => {
             }
           }
         });
+      }
+
+      // Check if we're at capacity
+      if (maxSequence >= 999) {
+        setValidationError('This prefix has reached its maximum capacity of 999 assets. Please select a different prefix.');
+        setNextSequence('');
+        setGeneratedTag('');
+        return;
       }
 
       // Generate next sequence number (3 digits, zero-padded)

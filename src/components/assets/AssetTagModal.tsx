@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { useAssetTagGeneration } from './hooks/useAssetTagGeneration';
 import { AssetTagPrefixSelector } from './AssetTagPrefixSelector';
 import { GeneratedTagDisplay } from './GeneratedTagDisplay';
@@ -81,16 +81,28 @@ export const AssetTagModal: React.FC<AssetTagModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          <AssetTagPrefixSelector 
-            prefixes={prefixes}
-            onPrefixChange={handlePrefixChange}
-          />
+          {prefixes.length === 0 ? (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                All available asset tag prefixes have reached their capacity (999 assets each). 
+                Please contact an administrator to add new prefixes before creating assets.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <>
+              <AssetTagPrefixSelector 
+                prefixes={prefixes}
+                onPrefixChange={handlePrefixChange}
+              />
 
-          <GeneratedTagDisplay
-            generatedTag={generatedTag}
-            nextSequence={nextSequence}
-            isGenerating={isGenerating}
-          />
+              <GeneratedTagDisplay
+                generatedTag={generatedTag}
+                nextSequence={nextSequence}
+                isGenerating={isGenerating}
+              />
+            </>
+          )}
 
           {validationError && (
             <Alert>
@@ -105,7 +117,7 @@ export const AssetTagModal: React.FC<AssetTagModalProps> = ({
             </Button>
             <Button 
               onClick={handleValidateAndSelect}
-              disabled={!generatedTag || isGenerating}
+              disabled={!generatedTag || isGenerating || prefixes.length === 0}
             >
               {isGenerating ? (
                 <>
