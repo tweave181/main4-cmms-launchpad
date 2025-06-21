@@ -6,7 +6,7 @@ import { Tag, Plus } from 'lucide-react';
 import { AssetForm } from '@/components/assets/AssetForm';
 import { AssetDetail } from '@/components/assets/AssetDetail';
 import { AssetSearchAndFilters } from './assets/components/AssetSearchAndFilters';
-import { AssetList } from './assets/components/AssetList';
+import { AssetTable } from '@/components/assets/AssetTable';
 import { AssetEmptyState } from './assets/components/AssetEmptyState';
 import { MobileActionButtons } from '@/components/mobile/MobileActionButtons';
 import { useOfflineAssets } from '@/hooks/useOfflineAssets';
@@ -106,7 +106,7 @@ const Assets: React.FC = () => {
               onCreateAsset={handleCreateAsset}
             />
           ) : (
-            <AssetList
+            <AssetTable
               assets={filteredAssets}
               onViewAsset={handleViewAsset}
               onEditAsset={handleEditAsset}
