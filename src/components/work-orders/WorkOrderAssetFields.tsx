@@ -168,12 +168,12 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
             name="contractor_company_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Contractor Company</FormLabel>
+                <FormLabel>Contractor Company *</FormLabel>
                 <Select 
                   onValueChange={(value) => {
-                    field.onChange(value === 'no-contractor' ? undefined : value);
+                    field.onChange(value);
                   }} 
-                  value={field.value || 'no-contractor'}
+                  value={field.value || ''}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -181,7 +181,6 @@ export const WorkOrderAssetFields: React.FC<WorkOrderAssetFieldsProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="no-contractor">No Contractor</SelectItem>
                     {contractors.map((contractor) => (
                       <SelectItem key={contractor.id} value={contractor.id}>
                         {contractor.company_name}

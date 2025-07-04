@@ -15,4 +15,15 @@ export const workOrderSchema = z.object({
   estimated_hours: emptyStringToUndefined.optional(),
   estimated_cost: emptyStringToUndefined.optional(),
   due_date: emptyStringToUndefined.optional(),
+  assigned_to_contractor: z.boolean().optional(),
+  contractor_company_id: emptyStringToUndefined.optional(),
+}).refine((data) => {
+  // If assigned to contractor is true, contractor company must be selected
+  if (data.assigned_to_contractor && !data.contractor_company_id) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Contractor company is required when assigning to contractor",
+  path: ["contractor_company_id"],
 });
