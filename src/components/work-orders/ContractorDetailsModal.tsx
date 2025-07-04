@@ -99,10 +99,18 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
     try {
       if (!userProfile?.id) return;
       
+      // Format asset info for the log
+      const assetInfo = asset 
+        ? `${asset.name || 'Unknown Asset'}${asset.asset_tag ? ` (${asset.asset_tag})` : ''}`
+        : 'None';
+      
+      const actionText = method === 'email' ? 'Emailed Contractor' : 'Called Contractor';
+      const comment = `${actionText} ${contractor.company_name} - Asset: ${assetInfo}`;
+      
       await supabase.from('work_order_comments').insert({
         work_order_id: workOrder.id,
         user_id: userProfile.id,
-        comment: `Contacted contractor ${contractor.company_name} via ${method}`,
+        comment,
         comment_type: 'contact_event'
       });
     } catch (error) {
