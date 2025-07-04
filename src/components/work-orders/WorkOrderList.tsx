@@ -67,14 +67,13 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
 }) => {
   const [selectedContractor, setSelectedContractor] = useState<{ 
     id: string; 
-    workOrderId: string; 
-    workOrderTitle: string; 
+    workOrder: WorkOrder; 
   } | null>(null);
   const { data: contractors = [] } = useCompanies('contractor');
   
-  const handleContractorClick = (e: React.MouseEvent, contractorId: string, workOrderId: string, workOrderTitle: string) => {
+  const handleContractorClick = (e: React.MouseEvent, contractorId: string, workOrder: WorkOrder) => {
     e.stopPropagation();
-    setSelectedContractor({ id: contractorId, workOrderId, workOrderTitle });
+    setSelectedContractor({ id: contractorId, workOrder });
   };
 
   const handleCloseModal = () => {
@@ -194,7 +193,7 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
                       Contractor:{' '}
                       <button
                         className="text-primary hover:underline cursor-pointer font-medium"
-                        onClick={(e) => handleContractorClick(e, workOrder.contractor_company_id!, workOrder.id, workOrder.title)}
+                        onClick={(e) => handleContractorClick(e, workOrder.contractor_company_id!, workOrder)}
                       >
                         {contractors.find(c => c.id === workOrder.contractor_company_id)?.company_name || 'Unknown Contractor'}
                       </button>
@@ -216,8 +215,7 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
           isOpen={!!selectedContractor}
           onClose={handleCloseModal}
           contractorId={selectedContractor.id}
-          workOrderId={selectedContractor.workOrderId}
-          workOrderTitle={selectedContractor.workOrderTitle}
+          workOrder={selectedContractor.workOrder}
         />
       )}
     </div>

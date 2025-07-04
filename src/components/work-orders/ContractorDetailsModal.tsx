@@ -13,20 +13,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import type { CompanyDetails } from '@/types/company';
 
+import type { WorkOrder } from '@/types/workOrder';
+
 interface ContractorDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   contractorId: string;
-  workOrderId: string;
-  workOrderTitle: string;
+  workOrder: WorkOrder;
 }
 
 export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
   isOpen,
   onClose,
   contractorId,
-  workOrderId,
-  workOrderTitle,
+  workOrder,
 }) => {
   const { data: contractors = [] } = useCompanies('contractor');
   const { userProfile } = useAuth();
@@ -36,15 +36,35 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
     return null;
   }
 
-  const emailSubject = `Work Order: ${workOrderTitle}`;
-  const mailtoLink = `mailto:${contractor.email}?subject=${encodeURIComponent(emailSubject)}`;
+  const emailSubject = `Work Order: ${workOrder.title}`;
+  
+  // Generate detailed email body
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'Not specified';
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const emailBody = `Hello ${contractor.contact_name || contractor.company_name},%0A%0A` +
+    `Please see the details of the work order below:%0A%0A` +
+    `Work Order Title: ${workOrder.title}%0A` +
+    `Description: ${workOrder.description || 'Not specified'}%0A` +
+    `Asset: ${workOrder.asset_id || 'Not specified'}%0A` +
+    `Location: Not specified%0A` +
+    `Priority: ${workOrder.priority.charAt(0).toUpperCase() + workOrder.priority.slice(1)}%0A` +
+    `Work Type: ${workOrder.work_type.charAt(0).toUpperCase() + workOrder.work_type.slice(1)}%0A` +
+    `Due Date: ${formatDate(workOrder.due_date)}%0A` +
+    `Assigned By: ${userProfile?.name || 'System'}%0A%0A` +
+    `Please reply or update us as soon as possible.%0A%0A` +
+    `Thank you,%0A${userProfile?.name || 'Main4 CMMS Team'}`;
+
+  const mailtoLink = `mailto:${contractor.email}?subject=${encodeURIComponent(emailSubject)}&body=${emailBody}`;
 
   const logCommunicationEvent = async (method: 'phone' | 'email') => {
     try {
       if (!userProfile?.id) return;
       
       await supabase.from('work_order_comments').insert({
-        work_order_id: workOrderId,
+        work_order_id: workOrder.id,
         user_id: userProfile.id,
         comment: `Contacted contractor ${contractor.company_name} via ${method}`,
         comment_type: 'contact_event'
