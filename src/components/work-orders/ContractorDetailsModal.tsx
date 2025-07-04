@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Building2, User, Phone, Mail, MapPin } from 'lucide-react';
 import { useCompanies } from '@/hooks/useCompanies';
 import type { CompanyDetails } from '@/types/company';
@@ -14,12 +15,14 @@ interface ContractorDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   contractorId: string;
+  workOrderTitle: string;
 }
 
 export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
   isOpen,
   onClose,
   contractorId,
+  workOrderTitle,
 }) => {
   const { data: contractors = [] } = useCompanies('contractor');
   const contractor = contractors.find((c) => c.id === contractorId);
@@ -27,6 +30,9 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
   if (!contractor) {
     return null;
   }
+
+  const emailSubject = `Work Order: ${workOrderTitle}`;
+  const mailtoLink = `mailto:${contractor.email}?subject=${encodeURIComponent(emailSubject)}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -74,7 +80,7 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
               <div className="flex items-center gap-2 text-sm">
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <a 
-                  href={`mailto:${contractor.email}`}
+                  href={mailtoLink}
                   className="text-primary hover:underline"
                 >
                   {contractor.email}
@@ -89,6 +95,37 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
               </div>
             )}
           </div>
+
+          {/* Quick Contact Actions */}
+          {(contractor.phone || contractor.email) && (
+            <div className="pt-4 border-t">
+              <div className="flex flex-col sm:flex-row gap-2">
+                {contractor.phone && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={() => window.open(`tel:${contractor.phone}`, '_self')}
+                  >
+                    <Phone className="h-4 w-4" />
+                    Call Contractor
+                  </Button>
+                )}
+                
+                {contractor.email && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={() => window.open(mailtoLink, '_self')}
+                  >
+                    <Mail className="h-4 w-4" />
+                    Email Contractor
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

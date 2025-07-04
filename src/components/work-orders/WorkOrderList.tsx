@@ -65,16 +65,16 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
   onWorkOrderClick,
   loading = false,
 }) => {
-  const [selectedContractorId, setSelectedContractorId] = useState<string | null>(null);
+  const [selectedContractor, setSelectedContractor] = useState<{ id: string; workOrderTitle: string } | null>(null);
   const { data: contractors = [] } = useCompanies('contractor');
   
-  const handleContractorClick = (e: React.MouseEvent, contractorId: string) => {
+  const handleContractorClick = (e: React.MouseEvent, contractorId: string, workOrderTitle: string) => {
     e.stopPropagation();
-    setSelectedContractorId(contractorId);
+    setSelectedContractor({ id: contractorId, workOrderTitle });
   };
 
   const handleCloseModal = () => {
-    setSelectedContractorId(null);
+    setSelectedContractor(null);
   };
   if (loading) {
     return (
@@ -190,7 +190,7 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
                       Contractor:{' '}
                       <button
                         className="text-primary hover:underline cursor-pointer font-medium"
-                        onClick={(e) => handleContractorClick(e, workOrder.contractor_company_id!)}
+                        onClick={(e) => handleContractorClick(e, workOrder.contractor_company_id!, workOrder.title)}
                       >
                         {contractors.find(c => c.id === workOrder.contractor_company_id)?.company_name || 'Unknown Contractor'}
                       </button>
@@ -207,11 +207,12 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
         );
       })}
       
-      {selectedContractorId && (
+      {selectedContractor && (
         <ContractorDetailsModal
-          isOpen={!!selectedContractorId}
+          isOpen={!!selectedContractor}
           onClose={handleCloseModal}
-          contractorId={selectedContractorId}
+          contractorId={selectedContractor.id}
+          workOrderTitle={selectedContractor.workOrderTitle}
         />
       )}
     </div>
