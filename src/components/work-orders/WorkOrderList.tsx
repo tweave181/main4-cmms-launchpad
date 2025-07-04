@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Clock, User, Wrench } from 'lucide-react';
+import { Calendar, Clock, User, Wrench, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCompanies } from '@/hooks/useCompanies';
+import { ContractorDetailsModal } from './ContractorDetailsModal';
 import type { WorkOrder } from '@/types/workOrder';
 
 interface WorkOrderListProps {
@@ -63,6 +65,17 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
   onWorkOrderClick,
   loading = false,
 }) => {
+  const [selectedContractorId, setSelectedContractorId] = useState<string | null>(null);
+  const { data: contractors = [] } = useCompanies('contractor');
+  
+  const handleContractorClick = (e: React.MouseEvent, contractorId: string) => {
+    e.stopPropagation();
+    setSelectedContractorId(contractorId);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedContractorId(null);
+  };
   if (loading) {
     return (
       <div className="grid gap-4">
@@ -169,6 +182,21 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
                     <span>Assigned</span>
                   </div>
                 )}
+
+                {workOrder.assigned_to_contractor && workOrder.contractor_company_id && (
+                  <div className="flex items-center space-x-2">
+                    <Building2 className="h-4 w-4" />
+                    <span>
+                      Contractor:{' '}
+                      <button
+                        className="text-primary hover:underline cursor-pointer font-medium"
+                        onClick={(e) => handleContractorClick(e, workOrder.contractor_company_id!)}
+                      >
+                        {contractors.find(c => c.id === workOrder.contractor_company_id)?.company_name || 'Unknown Contractor'}
+                      </button>
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
@@ -178,6 +206,14 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
           </Card>
         );
       })}
+      
+      {selectedContractorId && (
+        <ContractorDetailsModal
+          isOpen={!!selectedContractorId}
+          onClose={handleCloseModal}
+          contractorId={selectedContractorId}
+        />
+      )}
     </div>
   );
 };
