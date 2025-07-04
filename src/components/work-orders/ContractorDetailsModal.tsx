@@ -11,9 +11,13 @@ import { Building2, User, Phone, Mail, MapPin } from 'lucide-react';
 import { useCompanies } from '@/hooks/useCompanies';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
+import { useQuery } from '@tanstack/react-query';
 import type { CompanyDetails } from '@/types/company';
+import type { Database } from '@/integrations/supabase/types';
 
 import type { WorkOrder } from '@/types/workOrder';
+
+type Asset = Database['public']['Tables']['assets']['Row'];
 
 interface ContractorDetailsModalProps {
   isOpen: boolean;
@@ -32,6 +36,24 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
   const { userProfile } = useAuth();
   const contractor = contractors.find((c) => c.id === contractorId);
 
+  // Fetch asset details if work order has an asset_id
+  const { data: asset } = useQuery({
+    queryKey: ['asset', workOrder.asset_id],
+    queryFn: async () => {
+      if (!workOrder.asset_id) return null;
+      
+      const { data, error } = await supabase
+        .from('assets')
+        .select('*')
+        .eq('id', workOrder.asset_id)
+        .single();
+
+      if (error) throw error;
+      return data as Asset;
+    },
+    enabled: !!workOrder.asset_id && !!userProfile?.tenant_id,
+  });
+
   if (!contractor) {
     return null;
   }
@@ -44,12 +66,26 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
     return new Date(dateString).toLocaleDateString();
   };
 
+  // Format asset display
+  const formatAssetDisplay = () => {
+    if (!asset) return 'Not specified';
+    const name = asset.name || 'Unknown Asset';
+    const tag = asset.asset_tag ? `(${asset.asset_tag})` : '';
+    return `${name} ${tag}`.trim();
+  };
+
+  // Get asset location
+  const getAssetLocation = () => {
+    if (!asset?.location) return 'Not specified';
+    return asset.location;
+  };
+
   const emailBody = `Hello ${contractor.contact_name || contractor.company_name},%0A%0A` +
     `Please see the details of the work order below:%0A%0A` +
     `Work Order Title: ${workOrder.title}%0A` +
     `Description: ${workOrder.description || 'Not specified'}%0A` +
-    `Asset: ${workOrder.asset_id || 'Not specified'}%0A` +
-    `Location: Not specified%0A` +
+    `Asset: ${formatAssetDisplay()}%0A` +
+    `Location: ${getAssetLocation()}%0A` +
     `Priority: ${workOrder.priority.charAt(0).toUpperCase() + workOrder.priority.slice(1)}%0A` +
     `Work Type: ${workOrder.work_type.charAt(0).toUpperCase() + workOrder.work_type.slice(1)}%0A` +
     `Due Date: ${formatDate(workOrder.due_date)}%0A` +
