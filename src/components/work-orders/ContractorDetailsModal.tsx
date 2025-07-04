@@ -9,12 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building2, User, Phone, Mail, MapPin } from 'lucide-react';
 import { useCompanies } from '@/hooks/useCompanies';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth';
 import type { CompanyDetails } from '@/types/company';
 
 interface ContractorDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   contractorId: string;
+  workOrderId: string;
   workOrderTitle: string;
 }
 
@@ -22,9 +25,11 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
   isOpen,
   onClose,
   contractorId,
+  workOrderId,
   workOrderTitle,
 }) => {
   const { data: contractors = [] } = useCompanies('contractor');
+  const { userProfile } = useAuth();
   const contractor = contractors.find((c) => c.id === contractorId);
 
   if (!contractor) {
@@ -33,6 +38,32 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
 
   const emailSubject = `Work Order: ${workOrderTitle}`;
   const mailtoLink = `mailto:${contractor.email}?subject=${encodeURIComponent(emailSubject)}`;
+
+  const logCommunicationEvent = async (method: 'phone' | 'email') => {
+    try {
+      if (!userProfile?.id) return;
+      
+      await supabase.from('work_order_comments').insert({
+        work_order_id: workOrderId,
+        user_id: userProfile.id,
+        comment: `Contacted contractor ${contractor.company_name} via ${method}`,
+        comment_type: 'contact_event'
+      });
+    } catch (error) {
+      console.error('Failed to log communication event:', error);
+      // Don't block the user action if logging fails
+    }
+  };
+
+  const handlePhoneClick = () => {
+    logCommunicationEvent('phone');
+    window.open(`tel:${contractor.phone}`, '_self');
+  };
+
+  const handleEmailClick = () => {
+    logCommunicationEvent('email');
+    window.open(mailtoLink, '_self');
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -105,7 +136,7 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
                     variant="default"
                     size="sm"
                     className="flex items-center gap-2"
-                    onClick={() => window.open(`tel:${contractor.phone}`, '_self')}
+                    onClick={handlePhoneClick}
                   >
                     <Phone className="h-4 w-4" />
                     Call Contractor
@@ -117,7 +148,7 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
                     variant="secondary"
                     size="sm"
                     className="flex items-center gap-2"
-                    onClick={() => window.open(mailtoLink, '_self')}
+                    onClick={handleEmailClick}
                   >
                     <Mail className="h-4 w-4" />
                     Email Contractor

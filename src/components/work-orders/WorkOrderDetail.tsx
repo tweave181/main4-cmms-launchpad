@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, User, Wrench, DollarSign, Edit } from 'lucide-react';
+import { ActivityLog } from './ActivityLog';
 import type { WorkOrder } from '@/types/workOrder';
 
 interface WorkOrderDetailProps {
@@ -205,6 +206,8 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
               </CardContent>
             </Card>
           </div>
+          
+          <ActivityLog workOrderId={workOrder.id} />
         </div>
       </DialogContent>
     </Dialog>
