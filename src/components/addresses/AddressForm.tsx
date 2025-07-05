@@ -15,7 +15,7 @@ interface AddressFormProps {
   prefix?: string;
 }
 
-export const AddressForm: React.FC<AddressFormProps> = ({ control, prefix = 'address' }) => {
+export const AddressForm: React.FC<AddressFormProps> = ({ control, prefix }) => {
   const getFieldName = (field: keyof AddressFormData) => 
     prefix ? `${prefix}.${field}` : field;
 
