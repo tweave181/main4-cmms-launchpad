@@ -2,6 +2,7 @@
 export interface WorkOrder {
   id: string;
   tenant_id: string;
+  work_order_number: string;
   title: string;
   description?: string;
   asset_id?: string;

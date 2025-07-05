@@ -59,9 +59,14 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center space-x-2">
-              <Wrench className="h-5 w-5 text-primary" />
-              <span>{workOrder.title}</span>
+            <DialogTitle className="flex flex-col items-start space-y-1">
+              <div className="text-sm text-muted-foreground font-medium">
+                {workOrder.work_order_number}
+              </div>
+              <div className="flex items-center space-x-2">
+                <Wrench className="h-5 w-5 text-primary" />
+                <span>{workOrder.title}</span>
+              </div>
             </DialogTitle>
             {onEdit && (
               <Button
@@ -95,6 +100,10 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
               <CardTitle>Work Order Details</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium">Work Order Number</p>
+                <p className="text-sm text-gray-600 font-mono">{workOrder.work_order_number}</p>
+              </div>
               {workOrder.asset && (
                 <div>
                   <p className="text-sm font-medium">Asset</p>

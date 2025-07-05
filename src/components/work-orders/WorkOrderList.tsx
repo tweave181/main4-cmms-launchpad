@@ -137,7 +137,12 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
           >
             <CardContent className="p-4">
               <div className="flex justify-between items-start mb-3">
-                <h3 className="font-semibold text-lg truncate pr-2">{workOrder.title}</h3>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-muted-foreground mb-1 font-medium">
+                    {workOrder.work_order_number}
+                  </div>
+                  <h3 className="font-semibold text-lg truncate pr-2">{workOrder.title}</h3>
+                </div>
                 <div className="flex space-x-2 flex-shrink-0">
                   <Badge className={cn('text-xs', getPriorityColor(workOrder.priority))}>
                     {workOrder.priority.toUpperCase()}

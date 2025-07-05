@@ -958,6 +958,7 @@ export type Database = {
           tenant_id: string
           title: string
           updated_at: string
+          work_order_number: string | null
           work_type: string
         }
         Insert: {
@@ -980,6 +981,7 @@ export type Database = {
           tenant_id: string
           title: string
           updated_at?: string
+          work_order_number?: string | null
           work_type?: string
         }
         Update: {
@@ -1002,6 +1004,7 @@ export type Database = {
           tenant_id?: string
           title?: string
           updated_at?: string
+          work_order_number?: string | null
           work_type?: string
         }
         Relationships: [
@@ -1065,6 +1068,10 @@ export type Database = {
       fix_missing_profiles: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_work_order_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_current_user_tenant_id: {
         Args: Record<PropertyKey, never>

@@ -24,7 +24,7 @@ export const useWorkOrders = (filters?: WorkOrderFilters) => {
           created_user:users!created_by(name)
         `)
         .eq('tenant_id', userProfile.tenant_id)
-        .order('created_at', { ascending: false });
+        .order('work_order_number', { ascending: false });
 
       // Apply filters
       if (filters?.status) {
