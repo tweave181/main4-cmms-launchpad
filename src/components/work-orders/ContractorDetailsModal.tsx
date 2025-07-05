@@ -58,7 +58,7 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
     return null;
   }
 
-  const emailSubject = `Work Order: ${workOrder.title}`;
+  const emailSubject = `Work Order ${workOrder.work_order_number}: ${workOrder.title}`;
   
   // Generate detailed email body
   const formatDate = (dateString: string | undefined) => {
@@ -82,6 +82,7 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
 
   const emailBody = `Hello ${contractor.contact_name || contractor.company_name},%0A%0A` +
     `Please see the details of the work order below:%0A%0A` +
+    `Work Order Number: ${workOrder.work_order_number}%0A` +
     `Work Order Title: ${workOrder.title}%0A` +
     `Description: ${workOrder.description || 'Not specified'}%0A` +
     `Asset: ${formatAssetDisplay()}%0A` +
@@ -105,7 +106,7 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
         : 'None';
       
       const actionText = method === 'email' ? 'Emailed Contractor' : 'Called Contractor';
-      const comment = `${actionText} ${contractor.company_name} - Asset: ${assetInfo}`;
+      const comment = `${actionText} ${contractor.company_name} for ${workOrder.work_order_number} - Asset: ${assetInfo}`;
       
       await supabase.from('work_order_comments').insert({
         work_order_id: workOrder.id,
