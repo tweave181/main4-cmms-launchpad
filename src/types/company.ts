@@ -1,4 +1,6 @@
 
+import type { Address } from './address';
+
 export interface CompanyDetails {
   id: string;
   tenant_id: string;
@@ -7,11 +9,15 @@ export interface CompanyDetails {
   email?: string;
   phone?: string;
   address?: string;
+  company_address_id?: string;
+  company_address?: Address;
   type: string[];
   created_at: string;
   updated_at: string;
   created_by?: string;
 }
+
+import type { AddressFormData } from './address';
 
 export interface CompanyFormData {
   company_name: string;
@@ -19,6 +25,8 @@ export interface CompanyFormData {
   email?: string;
   phone?: string;
   address?: string;
+  company_address_id?: string;
+  company_address?: AddressFormData;
   type: string[];
 }
 

@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/pagination';
 import { Edit, Trash, Search, Plus, FileText } from 'lucide-react';
 import { useCompanies, useDeleteCompany } from '@/hooks/useCompanies';
+import { AddressDisplay } from '@/components/addresses/AddressDisplay';
 import { COMPANY_TYPES } from '@/types/company';
 import type { CompanyDetails } from '@/types/company';
 
@@ -148,13 +149,14 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
               <TableHead>Contact Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
+              <TableHead>Address</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedCompanies.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   {searchTerm || typeFilter !== 'all'
                     ? 'No companies match your filters'
                     : 'No companies found'}
@@ -178,6 +180,9 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
                   <TableCell>{company.contact_name || '-'}</TableCell>
                   <TableCell>{company.email || '-'}</TableCell>
                   <TableCell>{company.phone || '-'}</TableCell>
+                  <TableCell>
+                    <AddressDisplay address={company.company_address || null} />
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button

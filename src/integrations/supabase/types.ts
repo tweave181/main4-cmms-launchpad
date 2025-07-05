@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      addresses: {
+        Row: {
+          address_line_1: string
+          address_line_2: string | null
+          address_line_3: string | null
+          county_or_state: string | null
+          created_at: string
+          id: string
+          postcode: string | null
+          tenant_id: string
+          town_or_city: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line_1: string
+          address_line_2?: string | null
+          address_line_3?: string | null
+          county_or_state?: string | null
+          created_at?: string
+          id?: string
+          postcode?: string | null
+          tenant_id: string
+          town_or_city?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line_1?: string
+          address_line_2?: string | null
+          address_line_3?: string | null
+          county_or_state?: string | null
+          created_at?: string
+          id?: string
+          postcode?: string | null
+          tenant_id?: string
+          town_or_city?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addresses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_tag_prefix_audit_log: {
         Row: {
           action: string
@@ -209,6 +256,7 @@ export type Database = {
       company_details: {
         Row: {
           address: string | null
+          company_address_id: string | null
           company_name: string
           contact_name: string | null
           created_at: string
@@ -222,6 +270,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          company_address_id?: string | null
           company_name: string
           contact_name?: string | null
           created_at?: string
@@ -235,6 +284,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          company_address_id?: string | null
           company_name?: string
           contact_name?: string | null
           created_at?: string
@@ -247,6 +297,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "company_details_company_address_id_fkey"
+            columns: ["company_address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "company_details_created_by_fkey"
             columns: ["created_by"]

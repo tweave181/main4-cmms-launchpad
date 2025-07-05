@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/components/ui/use-toast';
+import { useCreateAddress } from './useAddresses';
 import type { CompanyDetails, CompanyFormData } from '@/types/company';
 
 export const useCompanies = (type?: string) => {
@@ -17,7 +18,10 @@ export const useCompanies = (type?: string) => {
 
       let query = supabase
         .from('company_details')
-        .select('*')
+        .select(`
+          *,
+          company_address:addresses(*)
+        `)
         .eq('tenant_id', userProfile.tenant_id)
         .order('company_name');
 
@@ -48,8 +52,37 @@ export const useCreateCompany = () => {
         throw new Error('User not authenticated');
       }
 
+      let addressId = data.company_address_id;
+
+      // Create new address if provided
+      if (data.company_address && data.company_address.address_line_1) {
+        const addressData = {
+          ...data.company_address,
+          tenant_id: userProfile.tenant_id,
+        };
+
+        const { data: addressResult, error: addressError } = await supabase
+          .from('addresses')
+          .insert(addressData)
+          .select()
+          .single();
+
+        if (addressError) {
+          console.error('Error creating address:', addressError);
+          throw addressError;
+        }
+
+        addressId = addressResult.id;
+      }
+
       const companyData = {
-        ...data,
+        company_name: data.company_name,
+        contact_name: data.contact_name,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        company_address_id: addressId,
+        type: data.type,
         tenant_id: userProfile.tenant_id,
         created_by: userProfile.id,
       };
@@ -57,7 +90,10 @@ export const useCreateCompany = () => {
       const { data: result, error } = await supabase
         .from('company_details')
         .insert(companyData)
-        .select()
+        .select(`
+          *,
+          company_address:addresses(*)
+        `)
         .single();
 
       if (error) {
@@ -87,14 +123,55 @@ export const useCreateCompany = () => {
 
 export const useUpdateCompany = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<CompanyFormData> }) => {
+      if (!userProfile?.tenant_id) {
+        throw new Error('User not authenticated');
+      }
+
+      let addressId = data.company_address_id;
+
+      // Create new address if provided
+      if (data.company_address && data.company_address.address_line_1) {
+        const addressData = {
+          ...data.company_address,
+          tenant_id: userProfile.tenant_id,
+        };
+
+        const { data: addressResult, error: addressError } = await supabase
+          .from('addresses')
+          .insert(addressData)
+          .select()
+          .single();
+
+        if (addressError) {
+          console.error('Error creating address:', addressError);
+          throw addressError;
+        }
+
+        addressId = addressResult.id;
+      }
+
+      const updateData = {
+        company_name: data.company_name,
+        contact_name: data.contact_name,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        company_address_id: addressId,
+        type: data.type,
+      };
+
       const { data: result, error } = await supabase
         .from('company_details')
-        .update(data)
+        .update(updateData)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          company_address:addresses(*)
+        `)
         .single();
 
       if (error) {

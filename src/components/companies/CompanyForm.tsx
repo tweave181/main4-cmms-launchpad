@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { CompanyBasicFields } from './CompanyBasicFields';
 import { CompanyContactFields } from './CompanyContactFields';
 import { CompanyTypeFields } from './CompanyTypeFields';
+import { CompanyAddressFields } from './CompanyAddressFields';
 import { useCreateCompany, useUpdateCompany } from '@/hooks/useCompanies';
 import type { CompanyDetails, CompanyFormData } from '@/types/company';
 
@@ -23,6 +24,15 @@ const companySchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().optional(),
   address: z.string().optional(),
+  company_address_id: z.string().optional(),
+  company_address: z.object({
+    address_line_1: z.string().min(1, 'Address line 1 is required'),
+    address_line_2: z.string().optional(),
+    address_line_3: z.string().optional(),
+    town_or_city: z.string().optional(),
+    county_or_state: z.string().optional(),
+    postcode: z.string().optional(),
+  }).optional(),
   type: z.array(z.string()).min(1, 'At least one company type is required'),
 });
 
@@ -51,6 +61,22 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
       email: company?.email || '',
       phone: company?.phone || '',
       address: company?.address || '',
+      company_address_id: company?.company_address_id || '',
+      company_address: company?.company_address ? {
+        address_line_1: company.company_address.address_line_1 || '',
+        address_line_2: company.company_address.address_line_2 || '',
+        address_line_3: company.company_address.address_line_3 || '',
+        town_or_city: company.company_address.town_or_city || '',
+        county_or_state: company.company_address.county_or_state || '',
+        postcode: company.company_address.postcode || '',
+      } : {
+        address_line_1: '',
+        address_line_2: '',
+        address_line_3: '',
+        town_or_city: '',
+        county_or_state: '',
+        postcode: '',
+      },
       type: company?.type || [],
     },
   });
@@ -84,6 +110,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <CompanyBasicFields control={form.control} />
             <CompanyContactFields control={form.control} />
+            <CompanyAddressFields control={form.control} />
             <CompanyTypeFields control={form.control} />
 
             <div className="flex justify-end space-x-4 pt-4">
