@@ -97,7 +97,20 @@ export const AssetTable: React.FC<AssetTableProps> = ({
               <TableCell className="font-medium">{asset.name}</TableCell>
               <TableCell>{asset.asset_tag || '-'}</TableCell>
               <TableCell>{getDepartmentName(asset.department_id)}</TableCell>
-              <TableCell>{asset.location || '-'}</TableCell>
+              <TableCell>
+                {(asset as any).location ? (
+                  <div className="flex items-center gap-2">
+                    {(asset as any).location.location_code && (
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-mono">
+                        {(asset as any).location.location_code}
+                      </span>
+                    )}
+                    <span>{(asset as any).location.name}</span>
+                  </div>
+                ) : (
+                  '-'
+                )}
+              </TableCell>
               <TableCell>{getStatusBadge(asset.status)}</TableCell>
               <TableCell>{getPriorityBadge(asset.priority)}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>

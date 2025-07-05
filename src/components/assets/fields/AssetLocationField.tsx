@@ -1,14 +1,7 @@
 
 import React from 'react';
 import { Control } from 'react-hook-form';
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { LocationSelector } from '@/components/locations/LocationSelector';
 import type { AssetFormData } from '../types';
 
 interface AssetLocationFieldProps {
@@ -17,18 +10,11 @@ interface AssetLocationFieldProps {
 
 export const AssetLocationField: React.FC<AssetLocationFieldProps> = ({ control }) => {
   return (
-    <FormField
+    <LocationSelector
       control={control}
-      name="location"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Location</FormLabel>
-          <FormControl>
-            <Input placeholder="Enter location" {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      name="location_id"
+      label="Location"
+      placeholder="Select location"
     />
   );
 };

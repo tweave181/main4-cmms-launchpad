@@ -109,6 +109,7 @@ export type Database = {
           description: string | null
           id: string
           location: string | null
+          location_id: string | null
           manufacturer: string | null
           manufacturer_company_id: string | null
           model: string | null
@@ -133,6 +134,7 @@ export type Database = {
           description?: string | null
           id?: string
           location?: string | null
+          location_id?: string | null
           manufacturer?: string | null
           manufacturer_company_id?: string | null
           model?: string | null
@@ -157,6 +159,7 @@ export type Database = {
           description?: string | null
           id?: string
           location?: string | null
+          location_id?: string | null
           manufacturer?: string | null
           manufacturer_company_id?: string | null
           model?: string | null
@@ -178,6 +181,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
             referencedColumns: ["id"]
           },
           {
@@ -468,6 +478,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "job_titles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location_code: string
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location_code: string
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location_code?: string
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1065,9 +1113,17 @@ export type Database = {
         }
         Returns: string
       }
+      ensure_unique_location_code: {
+        Args: { p_tenant_id: string; p_name: string; p_existing_code?: string }
+        Returns: string
+      }
       fix_missing_profiles: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_location_code: {
+        Args: { location_name: string }
+        Returns: string
       }
       generate_work_order_number: {
         Args: Record<PropertyKey, never>

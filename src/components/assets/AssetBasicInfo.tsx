@@ -44,12 +44,19 @@ export const AssetBasicInfo: React.FC<AssetBasicInfoProps> = ({ asset }) => {
           </div>
         )}
 
-        {asset.location && (
+        {(asset as any).location && (
           <div className="flex items-center space-x-2">
             <MapPin className="h-4 w-4 text-gray-500" />
             <div>
               <p className="text-sm font-medium">Location</p>
-              <p className="text-sm text-gray-600">{asset.location}</p>
+              <div className="flex items-center gap-1">
+                {(asset as any).location.location_code && (
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-mono">
+                    {(asset as any).location.location_code}
+                  </span>
+                )}
+                <p className="text-sm text-gray-600">{(asset as any).location.name}</p>
+              </div>
             </div>
           </div>
         )}

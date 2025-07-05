@@ -16,7 +16,7 @@ export const transformFormDataToAsset = (
     manufacturer: data.manufacturer?.trim() || null,
     manufacturer_company_id: data.manufacturer_company_id || null,
     category: data.category?.trim() || null,
-    location: data.location?.trim() || null,
+    location_id: data.location_id?.trim() || null,
     department_id: data.department_id?.trim() || null,
     purchase_date: data.purchase_date?.trim() || null,
     purchase_cost: data.purchase_cost && data.purchase_cost.trim() ? parseFloat(data.purchase_cost) : null,

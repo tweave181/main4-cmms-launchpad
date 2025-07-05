@@ -12,7 +12,7 @@ export interface Asset {
   manufacturer?: string;
   manufacturer_company_id?: string;
   category?: string;
-  location?: string;
+  location_id?: string;
   department_id?: string;
   purchase_date?: string;
   purchase_cost?: number;
@@ -35,7 +35,7 @@ export interface AssetFormData {
   manufacturer?: string;
   manufacturer_company_id?: string;
   category?: string;
-  location?: string;
+  location_id?: string;
   department_id?: string;
   purchase_date?: string;
   purchase_cost?: string;
@@ -54,7 +54,7 @@ export interface AssetInsert {
   manufacturer?: string | null;
   manufacturer_company_id?: string | null;
   category?: string | null;
-  location?: string | null;
+  location_id?: string | null;
   department_id?: string | null;
   purchase_date?: string | null;
   purchase_cost?: number | null;
@@ -76,7 +76,7 @@ export const assetSchema = z.object({
   manufacturer: z.string().optional(),
   manufacturer_company_id: z.string().optional(),
   category: z.string().optional(),
-  location: z.string().optional(),
+  location_id: z.string().optional(),
   department_id: z.string().optional(),
   purchase_date: z.string().optional(),
   purchase_cost: z.string().optional(),

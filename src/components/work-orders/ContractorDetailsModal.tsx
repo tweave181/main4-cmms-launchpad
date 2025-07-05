@@ -15,7 +15,8 @@ import { useQuery } from '@tanstack/react-query';
 import type { CompanyDetails } from '@/types/company';
 import type { Database } from '@/integrations/supabase/types';
 
-import type { WorkOrder } from '@/types/workOrder';
+import type { WorkOrder, WorkOrderFormData, WorkOrderFilters } from '@/types/workOrder';
+import type { Location } from '@/types/location';
 
 type Asset = Database['public']['Tables']['assets']['Row'];
 
@@ -44,12 +45,15 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
       
       const { data, error } = await supabase
         .from('assets')
-        .select('*')
+        .select(`
+          *,
+          location:locations(name, location_code)
+        `)
         .eq('id', workOrder.asset_id)
         .single();
 
       if (error) throw error;
-      return data as Asset;
+      return data as Asset & { location?: Location };
     },
     enabled: !!workOrder.asset_id && !!userProfile?.tenant_id,
   });
@@ -77,7 +81,8 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
   // Get asset location
   const getAssetLocation = () => {
     if (!asset?.location) return 'Not specified';
-    return asset.location;
+    const locationCode = asset.location.location_code ? `[${asset.location.location_code}] ` : '';
+    return locationCode + asset.location.name;
   };
 
   const emailBody = `Hello ${contractor.contact_name || contractor.company_name},%0A%0A` +

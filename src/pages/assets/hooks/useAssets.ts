@@ -16,7 +16,12 @@ export const useAssets = () => {
       try {
         const { data, error } = await supabase
           .from('assets')
-          .select('*')
+          .select(`
+            *,
+            department:departments(name),
+            location:locations(name, location_code),
+            manufacturer_company:company_details(company_name)
+          `)
           .order('created_at', { ascending: false });
 
         if (error) {

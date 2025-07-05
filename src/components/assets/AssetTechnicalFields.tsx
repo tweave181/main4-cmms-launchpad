@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { LocationSelector } from '@/components/locations/LocationSelector';
 import { AssetManufacturerFields } from './AssetManufacturerFields';
 import type { AssetFormData } from './types';
 
@@ -86,18 +87,11 @@ export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({
         )}
       />
 
-      <FormField
+      <LocationSelector
         control={control}
-        name="location"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Location</FormLabel>
-            <FormControl>
-              <Input placeholder="Enter location" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        name="location_id"
+        label="Location"
+        placeholder="Select location"
       />
 
       <FormField

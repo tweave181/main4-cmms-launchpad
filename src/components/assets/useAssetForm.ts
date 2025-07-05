@@ -27,7 +27,7 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
       model: asset?.model || '',
       manufacturer: asset?.manufacturer || '',
       category: asset?.category || '',
-      location: asset?.location || '',
+      location_id: asset?.location_id || '',
       department_id: asset?.department_id || '',
       purchase_date: asset?.purchase_date || '',
       purchase_cost: asset?.purchase_cost?.toString() || '',

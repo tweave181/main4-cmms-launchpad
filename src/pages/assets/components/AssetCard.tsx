@@ -84,8 +84,16 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           {asset.category && (
             <p className="text-sm text-gray-600">Category: {asset.category}</p>
           )}
-          {asset.location && (
-            <p className="text-sm text-gray-600">Location: {asset.location}</p>
+          {(asset as any).location && (
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-gray-600">Location:</p>
+              {(asset as any).location.location_code && (
+                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono">
+                  {(asset as any).location.location_code}
+                </span>
+              )}
+              <span className="text-sm text-gray-600">{(asset as any).location.name}</span>
+            </div>
           )}
           <div className="flex flex-wrap gap-2">
             <Badge className={getStatusColor(asset.status)}>
