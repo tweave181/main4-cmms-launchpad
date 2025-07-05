@@ -22,6 +22,7 @@ import AssetPrefixManager from '@/pages/AssetPrefixManager';
 import JobTitles from '@/pages/JobTitles';
 import JobTitleDetails from '@/pages/JobTitleDetails';
 import Companies from '@/pages/Companies';
+import Addresses from '@/pages/Addresses';
 import SystemAuditLog from '@/pages/SystemAuditLog';
 import AdminSettings from '@/pages/AdminSettings';
 import NotFound from '@/pages/NotFound';
@@ -54,6 +55,7 @@ function App() {
                       <Route path="/job-titles" element={<JobTitles />} />
                       <Route path="/job-titles/:id" element={<JobTitleDetails />} />
                       <Route path="/companies" element={<Companies />} />
+                      <Route path="/addresses" element={<Addresses />} />
                       <Route path="/system-audit-log" element={<SystemAuditLog />} />
                       <Route path="/settings" element={<AdminSettings />} />
                       <Route path="*" element={<NotFound />} />
