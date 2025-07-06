@@ -21,7 +21,7 @@ export const SystemAuditLogFilters: React.FC<SystemAuditLogFiltersProps> = ({
 }) => {
   const { data: users = [] } = useUsers();
 
-  const entityTypes = ['Asset Prefix', 'Department', 'Job Title'];
+  const entityTypes = ['Asset Prefix', 'Department', 'Job Title', 'Address'];
 
   const handleEntityTypeChange = (entityType: string, checked: boolean) => {
     const newEntityTypes = checked
@@ -44,7 +44,7 @@ export const SystemAuditLogFilters: React.FC<SystemAuditLogFiltersProps> = ({
 
   const clearFilters = () => {
     onFiltersChange({
-      entityTypes: ['Asset Prefix', 'Department', 'Job Title'],
+      entityTypes: ['Asset Prefix', 'Department', 'Job Title', 'Address'],
     });
   };
 

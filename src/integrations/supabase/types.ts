@@ -9,6 +9,58 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      address_audit_log: {
+        Row: {
+          action: string
+          change_summary: string
+          changed_by: string
+          id: string
+          record_id: string
+          tenant_id: string
+          timestamp: string
+        }
+        Insert: {
+          action: string
+          change_summary: string
+          changed_by: string
+          id?: string
+          record_id: string
+          tenant_id: string
+          timestamp?: string
+        }
+        Update: {
+          action?: string
+          change_summary?: string
+          changed_by?: string
+          id?: string
+          record_id?: string
+          tenant_id?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "address_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "address_audit_log_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "address_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       addresses: {
         Row: {
           address_line_1: string

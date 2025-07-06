@@ -139,6 +139,40 @@ export const SystemAuditLogTable: React.FC<SystemAuditLogTableProps> = ({ filter
         });
       }
 
+      // Fetch Address logs
+      if (filters.entityTypes.includes('Address')) {
+        const { data: addressLogs, error: addressError } = await supabase
+          .from('address_audit_log')
+          .select(`
+            id,
+            action,
+            changed_by,
+            change_summary,
+            timestamp,
+            users!changed_by (
+              name,
+              email
+            )
+          `)
+          .eq('tenant_id', userProfile.tenant_id)
+          .order('timestamp', { ascending: false });
+
+        if (addressError) throw addressError;
+
+        addressLogs?.forEach((log: any) => {
+          logs.push({
+            id: `address_${log.id}`,
+            entityType: 'Address',
+            action: log.action,
+            changedBy: log.changed_by,
+            changeSummary: log.change_summary,
+            timestamp: log.timestamp,
+            userName: log.users?.name || 'Unknown User',
+            userEmail: log.users?.email || '',
+          });
+        });
+      }
+
       // Apply filters
       let filteredLogs = logs;
 
@@ -189,6 +223,8 @@ export const SystemAuditLogTable: React.FC<SystemAuditLogTableProps> = ({ filter
         return 'bg-orange-100 text-orange-800';
       case 'Job Title':
         return 'bg-teal-100 text-teal-800';
+      case 'Address':
+        return 'bg-indigo-100 text-indigo-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }

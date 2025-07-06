@@ -37,8 +37,7 @@ export const useAddresses = (search?: string) => {
   });
 };
 
-export const useCreateAddress = () => {
-  const queryClient = useQueryClient();
+export const useCheckAddressDuplicates = () => {
   const { userProfile } = useAuth();
 
   return useMutation({
@@ -47,14 +46,74 @@ export const useCreateAddress = () => {
         throw new Error('User not authenticated');
       }
 
-      const addressData = {
-        ...data,
+      const { data: duplicates, error } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('tenant_id', userProfile.tenant_id)
+        .ilike('address_line_1', data.address_line_1)
+        .filter('town_or_city', 'ilike', data.town_or_city || '')
+        .filter('postcode', 'ilike', data.postcode || '');
+
+      if (error) {
+        console.error('Error checking duplicates:', error);
+        throw error;
+      }
+
+      return duplicates as Address[];
+    },
+  });
+};
+
+export const useCreateAddress = () => {
+  const queryClient = useQueryClient();
+  const { userProfile } = useAuth();
+
+  return useMutation({
+    mutationFn: async (data: AddressFormData & { ignoreDuplicates?: boolean }) => {
+      if (!userProfile?.tenant_id) {
+        throw new Error('User not authenticated');
+      }
+
+      // Check for duplicates unless explicitly ignored
+      if (!data.ignoreDuplicates) {
+        const { data: duplicates, error: duplicateError } = await supabase
+          .from('addresses')
+          .select('*')
+          .eq('tenant_id', userProfile.tenant_id)
+          .ilike('address_line_1', data.address_line_1);
+
+        if (duplicateError) {
+          console.error('Error checking duplicates:', duplicateError);
+        } else if (duplicates && duplicates.length > 0) {
+          // Filter for exact matches on key fields (case-insensitive)
+          const exactDuplicates = duplicates.filter(addr => 
+            addr.address_line_1.toLowerCase() === data.address_line_1.toLowerCase() &&
+            (addr.town_or_city || '').toLowerCase() === (data.town_or_city || '').toLowerCase() &&
+            (addr.postcode || '').toLowerCase() === (data.postcode || '').toLowerCase()
+          );
+
+          if (exactDuplicates.length > 0) {
+            const duplicate = exactDuplicates[0];
+            const addressPreview = [
+              duplicate.address_line_1,
+              duplicate.town_or_city,
+              duplicate.postcode
+            ].filter(Boolean).join(', ');
+            
+            throw new Error(`DUPLICATE_ADDRESS:${JSON.stringify({ duplicate, addressPreview })}`);
+          }
+        }
+      }
+
+      const { ignoreDuplicates, ...addressData } = data;
+      const finalData = {
+        ...addressData,
         tenant_id: userProfile.tenant_id,
       };
 
       const { data: result, error } = await supabase
         .from('addresses')
-        .insert(addressData)
+        .insert(finalData)
         .select()
         .single();
 
@@ -73,12 +132,15 @@ export const useCreateAddress = () => {
       });
     },
     onError: (error: any) => {
-      console.error('Create address error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create address",
-        variant: "destructive",
-      });
+      // Don't show toast for duplicate errors - let the component handle it
+      if (!error.message?.startsWith('DUPLICATE_ADDRESS:')) {
+        console.error('Create address error:', error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to create address",
+          variant: "destructive",
+        });
+      }
     },
   });
 };

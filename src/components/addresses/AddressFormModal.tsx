@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,7 +10,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { MapPin, Plus } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MapPin, Plus, AlertTriangle, Check } from 'lucide-react';
 import { AddressForm } from './AddressForm';
 import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses';
 import type { Address, AddressFormData } from '@/types/address';
@@ -30,6 +31,11 @@ interface AddressFormModalProps {
   onClose: () => void;
 }
 
+interface DuplicateInfo {
+  duplicate: Address;
+  addressPreview: string;
+}
+
 export const AddressFormModal: React.FC<AddressFormModalProps> = ({
   address,
   isOpen,
@@ -38,6 +44,8 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
   const isEditing = !!address;
   const createAddressMutation = useCreateAddress();
   const updateAddressMutation = useUpdateAddress();
+  const [duplicateInfo, setDuplicateInfo] = useState<DuplicateInfo | null>(null);
+  const [showOverrideOption, setShowOverrideOption] = useState(false);
 
   const form = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
@@ -71,6 +79,9 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
         postcode: '',
       });
     }
+    // Reset duplicate detection state when address changes
+    setDuplicateInfo(null);
+    setShowOverrideOption(false);
   }, [address, form]);
 
   const onSubmit = async (data: AddressFormData) => {
@@ -80,17 +91,42 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
           id: address.id,
           data,
         });
+        onClose();
       } else {
         await createAddressMutation.mutateAsync(data);
+        onClose();
       }
+    } catch (error: any) {
+      console.error('Error saving address:', error);
+      
+      // Handle duplicate address error
+      if (error.message?.startsWith('DUPLICATE_ADDRESS:')) {
+        const duplicateData = JSON.parse(error.message.replace('DUPLICATE_ADDRESS:', ''));
+        setDuplicateInfo(duplicateData);
+        setShowOverrideOption(true);
+      }
+    }
+  };
+
+  const handleOverrideDuplicate = async () => {
+    const data = form.getValues();
+    try {
+      await createAddressMutation.mutateAsync({ ...data, ignoreDuplicates: true });
       onClose();
     } catch (error) {
-      console.error('Error saving address:', error);
+      console.error('Error overriding duplicate:', error);
     }
+  };
+
+  const handleUseDuplicate = () => {
+    // Close modal and optionally notify parent about the existing address
+    onClose();
   };
 
   const handleClose = () => {
     form.reset();
+    setDuplicateInfo(null);
+    setShowOverrideOption(false);
     onClose();
   };
 
@@ -112,6 +148,23 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <AddressForm control={form.control} />
 
+            {duplicateInfo && (
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  <div className="space-y-2">
+                    <p className="font-medium">This address already exists in the system:</p>
+                    <p className="text-sm bg-white px-2 py-1 rounded border">
+                      {duplicateInfo.addressPreview}
+                    </p>
+                    <p className="text-sm">
+                      Please use the existing record or adjust the details.
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="flex justify-end space-x-2 pt-4 border-t">
               <Button
                 type="button"
@@ -120,16 +173,42 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={createAddressMutation.isPending || updateAddressMutation.isPending}
-              >
-                {createAddressMutation.isPending || updateAddressMutation.isPending
-                  ? 'Saving...'
-                  : isEditing
-                  ? 'Update Address'
-                  : 'Create Address'}
-              </Button>
+              
+              {showOverrideOption && duplicateInfo && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleUseDuplicate}
+                    className="flex items-center space-x-1"
+                  >
+                    <Check className="h-4 w-4" />
+                    <span>Use Existing</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleOverrideDuplicate}
+                    disabled={createAddressMutation.isPending}
+                    className="flex items-center space-x-1"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Create Anyway</span>
+                  </Button>
+                </>
+              )}
+              
+              {!showOverrideOption && (
+                <Button
+                  type="submit"
+                  disabled={createAddressMutation.isPending || updateAddressMutation.isPending}
+                >
+                  {(createAddressMutation.isPending || updateAddressMutation.isPending)
+                    ? 'Saving...'
+                    : isEditing
+                    ? 'Update Address'
+                    : 'Create Address'}
+                </Button>
+              )}
             </div>
           </form>
         </Form>

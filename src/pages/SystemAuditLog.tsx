@@ -16,7 +16,7 @@ export interface AuditLogFilters {
 const SystemAuditLog: React.FC = () => {
   const { isAdmin } = useAuth();
   const [filters, setFilters] = useState<AuditLogFilters>({
-    entityTypes: ['Asset Prefix', 'Department', 'Job Title'],
+    entityTypes: ['Asset Prefix', 'Department', 'Job Title', 'Address'],
   });
 
   if (!isAdmin) {
