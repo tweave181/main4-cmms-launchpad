@@ -2,13 +2,15 @@
 import React, { createContext, useContext } from 'react';
 import { useAuthState, ProfileStatus } from './useAuthState';
 import { useAuthOperations } from './useAuthOperations';
+import { useIsSystemAdmin } from '@/hooks/useUserRoles';
 import type { AuthContextType } from './types';
 
-// Extended AuthContextType to include profile status
+// Extended AuthContextType to include profile status and system admin check
 interface ExtendedAuthContextType extends AuthContextType {
   profileStatus: ProfileStatus;
   profileError: string | null;
   retryProfileFetch: () => Promise<void>;
+  isSystemAdmin: boolean;
 }
 
 const AuthContext = createContext<ExtendedAuthContextType | undefined>(undefined);
@@ -33,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     retryProfileFetch 
   } = useAuthState();
   const { signUp, signIn, signOut } = useAuthOperations();
+  const isSystemAdmin = useIsSystemAdmin();
 
   // Check if user is admin based on their role in the database
   const isAdmin = userProfile?.role === 'admin';
@@ -49,7 +52,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAdmin,
     profileStatus,
     profileError,
-    retryProfileFetch
+    retryProfileFetch,
+    isSystemAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

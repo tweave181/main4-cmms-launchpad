@@ -139,7 +139,7 @@ export const SystemAuditLogTable: React.FC<SystemAuditLogTableProps> = ({ filter
         });
       }
 
-      // Fetch Address logs
+      // Fetch Address logs (System Admin only)
       if (filters.entityTypes.includes('Address')) {
         const { data: addressLogs, error: addressError } = await supabase
           .from('address_audit_log')
@@ -157,20 +157,21 @@ export const SystemAuditLogTable: React.FC<SystemAuditLogTableProps> = ({ filter
           .eq('tenant_id', userProfile.tenant_id)
           .order('timestamp', { ascending: false });
 
-        if (addressError) throw addressError;
-
-        addressLogs?.forEach((log: any) => {
-          logs.push({
-            id: `address_${log.id}`,
-            entityType: 'Address',
-            action: log.action,
-            changedBy: log.changed_by,
-            changeSummary: log.change_summary,
-            timestamp: log.timestamp,
-            userName: log.users?.name || 'Unknown User',
-            userEmail: log.users?.email || '',
+        // Only add address logs if the query succeeds (system admin access)
+        if (!addressError && addressLogs) {
+          addressLogs.forEach((log: any) => {
+            logs.push({
+              id: `address_${log.id}`,
+              entityType: 'Address',
+              action: log.action,
+              changedBy: log.changed_by,
+              changeSummary: log.change_summary,
+              timestamp: log.timestamp,
+              userName: log.users?.name || 'Unknown User',
+              userEmail: log.users?.email || '',
+            });
           });
-        });
+        }
       }
 
       // Apply filters

@@ -976,6 +976,38 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string
@@ -1242,6 +1274,13 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -1254,8 +1293,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_system_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role:
+        | "system_admin"
+        | "admin"
+        | "manager"
+        | "technician"
+        | "contractor"
       asset_priority: "low" | "medium" | "high" | "critical"
       asset_status: "active" | "inactive" | "maintenance" | "disposed"
       employment_status: "Full Time" | "Part Time" | "Bank Staff" | "Contractor"
@@ -1385,6 +1434,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: [
+        "system_admin",
+        "admin",
+        "manager",
+        "technician",
+        "contractor",
+      ],
       asset_priority: ["low", "medium", "high", "critical"],
       asset_status: ["active", "inactive", "maintenance", "disposed"],
       employment_status: ["Full Time", "Part Time", "Bank Staff", "Contractor"],

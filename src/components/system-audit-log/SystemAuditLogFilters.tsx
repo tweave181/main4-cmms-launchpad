@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Filter, X } from 'lucide-react';
 import { useUsers } from '@/hooks/queries/useUsers';
+import { useAuth } from '@/contexts/AuthContext';
 import type { AuditLogFilters } from '@/pages/SystemAuditLog';
 
 interface SystemAuditLogFiltersProps {
@@ -20,8 +21,10 @@ export const SystemAuditLogFilters: React.FC<SystemAuditLogFiltersProps> = ({
   onFiltersChange,
 }) => {
   const { data: users = [] } = useUsers();
+  const { isSystemAdmin } = useAuth();
 
-  const entityTypes = ['Asset Prefix', 'Department', 'Job Title', 'Address'];
+  const baseEntityTypes = ['Asset Prefix', 'Department', 'Job Title'];
+  const entityTypes = isSystemAdmin ? [...baseEntityTypes, 'Address'] : baseEntityTypes;
 
   const handleEntityTypeChange = (entityType: string, checked: boolean) => {
     const newEntityTypes = checked
@@ -44,7 +47,9 @@ export const SystemAuditLogFilters: React.FC<SystemAuditLogFiltersProps> = ({
 
   const clearFilters = () => {
     onFiltersChange({
-      entityTypes: ['Asset Prefix', 'Department', 'Job Title', 'Address'],
+      entityTypes: isSystemAdmin 
+        ? ['Asset Prefix', 'Department', 'Job Title', 'Address']
+        : ['Asset Prefix', 'Department', 'Job Title'],
     });
   };
 
