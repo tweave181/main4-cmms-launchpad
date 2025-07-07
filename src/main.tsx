@@ -1,5 +1,11 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import { AuthProvider } from '@/contexts/auth'; // 👈 Make sure this path is correct
 
-createRoot(document.getElementById("root")!).render(<App />);
+// ✅ Wrap App in AuthProvider
+createRoot(document.getElementById("root")!).render(
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
