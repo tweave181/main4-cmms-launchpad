@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin } from 'lucide-react';
 import { AddressList } from '@/components/addresses/AddressList';
 import { AddressFormModal } from '@/components/addresses/AddressFormModal';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 const Addresses: React.FC = () => {
   const { isAdmin } = useAuth();

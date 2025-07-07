@@ -6,7 +6,7 @@ import { Users, UserPlus } from 'lucide-react';
 import { UserList } from '@/components/user-management/UserList';
 import { InvitationList } from '@/components/user-management/InvitationList';
 import { InviteUserDialog } from '@/components/user-management/InviteUserDialog';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 const UserManagement: React.FC = () => {
   const { isAdmin } = useAuth();
