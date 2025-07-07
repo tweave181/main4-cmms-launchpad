@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
 import { SystemAuditLogFilters } from '@/components/system-audit-log/SystemAuditLogFilters';
 import { SystemAuditLogTable } from '@/components/system-audit-log/SystemAuditLogTable';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 export interface AuditLogFilters {
   entityTypes: string[];

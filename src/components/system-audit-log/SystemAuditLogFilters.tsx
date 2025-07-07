@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Filter, X } from 'lucide-react';
 import { useUsers } from '@/hooks/queries/useUsers';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import type { AuditLogFilters } from '@/pages/SystemAuditLog';
 
 interface SystemAuditLogFiltersProps {
