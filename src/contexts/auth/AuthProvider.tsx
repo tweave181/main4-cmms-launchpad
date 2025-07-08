@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     retryProfileFetch 
   } = useAuthState();
   const { signUp, signIn, signOut } = useAuthOperations();
-  const isSystemAdmin = useIsSystemAdmin();
+  const isSystemAdmin = useIsSystemAdmin(user);
 
   // Check if user is admin based on their role in the database
   const isAdmin = userProfile?.role === 'admin';

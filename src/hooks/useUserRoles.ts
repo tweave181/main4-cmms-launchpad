@@ -1,12 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/auth';
+import { User } from '@supabase/supabase-js';
 
 export type AppRole = 'system_admin' | 'admin' | 'manager' | 'technician' | 'contractor';
 
-export const useUserRoles = () => {
-  const { user } = useAuth();
-
+export const useUserRoles = (user: User | null) => {
   return useQuery({
     queryKey: ['userRoles', user?.id],
     queryFn: async () => {
@@ -28,11 +26,11 @@ export const useUserRoles = () => {
   });
 };
 
-export const useHasRole = (role: AppRole) => {
-  const { data: roles = [] } = useUserRoles();
+export const useHasRole = (user: User | null, role: AppRole) => {
+  const { data: roles = [] } = useUserRoles(user);
   return roles.includes(role);
 };
 
-export const useIsSystemAdmin = () => {
-  return useHasRole('system_admin');
+export const useIsSystemAdmin = (user: User | null) => {
+  return useHasRole(user, 'system_admin');
 };
