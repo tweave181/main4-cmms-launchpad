@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/contexts/auth';
+import { SafeAuthProvider } from '@/contexts/auth/SafeAuthProvider';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
@@ -33,7 +33,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AuthProvider>
+        <SafeAuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route
@@ -66,7 +66,7 @@ function App() {
             />
           </Routes>
           <Toaster />
-        </AuthProvider>
+        </SafeAuthProvider>
       </Router>
     </QueryClientProvider>
   );
