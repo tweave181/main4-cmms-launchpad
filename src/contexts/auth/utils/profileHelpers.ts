@@ -42,7 +42,7 @@ export const createMissingProfile = async (session: any): Promise<UserProfile> =
   }
 };
 
-// Helper function to retry profile fetch with exponential backoff
+// Fix: Enhanced profile fetching with automatic profile creation for missing profiles
 export const fetchProfileWithRetry = async (userId: string, maxRetries = 2): Promise<UserProfile | null> => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -64,8 +64,22 @@ export const fetchProfileWithRetry = async (userId: string, maxRetries = 2): Pro
 
         // Check for specific error types
         if (error.code === 'PGRST116' || error.message?.includes('no rows returned')) {
-          // Profile doesn't exist - this is not a retry-able error
-          throw new Error('PROFILE_NOT_FOUND');
+          // Profile doesn't exist - try to create it using session data
+          console.log('Profile not found, attempting to create missing profile...');
+          
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              const createdProfile = await createMissingProfile(session);
+              console.log('Successfully created missing profile:', createdProfile);
+              return createdProfile;
+            } else {
+              throw new Error('PROFILE_NOT_FOUND - No session available for profile creation');
+            }
+          } catch (createError) {
+            console.error('Failed to create missing profile:', createError);
+            throw new Error('PROFILE_NOT_FOUND');
+          }
         }
 
         if (error.code === 'PGRST301' || error.message?.includes('permission denied')) {

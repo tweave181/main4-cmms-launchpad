@@ -85,7 +85,7 @@ export const useAuthState = () => {
     }
   }, [clearUserData, navigate]);
 
-  // Memoized function to handle session validation and profile fetching, with 429/401 awareness
+  // Fix: Streamlined session handling to prevent validation loops
   const handleSessionReady = useCallback(async (session: any) => {
     if (!session?.user) {
       setReady(false);
@@ -95,25 +95,28 @@ export const useAuthState = () => {
       return;
     }
 
-    // Only check claims once per session
+    // Prevent redundant validation for the same session token
     if (sessionChecked.current === session.access_token) {
-      // Already checked for this session/token
+      console.log('Session already validated, skipping re-validation');
       setReady(true);
+      return;
+    }
+    
+    // Quick JWT claims check without aggressive validation
+    const tenantId = session.user.user_metadata?.tenant_id;
+    if (!tenantId) {
+      console.log('No tenant_id in JWT claims, waiting for claims to propagate...');
+      setReady(false);
       setProfileStatus('loading');
-      setProfileError(null);
-    } else {
-      if (!hasValidJWTClaims(session)) {
-        setReady(false);
-        setProfileStatus('loading');
-        return;
-      }
-      sessionChecked.current = session.access_token;
-      setReady(true);
-      setProfileStatus('loading');
-      setProfileError(null);
+      return;
     }
 
-    // Try fetching the profile, with error signaling handled in catching block
+    sessionChecked.current = session.access_token;
+    setReady(true);
+    setProfileStatus('loading');
+    setProfileError(null);
+
+    // Fix: Fetch profile with improved error handling and backoff for missing profiles
     try {
       await fetchUserProfile(session.user.id);
     } catch (error: any) {
@@ -122,7 +125,7 @@ export const useAuthState = () => {
         activateBackoff("We hit a temporary connection limit. Retrying...");
         return;
       }
-      // Usual session expiry errors
+      // Session expiry errors - trigger logout flow
       if (
         error?.status === 400 ||
         error?.status === 401 ||
@@ -135,6 +138,8 @@ export const useAuthState = () => {
         await handleExpiredSession();
         return;
       }
+      // Other errors - set error state but don't logout
+      console.error('Profile fetch error:', error);
       setProfileError(error.message || 'Failed to load profile');
       setProfileStatus('error');
     }
@@ -196,8 +201,10 @@ export const useAuthState = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Remove extra/session-refresh logic!
+    // Fix: Simplified session handling to prevent validation loops
     const handleInitialSession = async (session: any) => {
+      if (!mounted) return;
+      
       if (!session?.user) {
         setUser(null);
         setReady(false);
@@ -208,7 +215,14 @@ export const useAuthState = () => {
       }
 
       setUser(session.user);
-      await handleSessionReady(session);
+      // Only proceed if JWT claims are available
+      if (session.user.user_metadata?.tenant_id) {
+        await handleSessionReady(session);
+      } else {
+        console.log('Waiting for JWT claims to be available...');
+        setReady(false);
+        setProfileStatus('loading');
+      }
     };
 
     const initializeAuth = async () => {
@@ -216,17 +230,11 @@ export const useAuthState = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!mounted) return;
 
-        if (!session?.user) {
-          setUser(null);
-          setReady(false);
-          setProfileStatus('loading');
-          setProfileError(null);
-          clearUserData();
-        } else {
-          await handleInitialSession(session);
-        }
+        await handleInitialSession(session);
         setLoading(false);
       } catch (error) {
+        if (!mounted) return;
+        console.error('Auth initialization error:', error);
         setLoading(false);
         setReady(false);
         setProfileStatus('error');

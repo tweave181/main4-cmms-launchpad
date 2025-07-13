@@ -36,8 +36,15 @@ export const useProfileFetching = () => {
       try {
         setProfileLoading(true);
 
-        // Validate session/JWT only on first try
-        if (attempt === 0) await validateSessionAndClaims(userId);
+        // Fix: Enhanced session validation with retry logic for JWT claims propagation
+        if (attempt === 0) {
+          try {
+            await validateSessionAndClaims(userId, 2); // 2 retries for JWT claims
+          } catch (validationError: any) {
+            console.error('Session validation failed:', validationError);
+            throw validationError;
+          }
+        }
 
         let profile;
         try {
