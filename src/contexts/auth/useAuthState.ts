@@ -38,7 +38,15 @@ export const useAuthState = () => {
   const [profileStatus, setProfileStatus] = useState<ProfileStatus>('loading');
   const [profileError, setProfileError] = useState<string | null>(null);
   const { userProfile, tenant, profileLoading, fetchUserProfile, clearUserData } = useUserProfile();
-  const navigate = useNavigate();
+  
+  // Fix: Make navigate usage conditional to prevent Router context errors
+  let navigate: ReturnType<typeof useNavigate> | null = null;
+  try {
+    navigate = useNavigate();
+  } catch (error) {
+    console.warn('useNavigate called outside Router context, navigation disabled');
+  }
+  
   const [backoffActive, setBackoffActive] = useState(false);
   const backoffTimeout = useRef<NodeJS.Timeout | null>(null);
   // local (per tab) session validation cache
@@ -71,7 +79,10 @@ export const useAuthState = () => {
     setProfileStatus('expired');
     setProfileError(customMsg || 'You were logged out. Please sign in again.');
     clearUserData();
-    navigate("/?expired=1", { replace: true });
+    // Fix: Only navigate if Router context is available
+    if (navigate) {
+      navigate("/?expired=1", { replace: true });
+    }
   }, [clearUserData, navigate]);
 
   // Memoized function to handle session validation and profile fetching, with 429/401 awareness
@@ -249,7 +260,10 @@ export const useAuthState = () => {
         setProfileError(null);
         clearUserData();
         if (event === "SIGNED_OUT") {
-          navigate("/?expired=1", { replace: true });
+          // Fix: Only navigate if Router context is available
+          if (navigate) {
+            navigate("/?expired=1", { replace: true });
+          }
         }
         setLoading(false);
         return;
