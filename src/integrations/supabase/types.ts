@@ -862,6 +862,51 @@ export type Database = {
           },
         ]
       }
+      service_contracts: {
+        Row: {
+          contract_cost: number | null
+          contract_title: string
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          start_date: string
+          status: Database["public"]["Enums"]["contract_status"]
+          tenant_id: string
+          updated_at: string
+          vendor_name: string
+          visit_count: number | null
+        }
+        Insert: {
+          contract_cost?: number | null
+          contract_title: string
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          start_date: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          tenant_id: string
+          updated_at?: string
+          vendor_name: string
+          visit_count?: number | null
+        }
+        Update: {
+          contract_cost?: number | null
+          contract_title?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          tenant_id?: string
+          updated_at?: string
+          vendor_name?: string
+          visit_count?: number | null
+        }
+        Relationships: []
+      }
       stock_transactions: {
         Row: {
           created_at: string
@@ -1312,6 +1357,7 @@ export type Database = {
         | "contractor"
       asset_priority: "low" | "medium" | "high" | "critical"
       asset_status: "active" | "inactive" | "maintenance" | "disposed"
+      contract_status: "Active" | "Expired" | "Terminated" | "Pending Review"
       employment_status: "Full Time" | "Part Time" | "Bank Staff" | "Contractor"
       part_unit:
         | "pieces"
@@ -1460,6 +1506,7 @@ export const Constants = {
       ],
       asset_priority: ["low", "medium", "high", "critical"],
       asset_status: ["active", "inactive", "maintenance", "disposed"],
+      contract_status: ["Active", "Expired", "Terminated", "Pending Review"],
       employment_status: ["Full Time", "Part Time", "Bank Staff", "Contractor"],
       part_unit: [
         "pieces",
