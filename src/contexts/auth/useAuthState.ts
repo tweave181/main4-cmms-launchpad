@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserProfile } from './useUserProfile';
-import { useExpiringContractsForNotification } from '@/hooks/useExpiringContractsForNotification';
-import { useContractReminderNotifications } from '@/hooks/useContractReminderNotifications';
+import { useNavigate } from 'react-router-dom';
 
 // Helper function to validate JWT claims
 const hasValidJWTClaims = (session: any): boolean => {
@@ -25,8 +24,6 @@ const hasValidJWTClaims = (session: any): boolean => {
   return isValid;
 };
 
-import { useNavigate } from "react-router-dom";
-
 // Add short-lived local rate limit backoff flag
 const RATE_LIMIT_BACKOFF_KEY = 'lovableRateLimitBackoff';
 const RATE_LIMIT_BACKOFF_DURATION = 2500;
@@ -40,14 +37,7 @@ export const useAuthState = () => {
   const [profileStatus, setProfileStatus] = useState<ProfileStatus>('loading');
   const [profileError, setProfileError] = useState<string | null>(null);
   const { userProfile, tenant, profileLoading, fetchUserProfile, clearUserData } = useUserProfile();
-  
-  // Fix: Make navigate usage conditional to prevent Router context errors
-  let navigate: ReturnType<typeof useNavigate> | null = null;
-  try {
-    navigate = useNavigate();
-  } catch (error) {
-    console.warn('useNavigate called outside Router context, navigation disabled');
-  }
+  const navigate = useNavigate();
   
   const [backoffActive, setBackoffActive] = useState(false);
   const backoffTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -81,10 +71,7 @@ export const useAuthState = () => {
     setProfileStatus('expired');
     setProfileError(customMsg || 'You were logged out. Please sign in again.');
     clearUserData();
-    // Fix: Only navigate if Router context is available
-    if (navigate) {
-      navigate("/?expired=1", { replace: true });
-    }
+    navigate("/?expired=1", { replace: true });
   }, [clearUserData, navigate]);
 
   // Fix: Streamlined session handling to prevent validation loops
@@ -270,10 +257,7 @@ export const useAuthState = () => {
         setProfileError(null);
         clearUserData();
         if (event === "SIGNED_OUT") {
-          // Fix: Only navigate if Router context is available
-          if (navigate) {
-            navigate("/?expired=1", { replace: true });
-          }
+          navigate("/?expired=1", { replace: true });
         }
         setLoading(false);
         return;
