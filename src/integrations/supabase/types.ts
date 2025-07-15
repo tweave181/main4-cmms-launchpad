@@ -377,6 +377,74 @@ export type Database = {
           },
         ]
       }
+      contract_asset_associations: {
+        Row: {
+          asset_id: string
+          contract_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          asset_id: string
+          contract_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          asset_id?: string
+          contract_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_asset_associations_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_asset_associations_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "service_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_reminders: {
+        Row: {
+          contract_id: string
+          created_at: string
+          delivered: boolean
+          id: string
+          reminder_date: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          delivered?: boolean
+          id?: string
+          reminder_date: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          delivered?: boolean
+          id?: string
+          reminder_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_reminders_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "service_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       department_audit_log: {
         Row: {
           action: string
@@ -870,6 +938,7 @@ export type Database = {
           description: string | null
           end_date: string
           id: string
+          reminder_days_before: number | null
           start_date: string
           status: Database["public"]["Enums"]["contract_status"]
           tenant_id: string
@@ -884,6 +953,7 @@ export type Database = {
           description?: string | null
           end_date: string
           id?: string
+          reminder_days_before?: number | null
           start_date: string
           status?: Database["public"]["Enums"]["contract_status"]
           tenant_id: string
@@ -898,6 +968,7 @@ export type Database = {
           description?: string | null
           end_date?: string
           id?: string
+          reminder_days_before?: number | null
           start_date?: string
           status?: Database["public"]["Enums"]["contract_status"]
           tenant_id?: string
@@ -1292,6 +1363,10 @@ export type Database = {
       accept_invitation: {
         Args: { invitation_token: string }
         Returns: string
+      }
+      check_contract_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       create_tenant_and_admin: {
         Args: {
