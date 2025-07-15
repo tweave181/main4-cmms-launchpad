@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth';
 import { ContractNotificationWrapper } from '@/components/auth/ContractNotificationWrapper';
+import { AuthNavigationHandler } from '@/components/auth/AuthNavigationHandler';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
@@ -35,6 +36,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
+          <AuthNavigationHandler />
           <ContractNotificationWrapper>
             <Routes>
               <Route path="/auth" element={<AuthPage />} />

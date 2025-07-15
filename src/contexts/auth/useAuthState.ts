@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserProfile } from './useUserProfile';
-import { useNavigate } from 'react-router-dom';
 
 // Helper function to validate JWT claims
 const hasValidJWTClaims = (session: any): boolean => {
@@ -37,7 +36,6 @@ export const useAuthState = () => {
   const [profileStatus, setProfileStatus] = useState<ProfileStatus>('loading');
   const [profileError, setProfileError] = useState<string | null>(null);
   const { userProfile, tenant, profileLoading, fetchUserProfile, clearUserData } = useUserProfile();
-  const navigate = useNavigate();
   
   const [backoffActive, setBackoffActive] = useState(false);
   const backoffTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -61,7 +59,7 @@ export const useAuthState = () => {
     }, RATE_LIMIT_BACKOFF_DURATION);
   }, []);
 
-  // Helper to handle forced logout + redirect on expired/invalid session
+  // Helper to handle forced logout on expired/invalid session
   const handleExpiredSession = useCallback(async (customMsg?: string) => {
     try {
       await supabase.auth.signOut();
@@ -71,8 +69,7 @@ export const useAuthState = () => {
     setProfileStatus('expired');
     setProfileError(customMsg || 'You were logged out. Please sign in again.');
     clearUserData();
-    navigate("/?expired=1", { replace: true });
-  }, [clearUserData, navigate]);
+  }, [clearUserData]);
 
   // Fix: Streamlined session handling to prevent validation loops
   const handleSessionReady = useCallback(async (session: any) => {
@@ -257,7 +254,7 @@ export const useAuthState = () => {
         setProfileError(null);
         clearUserData();
         if (event === "SIGNED_OUT") {
-          navigate("/?expired=1", { replace: true });
+          // Navigation will be handled by AuthNavigationHandler component
         }
         setLoading(false);
         return;
@@ -279,7 +276,7 @@ export const useAuthState = () => {
       window.removeEventListener('storage', handleStorage);
       if (backoffTimeout.current) clearTimeout(backoffTimeout.current);
     };
-  }, [handleSessionReady, clearUserData, activateBackoff, handleExpiredSession, navigate, backoffActive]);
+  }, [handleSessionReady, clearUserData, activateBackoff, handleExpiredSession, backoffActive]);
 
   return {
     user,
