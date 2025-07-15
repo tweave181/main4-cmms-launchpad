@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/components/ui/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
 
 interface LoginFormProps {
@@ -20,6 +21,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { signIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,15 +40,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
       await signIn(email, password);
       toast({
         title: "Success",
-        description: "Logged in successfully!",
+        description: "✅ You've successfully signed in!",
       });
+      
+      // Redirect to Welcome screen after 1.5 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };
