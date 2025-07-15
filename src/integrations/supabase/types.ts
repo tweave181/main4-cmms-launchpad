@@ -445,6 +445,61 @@ export type Database = {
           },
         ]
       }
+      contract_reminders_log: {
+        Row: {
+          contract_id: string
+          created_at: string
+          delivered_at: string
+          delivery_method: string
+          id: string
+          reminder_date: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          delivered_at?: string
+          delivery_method: string
+          id?: string
+          reminder_date?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          delivered_at?: string
+          delivery_method?: string
+          id?: string
+          reminder_date?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_reminders_log_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "service_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_reminders_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_reminders_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       department_audit_log: {
         Row: {
           action: string
@@ -936,6 +991,7 @@ export type Database = {
           contract_title: string
           created_at: string
           description: string | null
+          email_reminder_enabled: boolean
           end_date: string
           id: string
           reminder_days_before: number | null
@@ -951,6 +1007,7 @@ export type Database = {
           contract_title: string
           created_at?: string
           description?: string | null
+          email_reminder_enabled?: boolean
           end_date: string
           id?: string
           reminder_days_before?: number | null
@@ -966,6 +1023,7 @@ export type Database = {
           contract_title?: string
           created_at?: string
           description?: string | null
+          email_reminder_enabled?: boolean
           end_date?: string
           id?: string
           reminder_days_before?: number | null

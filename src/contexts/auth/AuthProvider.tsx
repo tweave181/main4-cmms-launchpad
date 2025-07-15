@@ -3,6 +3,7 @@ import React, { createContext, useContext } from 'react';
 import { useAuthState, ProfileStatus } from './useAuthState';
 import { useAuthOperations } from './useAuthOperations';
 import { useSimpleSystemAdminCheck } from '@/hooks/useSimpleSystemAdminCheck';
+import { useLoginContractNotifications } from '@/hooks/useLoginContractNotifications';
 import type { AuthContextType } from './types';
 
 // Extended AuthContextType to include profile status and system admin check
@@ -37,6 +38,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { signUp, signIn, signOut } = useAuthOperations();
   // Fix: Use simple system admin check that doesn't rely on React Query
   const { isSystemAdmin } = useSimpleSystemAdminCheck(user);
+
+  // Check for contract notifications on login
+  useLoginContractNotifications(ready && profileStatus === 'ready', userProfile);
 
   // Check if user is admin based on their role in the database
   const isAdmin = userProfile?.role === 'admin';
