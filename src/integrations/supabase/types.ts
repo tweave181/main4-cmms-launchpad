@@ -1480,6 +1480,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      trigger_contract_reminder_emails: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
