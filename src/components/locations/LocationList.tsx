@@ -19,12 +19,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MapPin, Plus, Search, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { useLocations, useDeleteLocation } from '@/hooks/useLocations';
 import { LocationForm } from './LocationForm';
 import type { Location, LocationFilters } from '@/types/location';
 
 export const LocationList: React.FC = () => {
   const { userProfile } = useAuth();
+  const { formatDate } = useGlobalSettings();
   const isAdmin = userProfile?.role === 'admin';
   const [filters, setFilters] = useState<LocationFilters>({});
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -134,7 +136,7 @@ export const LocationList: React.FC = () => {
                         {location.description || '-'}
                       </TableCell>
                       <TableCell className="text-gray-600">
-                        {new Date(location.created_at).toLocaleDateString()}
+                        {formatDate(location.created_at)}
                       </TableCell>
                       {isAdmin && (
                         <TableCell>

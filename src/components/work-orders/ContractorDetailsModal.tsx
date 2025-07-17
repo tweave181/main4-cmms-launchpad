@@ -8,6 +8,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building2, User, Phone, Mail, MapPin } from 'lucide-react';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
@@ -33,6 +34,7 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
   contractorId,
   workOrder,
 }) => {
+  const { formatDate, formatCurrency } = useGlobalSettings();
   const { data: contractors = [] } = useCompanies('contractor');
   const { userProfile } = useAuth();
   const contractor = contractors.find((c) => c.id === contractorId);
@@ -65,9 +67,9 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
   const emailSubject = `Work Order ${workOrder.work_order_number}: ${workOrder.title}`;
   
   // Generate detailed email body
-  const formatDate = (dateString: string | undefined) => {
+  const formatDateSafely = (dateString: string | undefined) => {
     if (!dateString) return 'Not specified';
-    return new Date(dateString).toLocaleDateString();
+    return formatDate(dateString);
   };
 
   // Format asset display

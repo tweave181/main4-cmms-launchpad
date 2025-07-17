@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import {
   Table,
   TableBody,
@@ -31,6 +32,7 @@ interface AddressListProps {
 }
 
 export const AddressList: React.FC<AddressListProps> = ({ onAddAddress }) => {
+  const { formatDate } = useGlobalSettings();
   const [search, setSearch] = useState('');
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
@@ -114,7 +116,7 @@ export const AddressList: React.FC<AddressListProps> = ({ onAddAddress }) => {
                     </TableCell>
                     <TableCell>{address.town_or_city || '-'}</TableCell>
                     <TableCell>{address.postcode || '-'}</TableCell>
-                    <TableCell>{new Date(address.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatDate(address.created_at)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <Button

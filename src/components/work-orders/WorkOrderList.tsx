@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Clock, User, Wrench, Building2 } from 'lucide-react';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { cn } from '@/lib/utils';
 import { useCompanies } from '@/hooks/useCompanies';
 import { ContractorDetailsModal } from './ContractorDetailsModal';
@@ -44,9 +45,6 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString();
-};
 
 // Helper to compute overdue days
 const getDaysOverdue = (due_date: string) => {
@@ -65,6 +63,7 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
   onWorkOrderClick,
   loading = false,
 }) => {
+  const { formatDate } = useGlobalSettings();
   const [selectedContractor, setSelectedContractor] = useState<{ 
     id: string; 
     workOrder: WorkOrder; 

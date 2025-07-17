@@ -9,6 +9,7 @@ import { Briefcase, Edit, Trash2, ArrowLeft, Users, Lock } from 'lucide-react';
 import { JobTitleForm } from '@/components/job-titles/JobTitleForm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { useJobTitles } from '@/hooks/useJobTitles';
 import { toast } from '@/components/ui/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -20,6 +21,7 @@ const JobTitleDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { userProfile } = useAuth();
+  const { formatDate } = useGlobalSettings();
   const { deleteJobTitle, checkJobTitleUsage } = useJobTitles();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isInUse, setIsInUse] = useState(false);
@@ -208,11 +210,11 @@ const JobTitleDetails: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500">Created</p>
-                  <p>{new Date(jobTitle.created_at).toLocaleDateString()}</p>
+                  <p>{formatDate(jobTitle.created_at)}</p>
                 </div>
                 <div>
                   <p className="text-gray-500">Last Updated</p>
-                  <p>{new Date(jobTitle.updated_at).toLocaleDateString()}</p>
+                  <p>{formatDate(jobTitle.updated_at)}</p>
                 </div>
               </div>
             </div>

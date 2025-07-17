@@ -14,6 +14,7 @@ import {
 import { Wrench, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { WorkOrderDetail } from '@/components/work-orders/WorkOrderDetail';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import type { WorkOrder } from '@/types/workOrder';
 
 interface AssetWorkOrdersProps {
@@ -21,6 +22,7 @@ interface AssetWorkOrdersProps {
 }
 
 export const AssetWorkOrders: React.FC<AssetWorkOrdersProps> = ({ assetId }) => {
+  const { formatDate } = useGlobalSettings();
   const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<string | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -69,9 +71,6 @@ export const AssetWorkOrders: React.FC<AssetWorkOrdersProps> = ({ assetId }) => 
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
 
   const handleRowClick = (workOrderId: string) => {
     setSelectedWorkOrderId(workOrderId);
