@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -48,6 +49,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
   contract
 }) => {
   const { userProfile } = useAuth();
+  const { currency } = useGlobalSettings();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -347,7 +349,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
           {/* Contract Details */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contract_cost">Contract Cost ($)</Label>
+              <Label htmlFor="contract_cost">Contract Cost ({currency})</Label>
               <Input
                 id="contract_cost"
                 type="number"

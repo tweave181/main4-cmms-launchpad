@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { formatDistanceToNow, format } from 'date-fns';
 
 interface ServiceContract {
@@ -36,6 +37,7 @@ interface ServiceContract {
 
 const ServiceContracts: React.FC = () => {
   const { userProfile } = useAuth();
+  const { formatDate, formatCurrency } = useGlobalSettings();
   const [selectedContract, setSelectedContract] = useState<ServiceContract | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -199,9 +201,9 @@ const ServiceContracts: React.FC = () => {
             <div className="flex items-center space-x-2">
               <DollarSign className="h-4 w-4 text-blue-600" />
               <div>
-                <p className="text-2xl font-bold">
-                  ${contracts.reduce((sum, c) => sum + (c.contract_cost || 0), 0).toLocaleString()}
-                </p>
+                 <p className="text-2xl font-bold">
+                   {formatCurrency(contracts.reduce((sum, c) => sum + (c.contract_cost || 0), 0))}
+                 </p>
                 <p className="text-xs text-muted-foreground">Total Value</p>
               </div>
             </div>
@@ -271,12 +273,12 @@ const ServiceContracts: React.FC = () => {
                           {contract.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        {format(new Date(contract.start_date), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(contract.end_date), 'MMM dd, yyyy')}
-                      </TableCell>
+                       <TableCell>
+                         {formatDate(contract.start_date)}
+                       </TableCell>
+                       <TableCell>
+                         {formatDate(contract.end_date)}
+                       </TableCell>
                       <TableCell>
                         <div className={`font-medium ${
                           daysUntilExpiry <= 7 ? 'text-red-600' :
@@ -286,12 +288,12 @@ const ServiceContracts: React.FC = () => {
                           {daysUntilExpiry > 0 ? `${daysUntilExpiry} days` : 'Expired'}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {contract.contract_cost ? 
-                          `$${contract.contract_cost.toLocaleString()}` : 
-                          'N/A'
-                        }
-                      </TableCell>
+                       <TableCell>
+                         {contract.contract_cost ? 
+                           formatCurrency(contract.contract_cost) : 
+                           'N/A'
+                         }
+                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           {contract.email_reminder_enabled ? (

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Calendar } from 'lucide-react';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'];
@@ -11,17 +12,16 @@ interface AssetFinancialInfoProps {
 }
 
 export const AssetFinancialInfo: React.FC<AssetFinancialInfoProps> = ({ asset }) => {
-  const formatDate = (dateString: string | null) => {
+  const { formatDate, formatCurrency } = useGlobalSettings();
+
+  const formatDateSafely = (dateString: string | null) => {
     if (!dateString) return 'Not specified';
-    return new Date(dateString).toLocaleDateString();
+    return formatDate(dateString);
   };
 
-  const formatCurrency = (amount: number | null) => {
+  const formatCurrencySafely = (amount: number | null) => {
     if (!amount) return 'Not specified';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+    return formatCurrency(amount);
   };
 
   return (
@@ -37,7 +37,7 @@ export const AssetFinancialInfo: React.FC<AssetFinancialInfoProps> = ({ asset })
           <DollarSign className="h-4 w-4 text-gray-500" />
           <div>
             <p className="text-sm font-medium">Purchase Cost</p>
-            <p className="text-sm text-gray-600">{formatCurrency(asset.purchase_cost)}</p>
+            <p className="text-sm text-gray-600">{formatCurrencySafely(asset.purchase_cost)}</p>
           </div>
         </div>
 
@@ -45,7 +45,7 @@ export const AssetFinancialInfo: React.FC<AssetFinancialInfoProps> = ({ asset })
           <Calendar className="h-4 w-4 text-gray-500" />
           <div>
             <p className="text-sm font-medium">Purchase Date</p>
-            <p className="text-sm text-gray-600">{formatDate(asset.purchase_date)}</p>
+            <p className="text-sm text-gray-600">{formatDateSafely(asset.purchase_date)}</p>
           </div>
         </div>
 
@@ -53,7 +53,7 @@ export const AssetFinancialInfo: React.FC<AssetFinancialInfoProps> = ({ asset })
           <Calendar className="h-4 w-4 text-gray-500" />
           <div>
             <p className="text-sm font-medium">Warranty Expiry</p>
-            <p className="text-sm text-gray-600">{formatDate(asset.warranty_expiry)}</p>
+            <p className="text-sm text-gray-600">{formatDateSafely(asset.warranty_expiry)}</p>
           </div>
         </div>
       </CardContent>

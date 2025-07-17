@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth';
+import { GlobalSettingsProvider } from '@/contexts/GlobalSettingsContext';
 import { ContractNotificationWrapper } from '@/components/auth/ContractNotificationWrapper';
 import { AuthNavigationHandler } from '@/components/auth/AuthNavigationHandler';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -37,8 +38,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <AuthNavigationHandler />
-          <ContractNotificationWrapper>
+          <GlobalSettingsProvider>
+            <AuthNavigationHandler />
+            <ContractNotificationWrapper>
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
               <Route
@@ -73,6 +75,7 @@ function App() {
             </Routes>
             <Toaster />
           </ContractNotificationWrapper>
+          </GlobalSettingsProvider>
         </AuthProvider>
       </Router>
     </QueryClientProvider>

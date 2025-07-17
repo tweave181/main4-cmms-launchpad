@@ -4,10 +4,12 @@ import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButto
 import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 
 export const AppSidebar = () => {
   const location = useLocation();
   const { isAdmin } = useAuth();
+  const { organizationName } = useGlobalSettings();
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', href: '/' },
@@ -33,7 +35,7 @@ export const AppSidebar = () => {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <h2 className="text-lg font-semibold">CMMS Pro</h2>
+        <h2 className="text-lg font-semibold">{organizationName}</h2>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>

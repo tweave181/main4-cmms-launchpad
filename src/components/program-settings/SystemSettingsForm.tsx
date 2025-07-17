@@ -76,10 +76,18 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
 
   const onSubmit = async (data: ProgramSettingsFormData) => {
     try {
+      // Clean up empty strings to null for optional fields
+      const cleanedData = {
+        ...data,
+        default_fiscal_year_start: data.default_fiscal_year_start || null,
+        logo_url: data.logo_url || null,
+        system_contact_email: data.system_contact_email || null,
+      };
+
       if (settings?.id) {
-        await updateSettings.mutateAsync({ id: settings.id, data });
+        await updateSettings.mutateAsync({ id: settings.id, data: cleanedData });
       } else {
-        await createSettings.mutateAsync(data);
+        await createSettings.mutateAsync(cleanedData);
       }
     } catch (error) {
       console.error('Error saving settings:', error);

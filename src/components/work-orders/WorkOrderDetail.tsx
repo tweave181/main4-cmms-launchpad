@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, User, Wrench, DollarSign, Edit } from 'lucide-react';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { ActivityLog } from './ActivityLog';
 import type { WorkOrder } from '@/types/workOrder';
 
@@ -30,6 +31,7 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
   onClose,
   onEdit,
 }) => {
+  const { formatDate, formatCurrency } = useGlobalSettings();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open': return 'bg-blue-100 text-blue-800';
@@ -50,9 +52,6 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -194,7 +193,7 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
                 {workOrder.estimated_cost && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Estimated Cost</span>
-                    <span className="text-sm text-gray-600">${workOrder.estimated_cost}</span>
+                    <span className="text-sm text-gray-600">{formatCurrency(workOrder.estimated_cost)}</span>
                   </div>
                 )}
                 {workOrder.actual_hours && (
@@ -209,7 +208,7 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
                 {workOrder.actual_cost && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Actual Cost</span>
-                    <span className="text-sm text-gray-600">${workOrder.actual_cost}</span>
+                    <span className="text-sm text-gray-600">{formatCurrency(workOrder.actual_cost)}</span>
                   </div>
                 )}
               </CardContent>
