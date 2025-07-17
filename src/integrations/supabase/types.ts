@@ -985,6 +985,54 @@ export type Database = {
           },
         ]
       }
+      program_settings: {
+        Row: {
+          country: string | null
+          created_at: string
+          currency: string | null
+          date_format: string | null
+          default_fiscal_year_start: string | null
+          id: string
+          language: string | null
+          logo_url: string | null
+          organization_name: string | null
+          system_contact_email: string | null
+          tenant_id: string
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          date_format?: string | null
+          default_fiscal_year_start?: string | null
+          id?: string
+          language?: string | null
+          logo_url?: string | null
+          organization_name?: string | null
+          system_contact_email?: string | null
+          tenant_id: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          date_format?: string | null
+          default_fiscal_year_start?: string | null
+          id?: string
+          language?: string | null
+          logo_url?: string | null
+          organization_name?: string | null
+          system_contact_email?: string | null
+          tenant_id?: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       service_contracts: {
         Row: {
           contract_cost: number | null
