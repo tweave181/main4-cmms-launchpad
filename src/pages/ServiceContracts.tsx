@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, FileText, Calendar, DollarSign, Building2, Mail, Settings } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
 import { useAuth } from '@/contexts/auth';
 import { formatDistanceToNow, format } from 'date-fns';
 
@@ -26,6 +27,7 @@ interface ServiceContract {
 const ServiceContracts: React.FC = () => {
   const { userProfile } = useAuth();
   const [selectedContract, setSelectedContract] = useState<ServiceContract | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: contracts = [], isLoading, error } = useQuery({
     queryKey: ['service-contracts', userProfile?.tenant_id],
@@ -107,7 +109,7 @@ const ServiceContracts: React.FC = () => {
             Manage and monitor your service contracts and maintenance agreements
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Contract
         </Button>
@@ -186,7 +188,7 @@ const ServiceContracts: React.FC = () => {
               <p className="text-muted-foreground mb-4">
                 Get started by adding your first service contract
               </p>
-              <Button>
+              <Button onClick={() => setIsModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Contract
               </Button>
@@ -281,6 +283,11 @@ const ServiceContracts: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <ServiceContractModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };
