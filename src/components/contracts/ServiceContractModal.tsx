@@ -5,22 +5,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const contractSchema = z.object({
   contract_title: z.string().min(1, 'Contract title is required'),
-  vendor_name: z.string().min(1, 'Vendor name is required'),
+  vendor_company_id: z.string().min(1, 'Vendor company is required'),
   description: z.string().optional(),
   start_date: z.date({ required_error: 'Start date is required' }),
   end_date: z.date({ required_error: 'End date is required' }),
@@ -48,6 +50,24 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch companies for dropdown
+  const { data: companies = [], isLoading: companiesLoading } = useQuery({
+    queryKey: ['companies', userProfile?.tenant_id],
+    queryFn: async () => {
+      if (!userProfile?.tenant_id) return [];
+
+      const { data, error } = await supabase
+        .from('company_details')
+        .select('id, company_name')
+        .eq('tenant_id', userProfile.tenant_id)
+        .order('company_name');
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userProfile?.tenant_id,
+  });
+
   const {
     register,
     handleSubmit,
@@ -62,13 +82,17 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
       email_reminder_enabled: true,
       contract_cost: undefined,
       reminder_days_before: 30,
-      visit_count: undefined
+      visit_count: undefined,
+      vendor_company_id: ''
     }
   });
 
   const startDate = watch('start_date');
   const endDate = watch('end_date');
   const emailReminderEnabled = watch('email_reminder_enabled');
+  const selectedVendorId = watch('vendor_company_id');
+
+  const [companySearchOpen, setCompanySearchOpen] = React.useState(false);
 
   const createContractMutation = useMutation({
     mutationFn: async (data: ContractFormData) => {
@@ -76,9 +100,16 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
         throw new Error('No tenant found');
       }
 
+      // Find the selected company to get the vendor name
+      const selectedCompany = companies.find(c => c.id === data.vendor_company_id);
+      if (!selectedCompany) {
+        throw new Error('Selected vendor not found');
+      }
+
       const contractData = {
         contract_title: data.contract_title,
-        vendor_name: data.vendor_name,
+        vendor_name: selectedCompany.company_name, // Keep for backward compatibility
+        vendor_company_id: data.vendor_company_id,
         description: data.description || null,
         start_date: data.start_date.toISOString().split('T')[0],
         end_date: data.end_date.toISOString().split('T')[0],
@@ -156,14 +187,53 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="vendor_name">Vendor Name *</Label>
-              <Input
-                id="vendor_name"
-                {...register('vendor_name')}
-                placeholder="e.g., ABC Maintenance Services"
-              />
-              {errors.vendor_name && (
-                <p className="text-sm text-destructive">{errors.vendor_name.message}</p>
+              <Label htmlFor="vendor_company_id">Vendor Company *</Label>
+              <Popover open={companySearchOpen} onOpenChange={setCompanySearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={companySearchOpen}
+                    className="w-full justify-between"
+                    disabled={companiesLoading}
+                  >
+                    {selectedVendorId
+                      ? companies.find((company) => company.id === selectedVendorId)?.company_name
+                      : "Select vendor..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search vendors..." />
+                    <CommandList>
+                      <CommandEmpty>No vendors found.</CommandEmpty>
+                      <CommandGroup>
+                        {companies.map((company) => (
+                          <CommandItem
+                            key={company.id}
+                            value={company.company_name}
+                            onSelect={() => {
+                              setValue('vendor_company_id', company.id);
+                              setCompanySearchOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedVendorId === company.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {company.company_name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {errors.vendor_company_id && (
+                <p className="text-sm text-destructive">{errors.vendor_company_id.message}</p>
               )}
             </div>
           </div>
@@ -198,6 +268,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
                     selected={startDate}
                     onSelect={(date) => setValue('start_date', date!)}
                     initialFocus
+                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
@@ -224,6 +295,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
                     selected={endDate}
                     onSelect={(date) => setValue('end_date', date!)}
                     initialFocus
+                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>

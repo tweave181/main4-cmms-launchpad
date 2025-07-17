@@ -999,6 +999,7 @@ export type Database = {
           status: Database["public"]["Enums"]["contract_status"]
           tenant_id: string
           updated_at: string
+          vendor_company_id: string | null
           vendor_name: string
           visit_count: number | null
         }
@@ -1015,6 +1016,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["contract_status"]
           tenant_id: string
           updated_at?: string
+          vendor_company_id?: string | null
           vendor_name: string
           visit_count?: number | null
         }
@@ -1031,10 +1033,19 @@ export type Database = {
           status?: Database["public"]["Enums"]["contract_status"]
           tenant_id?: string
           updated_at?: string
+          vendor_company_id?: string | null
           vendor_name?: string
           visit_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "service_contracts_vendor_company_id_fkey"
+            columns: ["vendor_company_id"]
+            isOneToOne: false
+            referencedRelation: "company_details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stock_transactions: {
         Row: {

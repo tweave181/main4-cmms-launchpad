@@ -16,6 +16,7 @@ interface ServiceContract {
   id: string;
   contract_title: string;
   vendor_name: string;
+  vendor_company_id: string | null;
   start_date: string;
   end_date: string;
   contract_cost: number | null;
@@ -24,6 +25,13 @@ interface ServiceContract {
   email_reminder_enabled: boolean;
   reminder_days_before: number | null;
   visit_count: number | null;
+  company_details?: {
+    id: string;
+    company_name: string;
+    email: string | null;
+    phone: string | null;
+    address: string | null;
+  } | null;
 }
 
 const ServiceContracts: React.FC = () => {
@@ -40,7 +48,16 @@ const ServiceContracts: React.FC = () => {
 
       const { data, error } = await supabase
         .from('service_contracts')
-        .select('*')
+        .select(`
+          *,
+          company_details:vendor_company_id (
+            id,
+            company_name,
+            email,
+            phone,
+            address
+          )
+        `)
         .eq('tenant_id', userProfile.tenant_id)
         .order('end_date', { ascending: true });
 
@@ -244,7 +261,9 @@ const ServiceContracts: React.FC = () => {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Building2 className="h-4 w-4 text-muted-foreground" />
-                          <span>{contract.vendor_name}</span>
+                          <span>
+                            {contract.company_details?.company_name || contract.vendor_name}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
