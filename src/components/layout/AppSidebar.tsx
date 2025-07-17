@@ -27,7 +27,7 @@ export const AppSidebar = () => {
     { icon: ScrollText, label: 'Service Contracts', href: '/admin/service-contracts' },
     { icon: Cog, label: 'Asset Prefixes', href: '/asset-prefixes' },
     { icon: FileText, label: 'System Audit Log', href: '/system-audit-log' },
-    { icon: Settings, label: 'Settings', href: '/settings' },
+    { icon: Settings, label: 'System Settings', href: '/settings' },
   ];
 
   return (
