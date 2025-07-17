@@ -27,6 +27,7 @@ import Companies from '@/pages/Companies';
 import Addresses from '@/pages/Addresses';
 import SystemAuditLog from '@/pages/SystemAuditLog';
 import AdminSettings from '@/pages/AdminSettings';
+import ServiceContracts from '@/pages/ServiceContracts';
 import NotFound from '@/pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ function App() {
                         <Route path="/job-titles/:id" element={<JobTitleDetails />} />
                         <Route path="/companies" element={<Companies />} />
                         <Route path="/addresses" element={<Addresses />} />
+                        <Route path="/admin/service-contracts" element={<ServiceContracts />} />
                         <Route path="/system-audit-log" element={<SystemAuditLog />} />
                         <Route path="/settings" element={<AdminSettings />} />
                         <Route path="*" element={<NotFound />} />
