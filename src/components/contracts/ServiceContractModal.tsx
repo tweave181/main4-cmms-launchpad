@@ -69,9 +69,6 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
     enabled: !!userProfile?.tenant_id,
   });
 
-  // Get selected company details for preview
-  const selectedCompany = companies.find(c => c.id === selectedVendorId);
-
   const {
     register,
     handleSubmit,
@@ -95,6 +92,9 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
   const endDate = watch('end_date');
   const emailReminderEnabled = watch('email_reminder_enabled');
   const selectedVendorId = watch('vendor_company_id');
+
+  // Get selected company details for preview (moved after selectedVendorId declaration)
+  const selectedCompany = companies.find(c => c.id === selectedVendorId);
 
   const [companySearchOpen, setCompanySearchOpen] = React.useState(false);
 
