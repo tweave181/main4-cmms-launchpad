@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,7 +59,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
 
       const { data, error } = await supabase
         .from('company_details')
-        .select('id, company_name')
+        .select('id, company_name, email, phone, address, company_address_id')
         .eq('tenant_id', userProfile.tenant_id)
         .order('company_name');
 
@@ -67,6 +68,9 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
     },
     enabled: !!userProfile?.tenant_id,
   });
+
+  // Get selected company details for preview
+  const selectedCompany = companies.find(c => c.id === selectedVendorId);
 
   const {
     register,
@@ -237,6 +241,41 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
               )}
             </div>
           </div>
+
+          {/* Company Preview Card */}
+          {selectedCompany && (
+            <Card className="border-muted-foreground/20 bg-muted/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-muted-foreground">Vendor Company Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Company Name</Label>
+                    <p className="text-sm text-foreground mt-1">{selectedCompany.company_name}</p>
+                  </div>
+                  {selectedCompany.email && (
+                    <div>
+                      <Label className="text-sm font-medium">Email</Label>
+                      <p className="text-sm text-foreground mt-1">{selectedCompany.email}</p>
+                    </div>
+                  )}
+                  {selectedCompany.phone && (
+                    <div>
+                      <Label className="text-sm font-medium">Phone</Label>
+                      <p className="text-sm text-foreground mt-1">{selectedCompany.phone}</p>
+                    </div>
+                  )}
+                  {selectedCompany.address && (
+                    <div>
+                      <Label className="text-sm font-medium">Address</Label>
+                      <p className="text-sm text-foreground mt-1">{selectedCompany.address}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
