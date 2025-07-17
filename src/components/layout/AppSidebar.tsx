@@ -55,7 +55,10 @@ export const AppSidebar = () => {
               </div>
               {adminItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.href}>
+                  <SidebarMenuButton asChild isActive={
+                    location.pathname === item.href || 
+                    (item.href.startsWith('/admin') && location.pathname.startsWith(item.href))
+                  }>
                     <Link to={item.href} className="flex items-center space-x-3">
                       <item.icon className="h-4 w-4" />
                       <span>{item.label}</span>
