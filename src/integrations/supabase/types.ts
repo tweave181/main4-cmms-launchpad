@@ -71,52 +71,70 @@ export type Database = {
           address_line_1: string
           address_line_2: string | null
           address_line_3: string | null
+          company_name: string | null
+          contact_name: string | null
           county_or_state: string | null
           created_at: string
+          email: string | null
           id: string
           is_contact: boolean | null
           is_contractor: boolean | null
           is_manufacturer: boolean | null
           is_other: boolean | null
           is_supplier: boolean | null
+          notes: string | null
+          phone: string | null
           postcode: string | null
           tenant_id: string
           town_or_city: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           address_line_1: string
           address_line_2?: string | null
           address_line_3?: string | null
+          company_name?: string | null
+          contact_name?: string | null
           county_or_state?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           is_contact?: boolean | null
           is_contractor?: boolean | null
           is_manufacturer?: boolean | null
           is_other?: boolean | null
           is_supplier?: boolean | null
+          notes?: string | null
+          phone?: string | null
           postcode?: string | null
           tenant_id: string
           town_or_city?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           address_line_1?: string
           address_line_2?: string | null
           address_line_3?: string | null
+          company_name?: string | null
+          contact_name?: string | null
           county_or_state?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           is_contact?: boolean | null
           is_contractor?: boolean | null
           is_manufacturer?: boolean | null
           is_other?: boolean | null
           is_supplier?: boolean | null
+          notes?: string | null
+          phone?: string | null
           postcode?: string | null
           tenant_id?: string
           town_or_city?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: [
           {

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MapPin, Plus, AlertTriangle, Check } from 'lucide-react';
-import { AddressForm } from './AddressForm';
+import { AddressFormFields } from './AddressFormFields';
 import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses';
 import type { Address, AddressFormData } from '@/types/address';
 
@@ -23,6 +23,17 @@ const addressSchema = z.object({
   town_or_city: z.string().optional(),
   county_or_state: z.string().optional(),
   postcode: z.string().optional(),
+  company_name: z.string().optional(),
+  contact_name: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  website: z.string().optional(),
+  notes: z.string().optional(),
+  is_contact: z.boolean().optional(),
+  is_supplier: z.boolean().optional(),
+  is_manufacturer: z.boolean().optional(),
+  is_contractor: z.boolean().optional(),
+  is_other: z.boolean().optional(),
 });
 
 interface AddressFormModalProps {
@@ -56,6 +67,17 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
       town_or_city: address?.town_or_city || '',
       county_or_state: address?.county_or_state || '',
       postcode: address?.postcode || '',
+      company_name: address?.company_name || '',
+      contact_name: address?.contact_name || '',
+      phone: address?.phone || '',
+      email: address?.email || '',
+      website: address?.website || '',
+      notes: address?.notes || '',
+      is_contact: address?.is_contact || false,
+      is_supplier: address?.is_supplier || false,
+      is_manufacturer: address?.is_manufacturer || false,
+      is_contractor: address?.is_contractor || false,
+      is_other: address?.is_other || false,
     },
   });
 
@@ -68,6 +90,17 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
         town_or_city: address.town_or_city || '',
         county_or_state: address.county_or_state || '',
         postcode: address.postcode || '',
+        company_name: address.company_name || '',
+        contact_name: address.contact_name || '',
+        phone: address.phone || '',
+        email: address.email || '',
+        website: address.website || '',
+        notes: address.notes || '',
+        is_contact: address.is_contact || false,
+        is_supplier: address.is_supplier || false,
+        is_manufacturer: address.is_manufacturer || false,
+        is_contractor: address.is_contractor || false,
+        is_other: address.is_other || false,
       });
     } else {
       form.reset({
@@ -77,6 +110,17 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
         town_or_city: '',
         county_or_state: '',
         postcode: '',
+        company_name: '',
+        contact_name: '',
+        phone: '',
+        email: '',
+        website: '',
+        notes: '',
+        is_contact: false,
+        is_supplier: false,
+        is_manufacturer: false,
+        is_contractor: false,
+        is_other: false,
       });
     }
     // Reset duplicate detection state when address changes
@@ -132,7 +176,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             {isEditing ? (
@@ -146,7 +190,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <AddressForm control={form.control} />
+            <AddressFormFields control={form.control} />
 
             {duplicateInfo && (
               <Alert className="border-amber-200 bg-amber-50">

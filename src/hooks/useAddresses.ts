@@ -109,6 +109,12 @@ export const useCreateAddress = () => {
       const finalData = {
         ...addressData,
         tenant_id: userProfile.tenant_id,
+        // Ensure boolean fields have default values
+        is_contact: addressData.is_contact || false,
+        is_supplier: addressData.is_supplier || false,
+        is_manufacturer: addressData.is_manufacturer || false,
+        is_contractor: addressData.is_contractor || false,
+        is_other: addressData.is_other || false,
       };
 
       const { data: result, error } = await supabase
@@ -212,5 +218,33 @@ export const useDeleteAddress = () => {
         variant: "destructive",
       });
     },
+  });
+};
+
+export const useAddress = (id: string) => {
+  const { userProfile } = useAuth();
+
+  return useQuery({
+    queryKey: ['address', id],
+    queryFn: async () => {
+      if (!userProfile?.tenant_id) {
+        throw new Error('No tenant found');
+      }
+
+      const { data, error } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('id', id)
+        .eq('tenant_id', userProfile.tenant_id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching address:', error);
+        throw error;
+      }
+
+      return data as Address;
+    },
+    enabled: !!userProfile?.tenant_id && !!id,
   });
 };

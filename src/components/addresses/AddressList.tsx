@@ -14,8 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Eye, Edit, Trash2 } from 'lucide-react';
 import { useAddresses, useDeleteAddress } from '@/hooks/useAddresses';
 import type { Address } from '@/types/address';
-import { AddressDetailModal } from './AddressDetailModal';
-import { AddressFormModal } from './AddressFormModal';
+import { AddressViewEditModal } from './AddressViewEditModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,8 +33,7 @@ interface AddressListProps {
 export const AddressList: React.FC<AddressListProps> = ({ onAddAddress }) => {
   const { formatDate } = useGlobalSettings();
   const [search, setSearch] = useState('');
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [deletingAddress, setDeletingAddress] = useState<Address | null>(null);
   
   const { data: addresses = [], isLoading } = useAddresses(search);
@@ -106,7 +104,7 @@ export const AddressList: React.FC<AddressListProps> = ({ onAddAddress }) => {
                   <TableRow 
                     key={address.id} 
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setSelectedAddress(address)}
+                    onClick={() => setSelectedAddressId(address.id)}
                   >
                     <TableCell>
                       <div className="font-medium">{address.address_line_1}</div>
@@ -119,26 +117,16 @@ export const AddressList: React.FC<AddressListProps> = ({ onAddAddress }) => {
                     <TableCell>{formatDate(address.created_at)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedAddress(address);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingAddress(address);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAddressId(address.id);
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -159,26 +147,11 @@ export const AddressList: React.FC<AddressListProps> = ({ onAddAddress }) => {
         </div>
       </div>
 
-      {/* Detail Modal */}
-      <AddressDetailModal
-        address={selectedAddress}
-        isOpen={!!selectedAddress}
-        onClose={() => setSelectedAddress(null)}
-        onEdit={(address) => {
-          setSelectedAddress(null);
-          setEditingAddress(address);
-        }}
-        onDelete={(address) => {
-          setSelectedAddress(null);
-          setDeletingAddress(address);
-        }}
-      />
-
-      {/* Edit Modal */}
-      <AddressFormModal
-        address={editingAddress}
-        isOpen={!!editingAddress}
-        onClose={() => setEditingAddress(null)}
+      {/* Unified View/Edit Modal */}
+      <AddressViewEditModal
+        addressId={selectedAddressId}
+        isOpen={!!selectedAddressId}
+        onClose={() => setSelectedAddressId(null)}
       />
 
       {/* Delete Confirmation */}
