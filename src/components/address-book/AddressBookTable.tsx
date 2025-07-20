@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAddresses } from '@/hooks/useAddresses';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddressTypeBadges } from './AddressTypeBadges';
+import { AddressDetailModal } from './AddressDetailModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Address } from '@/types/address';
 import { AddressTypeFilters } from './AddressBookFilters';
@@ -13,6 +14,8 @@ interface AddressBookTableProps {
 
 export const AddressBookTable = ({ filters }: AddressBookTableProps) => {
   const { data: addresses, isLoading, error } = useAddresses();
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredAddresses = useMemo(() => {
     if (!addresses) return [];
@@ -29,6 +32,16 @@ export const AddressBookTable = ({ filters }: AddressBookTableProps) => {
       return false;
     });
   }, [addresses, filters]);
+
+  const handleRowClick = (address: Address) => {
+    setSelectedAddress(address);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedAddress(null);
+  };
 
   if (isLoading) {
     return (
@@ -85,7 +98,11 @@ export const AddressBookTable = ({ filters }: AddressBookTableProps) => {
             </TableHeader>
             <TableBody>
               {filteredAddresses.map((address) => (
-                <TableRow key={address.id}>
+                <TableRow 
+                  key={address.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handleRowClick(address)}
+                >
                   <TableCell>
                     <div className="space-y-1">
                       <div className="font-medium">{address.address_line_1}</div>
@@ -107,6 +124,12 @@ export const AddressBookTable = ({ filters }: AddressBookTableProps) => {
             </TableBody>
           </Table>
         )}
+        
+        <AddressDetailModal
+          address={selectedAddress}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </CardContent>
     </Card>
   );
