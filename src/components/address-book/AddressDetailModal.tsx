@@ -141,10 +141,6 @@ export const AddressDetailModal = ({ address, isOpen, onClose }: AddressDetailMo
                 <label className="font-medium text-muted-foreground">Last Updated</label>
                 <div>{formatDate(address.updated_at)}</div>
               </div>
-              <div className="space-y-1">
-                <label className="font-medium text-muted-foreground">Record ID</label>
-                <div className="font-mono text-xs text-muted-foreground">{address.id}</div>
-              </div>
             </div>
           </div>
 
