@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAddresses } from '@/hooks/useAddresses';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddressTypeBadges } from './AddressTypeBadges';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Address } from '@/types/address';
+import { AddressTypeFilters } from './AddressBookFilters';
 
-export const AddressBookTable = () => {
+interface AddressBookTableProps {
+  filters: AddressTypeFilters;
+}
+
+export const AddressBookTable = ({ filters }: AddressBookTableProps) => {
   const { data: addresses, isLoading, error } = useAddresses();
+
+  const filteredAddresses = useMemo(() => {
+    if (!addresses) return [];
+    
+    const hasActiveFilters = Object.values(filters).some(value => value);
+    if (!hasActiveFilters) return addresses;
+
+    return addresses.filter((address: Address) => {
+      if (filters.contact && address.is_contact) return true;
+      if (filters.supplier && address.is_supplier) return true;
+      if (filters.manufacturer && address.is_manufacturer) return true;
+      if (filters.contractor && address.is_contractor) return true;
+      if (filters.other && address.is_other) return true;
+      return false;
+    });
+  }, [addresses, filters]);
 
   if (isLoading) {
     return (
@@ -44,9 +66,12 @@ export const AddressBookTable = () => {
         <CardTitle>Address Book</CardTitle>
       </CardHeader>
       <CardContent>
-        {!addresses || addresses.length === 0 ? (
+        {!filteredAddresses || filteredAddresses.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">
-            No addresses found in the directory.
+            {!addresses || addresses.length === 0 
+              ? "No addresses found in the directory."
+              : "No addresses match the selected filters."
+            }
           </p>
         ) : (
           <Table>
@@ -59,7 +84,7 @@ export const AddressBookTable = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {addresses.map((address) => (
+              {filteredAddresses.map((address) => (
                 <TableRow key={address.id}>
                   <TableCell>
                     <div className="space-y-1">

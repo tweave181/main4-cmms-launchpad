@@ -1,7 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AddressBookTable } from '@/components/address-book/AddressBookTable';
+import { AddressBookFilters, AddressTypeFilters } from '@/components/address-book/AddressBookFilters';
 
 const AddressBook = () => {
+  const [filters, setFilters] = useState<AddressTypeFilters>({
+    contact: false,
+    supplier: false,
+    manufacturer: false,
+    contractor: false,
+    other: false,
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -11,7 +20,12 @@ const AddressBook = () => {
         </p>
       </div>
       
-      <AddressBookTable />
+      <AddressBookFilters 
+        filters={filters} 
+        onFiltersChange={setFilters} 
+      />
+      
+      <AddressBookTable filters={filters} />
     </div>
   );
 };
