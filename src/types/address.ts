@@ -7,6 +7,11 @@ export interface Address {
   town_or_city?: string;
   county_or_state?: string;
   postcode?: string;
+  is_contact?: boolean;
+  is_supplier?: boolean;
+  is_manufacturer?: boolean;
+  is_contractor?: boolean;
+  is_other?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -18,6 +23,11 @@ export interface AddressFormData {
   town_or_city?: string;
   county_or_state?: string;
   postcode?: string;
+  is_contact?: boolean;
+  is_supplier?: boolean;
+  is_manufacturer?: boolean;
+  is_contractor?: boolean;
+  is_other?: boolean;
 }
 
 export interface AddressFilters {

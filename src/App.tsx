@@ -26,6 +26,7 @@ import JobTitles from '@/pages/JobTitles';
 import JobTitleDetails from '@/pages/JobTitleDetails';
 import Companies from '@/pages/Companies';
 import Addresses from '@/pages/Addresses';
+import AddressBook from '@/pages/AddressBook';
 import SystemAuditLog from '@/pages/SystemAuditLog';
 import AdminSettings from '@/pages/AdminSettings';
 import ServiceContracts from '@/pages/ServiceContracts';
@@ -63,6 +64,7 @@ function App() {
                         <Route path="/job-titles/:id" element={<JobTitleDetails />} />
                         <Route path="/companies" element={<Companies />} />
                         <Route path="/addresses" element={<Addresses />} />
+                        <Route path="/address-book" element={<AddressBook />} />
                         <Route path="/admin/service-contracts" element={<ServiceContracts />} />
                         <Route path="/system-audit-log" element={<SystemAuditLog />} />
                         <Route path="/settings" element={<AdminSettings />} />

@@ -74,6 +74,11 @@ export type Database = {
           county_or_state: string | null
           created_at: string
           id: string
+          is_contact: boolean | null
+          is_contractor: boolean | null
+          is_manufacturer: boolean | null
+          is_other: boolean | null
+          is_supplier: boolean | null
           postcode: string | null
           tenant_id: string
           town_or_city: string | null
@@ -86,6 +91,11 @@ export type Database = {
           county_or_state?: string | null
           created_at?: string
           id?: string
+          is_contact?: boolean | null
+          is_contractor?: boolean | null
+          is_manufacturer?: boolean | null
+          is_other?: boolean | null
+          is_supplier?: boolean | null
           postcode?: string | null
           tenant_id: string
           town_or_city?: string | null
@@ -98,6 +108,11 @@ export type Database = {
           county_or_state?: string | null
           created_at?: string
           id?: string
+          is_contact?: boolean | null
+          is_contractor?: boolean | null
+          is_manufacturer?: boolean | null
+          is_other?: boolean | null
+          is_supplier?: boolean | null
           postcode?: string | null
           tenant_id?: string
           town_or_city?: string | null

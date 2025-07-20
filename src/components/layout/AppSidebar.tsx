@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader } from '@/components/ui/sidebar';
-import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText } from 'lucide-react';
+import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText, BookOpen } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
@@ -17,6 +17,7 @@ export const AppSidebar = () => {
     { icon: Tag, label: 'Assets', href: '/assets' },
     { icon: Calendar, label: 'Maintenance', href: '/maintenance' },
     { icon: Package, label: 'Inventory', href: '/inventory' },
+    { icon: BookOpen, label: 'Address Book', href: '/address-book' },
     { icon: BarChart3, label: 'Reports', href: '/reports' },
   ];
 
@@ -39,6 +40,9 @@ export const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
+          <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Main Menu
+          </div>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton asChild isActive={location.pathname === item.href}>
@@ -52,7 +56,7 @@ export const AppSidebar = () => {
           
           {isAdmin && (
             <>
-              <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-4">
                 Admin
               </div>
               {adminItems.map((item) => (
