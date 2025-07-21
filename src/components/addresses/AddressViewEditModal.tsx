@@ -62,6 +62,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
+  // Always call hooks - the hook will handle null/empty IDs gracefully
   const { data: address, isLoading, error } = useAddress(addressId || '');
   const updateAddressMutation = useUpdateAddress();
   const deleteAddressMutation = useDeleteAddress();
@@ -159,10 +160,51 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
       return address.company_name;
     }
     
-    return address.address_line_1;
+    return address.address_line_1 || 'Address Details';
   };
 
+  // Don't render if no addressId or if there was an error
   if (!addressId) return null;
+  
+  // Show loading state while address is being fetched
+  if (isLoading && !address) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              <span>Loading Address...</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+  
+  // Show error state if failed to load address
+  if (error && !address) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              <span>Error Loading Address</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4 text-center text-destructive">
+            Error loading address: {error.message || 'Unknown error'}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <>
@@ -215,20 +257,6 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
               )}
             </DialogTitle>
           </DialogHeader>
-
-          {isLoading && (
-            <div className="space-y-4">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          )}
-
-          {error && (
-            <div className="p-4 text-center text-destructive">
-              Error loading address: {error.message}
-            </div>
-          )}
 
           {address && (
             <Form {...form}>
