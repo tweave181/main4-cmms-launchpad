@@ -80,11 +80,13 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
               <FormControl>
                 <Input
                   {...field}
-                  placeholder="001"
+                  placeholder="1"
                   maxLength={3}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, '');
-                    field.onChange(value.padStart(3, '0').slice(0, 3));
+                    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 999)) {
+                      field.onChange(value);
+                    }
                   }}
                   disabled={isPrefixInUse}
                 />
@@ -126,7 +128,7 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
         </div>
         <p className="text-lg font-mono font-bold text-blue-900 mt-1">
           {control._formValues.prefix_letter || 'X'}
-          {parseInt(control._formValues.number_code || '0') || '0'}/001
+          {(parseInt(control._formValues.number_code || '0') || 0).toString().padStart(3, '0')}/001
         </p>
         <p className="text-xs text-blue-600 mt-1">
           Example asset tag format

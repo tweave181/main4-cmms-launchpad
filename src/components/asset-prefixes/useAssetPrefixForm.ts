@@ -17,9 +17,13 @@ const assetPrefixSchema = z.object({
     .max(1, 'Prefix letter must be a single character')
     .regex(/^[A-Z]$/, 'Prefix letter must be a single uppercase letter'),
   number_code: z.string()
-    .min(3, 'Number code must be 3 digits')
-    .max(3, 'Number code must be 3 digits')
-    .regex(/^[0-9]{3}$/, 'Number code must be exactly 3 digits'),
+    .min(1, 'Number code is required')
+    .regex(/^[1-9]\d{0,2}$/, 'Number code must be between 1 and 999')
+    .refine((val) => {
+      const num = parseInt(val);
+      return num >= 1 && num <= 999;
+    }, 'Number code must be between 1 and 999')
+    .transform((val) => parseInt(val).toString().padStart(3, '0')),
   description: z.string()
     .min(1, 'Description is required')
     .max(100, 'Description must be less than 100 characters'),
@@ -64,7 +68,7 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
     resolver: zodResolver(assetPrefixSchema),
     defaultValues: {
       prefix_letter: prefix?.prefix_letter || '',
-      number_code: prefix?.number_code || '',
+      number_code: prefix?.number_code ? parseInt(prefix.number_code).toString() : '',
       description: prefix?.description || '',
     },
   });
