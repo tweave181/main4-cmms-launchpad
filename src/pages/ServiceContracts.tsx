@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { Plus, FileText, Calendar, DollarSign, Building2, Mail, Settings } from 'lucide-react';
+import { Plus, FileText, Calendar, DollarSign, Building2, Mail, Settings, Eye } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
+import { ContractDetailModal } from '@/components/contracts/ContractDetailModal';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
@@ -40,6 +41,8 @@ const ServiceContracts: React.FC = () => {
   const { formatDate, formatCurrency } = useGlobalSettings();
   const [selectedContract, setSelectedContract] = useState<ServiceContract | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [contractForDetail, setContractForDetail] = useState<ServiceContract | null>(null);
 
   const { data: contracts = [], isLoading, error } = useQuery({
     queryKey: ['service-contracts', userProfile?.tenant_id],
@@ -89,6 +92,11 @@ const ServiceContracts: React.FC = () => {
     const expiryDate = new Date(endDate);
     const diffTime = expiryDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const handleViewDetails = (contract: ServiceContract) => {
+    setContractForDetail(contract);
+    setIsDetailModalOpen(true);
   };
 
   if (isLoading) {
@@ -309,9 +317,18 @@ const ServiceContracts: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Button variant="outline" size="sm">
-                          <Settings className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewDetails(contract)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -325,6 +342,12 @@ const ServiceContracts: React.FC = () => {
       <ServiceContractModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      <ContractDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        contract={contractForDetail}
       />
     </div>
   );

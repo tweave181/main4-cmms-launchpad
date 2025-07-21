@@ -446,6 +446,57 @@ export type Database = {
           },
         ]
       }
+      contract_lines: {
+        Row: {
+          contract_id: string
+          cost_per_line: number | null
+          created_at: string
+          frequency: string | null
+          id: string
+          line_description: string
+          sla: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          contract_id: string
+          cost_per_line?: number | null
+          created_at?: string
+          frequency?: string | null
+          id?: string
+          line_description: string
+          sla?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          cost_per_line?: number | null
+          created_at?: string
+          frequency?: string | null
+          id?: string
+          line_description?: string
+          sla?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_lines_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "service_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_reminders: {
         Row: {
           contract_id: string
