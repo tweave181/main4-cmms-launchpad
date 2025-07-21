@@ -87,23 +87,33 @@ export const AddressDetailModal = ({ address, isOpen, onClose }: AddressDetailMo
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Company Name</label>
-                <div className="text-muted-foreground italic">Not available in current data</div>
+                <div className={address.company_name ? "" : "text-muted-foreground italic"}>
+                  {address.company_name || 'Not available in current data'}
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Primary Contact</label>
-                <div className="text-muted-foreground italic">Not available in current data</div>
+                <div className={address.contact_name ? "" : "text-muted-foreground italic"}>
+                  {address.contact_name || 'Not available in current data'}
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
-                <div className="text-muted-foreground italic">Not available in current data</div>
+                <div className={address.phone ? "" : "text-muted-foreground italic"}>
+                  {address.phone || 'Not available in current data'}
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <div className="text-muted-foreground italic">Not available in current data</div>
+                <div className={address.email ? "" : "text-muted-foreground italic"}>
+                  {address.email || 'Not available in current data'}
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Website</label>
-                <div className="text-muted-foreground italic">Not available in current data</div>
+                <div className={address.website ? "" : "text-muted-foreground italic"}>
+                  {address.website || 'Not available in current data'}
+                </div>
               </div>
             </div>
           </div>
