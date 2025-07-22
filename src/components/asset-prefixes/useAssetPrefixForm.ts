@@ -28,6 +28,7 @@ const assetPrefixSchema = z.object({
   description: z.string()
     .min(1, 'Description is required')
     .max(100, 'Description must be less than 100 characters'),
+  category_id: z.string().optional(),
 });
 
 export type AssetPrefixFormData = z.infer<typeof assetPrefixSchema>;
@@ -71,6 +72,7 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
       prefix_letter: prefix?.prefix_letter || '',
       number_code: prefix?.number_code ? parseInt(prefix.number_code).toString() : '',
       description: prefix?.description || '',
+      category_id: prefix?.category_id || '',
     },
   });
 
@@ -122,6 +124,7 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
             prefix_letter: data.prefix_letter,
             number_code: data.number_code,
             description: data.description,
+            category_id: data.category_id || null,
           })
           .eq('id', prefix.id);
 
@@ -140,6 +143,7 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
             prefix_letter: data.prefix_letter,
             number_code: data.number_code,
             description: data.description,
+            category_id: data.category_id || null,
           });
 
         if (error) throw error;

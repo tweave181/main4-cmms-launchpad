@@ -24,10 +24,17 @@ export const useAssetPrefixes = () => {
   } = useQuery({
     queryKey: ['assetPrefixes', userProfile?.tenant_id],
     queryFn: async () => {
-      // First, get all asset tag prefixes
+      // First, get all asset tag prefixes with categories
       const { data: prefixData, error: prefixError } = await supabase
         .from('asset_tag_prefixes')
-        .select('*')
+        .select(`
+          *,
+          category:categories(
+            id,
+            name,
+            description
+          )
+        `)
         .order('prefix_letter', { ascending: true })
         .order('number_code', { ascending: true });
 

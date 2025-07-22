@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Lock, HelpCircle, Wand2 } from 'lucide-react';
 import { AssetPrefixFormData } from './useAssetPrefixForm';
 import { useAutoSuggest } from './hooks/useAutoSuggest';
+import { CategorySelector } from './CategorySelector';
 
 interface AssetPrefixBasicFieldsProps {
   control: Control<AssetPrefixFormData>;
@@ -169,6 +170,12 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
           </Tooltip>
         </div>
       )}
+
+      {/* Category Selection */}
+      <CategorySelector 
+        control={control}
+        name="category_id"
+      />
 
       <FormField
         control={control}

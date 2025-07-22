@@ -20,6 +20,11 @@ interface AssetPrefixWithCount extends AssetTagPrefix {
   asset_count: number;
   is_at_capacity: boolean;
   is_archived?: boolean;
+  category?: {
+    id: string;
+    name: string;
+    description?: string;
+  };
 }
 
 interface AssetPrefixListProps {
@@ -93,6 +98,7 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
             <TableHead>Status</TableHead>
             <TableHead>Prefix</TableHead>
             <TableHead>Code</TableHead>
+            <TableHead>Category</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Assets Using</TableHead>
             <TableHead>Capacity</TableHead>
@@ -114,6 +120,20 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
               </TableCell>
               <TableCell>
                 {parseInt(prefix.number_code)}
+              </TableCell>
+              <TableCell>
+                {prefix.category ? (
+                  <div>
+                    <div className="font-medium">{prefix.category.name}</div>
+                    {prefix.category.description && (
+                      <div className="text-sm text-muted-foreground">
+                        {prefix.category.description}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">No category</span>
+                )}
               </TableCell>
               <TableCell>
                 {prefix.description}
