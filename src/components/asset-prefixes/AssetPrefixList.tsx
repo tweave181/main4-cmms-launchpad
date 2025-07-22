@@ -155,20 +155,13 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
               </TableCell>
               <TableCell>
                 {prefix.category ? (
-                  <div>
-                    <div className="font-medium">{prefix.category.name}</div>
-                    {prefix.category.description && (
-                      <div className="text-sm text-muted-foreground">
-                        {prefix.category.description}
-                      </div>
-                    )}
-                  </div>
+                  <span className="font-medium">{prefix.category.name}</span>
                 ) : (
                   <span className="text-muted-foreground">No category</span>
                 )}
               </TableCell>
               <TableCell>
-                {prefix.description}
+                {prefix.category?.description || prefix.description || 'No description'}
               </TableCell>
               <TableCell>
                 <span className={prefix.is_at_capacity ? 'text-red-600 font-semibold' : ''}>
