@@ -11,6 +11,7 @@ import { AuthNavigationHandler } from "@/components/auth/AuthNavigationHandler";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ContractNotificationWrapper } from "@/components/auth/ContractNotificationWrapper";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
+import AuthPage from "@/components/auth/AuthPage";
 
 import Index from "./pages/Index";
 import Assets from "./pages/Assets";
@@ -48,7 +49,7 @@ function App() {
                 <AuthNavigationHandler />
                 <ContractNotificationWrapper>
                   <Routes>
-                    <Route path="/auth" element={<div>Auth page placeholder</div>} />
+                    <Route path="/auth" element={<AuthPage />} />
                     <Route path="/*" element={
                       <ProtectedRoute>
                         <AppLayout>
