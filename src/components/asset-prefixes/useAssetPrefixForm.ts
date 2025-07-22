@@ -28,7 +28,7 @@ const assetPrefixSchema = z.object({
   description: z.string()
     .min(1, 'Description is required')
     .max(100, 'Description must be less than 100 characters'),
-  category_id: z.string().optional(),
+  category_id: z.string().nullable().optional(),
 });
 
 export type AssetPrefixFormData = z.infer<typeof assetPrefixSchema>;
@@ -72,7 +72,7 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
       prefix_letter: prefix?.prefix_letter || '',
       number_code: prefix?.number_code ? parseInt(prefix.number_code).toString() : '',
       description: prefix?.description || '',
-      category_id: prefix?.category_id || '',
+      category_id: prefix?.category_id || null,
     },
   });
 

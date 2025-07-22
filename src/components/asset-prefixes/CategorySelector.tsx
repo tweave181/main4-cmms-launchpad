@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   FormControl,
@@ -40,7 +41,10 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
             Category {required && <span className="text-destructive">*</span>}
           </FormLabel>
           <Select 
-            onValueChange={field.onChange} 
+            onValueChange={(value) => {
+              // Convert empty selection to null for optional fields
+              field.onChange(value || null);
+            }} 
             value={field.value || ''}
             disabled={isLoading}
           >
@@ -57,7 +61,6 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="">No category</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   <div>
