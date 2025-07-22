@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Control } from 'react-hook-form';
 import {
   FormControl,
@@ -9,19 +9,51 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Lock, HelpCircle } from 'lucide-react';
+import { Lock, HelpCircle, Wand2 } from 'lucide-react';
 import { AssetPrefixFormData } from './useAssetPrefixForm';
+import { useAutoSuggest } from './hooks/useAutoSuggest';
 
 interface AssetPrefixBasicFieldsProps {
   control: Control<AssetPrefixFormData>;
   isPrefixInUse?: boolean;
+  isDuplicate?: boolean;
+  form: any; // React Hook Form instance
 }
 
 export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
   control,
   isPrefixInUse = false,
+  isDuplicate = false,
+  form,
 }) => {
+  const [autoSuggestEnabled, setAutoSuggestEnabled] = useState(false);
+  
+  // Watch the prefix letter for auto-suggest
+  const prefixLetter = form.watch('prefix_letter');
+  
+  // Get auto-suggested number
+  const { data: suggestedNumber, isLoading: isLoadingSuggestion } = useAutoSuggest({
+    prefixLetter: prefixLetter || '',
+    enabled: autoSuggestEnabled,
+  });
+
+  // Auto-fill the number code when suggestion is available
+  useEffect(() => {
+    if (autoSuggestEnabled && suggestedNumber && prefixLetter) {
+      form.setValue('number_code', suggestedNumber.toString());
+    }
+  }, [autoSuggestEnabled, suggestedNumber, prefixLetter, form]);
+
+  // Clear number code when auto-suggest is disabled
+  const handleAutoSuggestToggle = (checked: boolean) => {
+    setAutoSuggestEnabled(checked);
+    if (!checked) {
+      form.setValue('number_code', '');
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="flex gap-3">
@@ -49,7 +81,14 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
                   placeholder="E"
                   maxLength={1}
                   style={{ textTransform: 'uppercase' }}
-                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    const value = e.target.value.toUpperCase();
+                    field.onChange(value);
+                    // Reset auto-suggest when prefix letter changes
+                    if (autoSuggestEnabled) {
+                      form.setValue('number_code', '');
+                    }
+                  }}
                   className="text-center"
                   disabled={isPrefixInUse}
                 />
@@ -80,22 +119,56 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
               <FormControl>
                 <Input
                   {...field}
-                  placeholder="1"
+                  placeholder={autoSuggestEnabled && isLoadingSuggestion ? "Loading..." : "1"}
                   maxLength={3}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '');
-                    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 999)) {
-                      field.onChange(value);
+                    if (!autoSuggestEnabled) {
+                      const value = e.target.value.replace(/\D/g, '');
+                      if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 999)) {
+                        field.onChange(value);
+                      }
                     }
                   }}
-                  disabled={isPrefixInUse}
+                  disabled={isPrefixInUse || autoSuggestEnabled}
+                  className={isDuplicate ? 'border-red-500' : ''}
                 />
               </FormControl>
               <FormMessage />
+              {isDuplicate && (
+                <p className="text-sm text-red-600 mt-1">
+                  This prefix letter and number combination already exists
+                </p>
+              )}
             </FormItem>
           )}
         />
       </div>
+
+      {/* Auto-suggest toggle */}
+      {!isPrefixInUse && (
+        <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <Checkbox
+            id="auto-suggest"
+            checked={autoSuggestEnabled}
+            onCheckedChange={handleAutoSuggestToggle}
+          />
+          <label
+            htmlFor="auto-suggest"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 cursor-pointer"
+          >
+            <Wand2 className="h-4 w-4 text-blue-600" />
+            Auto-suggest next available number
+          </label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-3 w-3 text-blue-600 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Automatically suggests the next available number for the selected prefix letter</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
 
       <FormField
         control={control}

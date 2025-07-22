@@ -27,7 +27,10 @@ export const AssetPrefixForm: React.FC<AssetPrefixFormProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { form, onSubmit, isEditing, isPrefixInUse } = useAssetPrefixForm({ prefix, onSuccess });
+  const { form, onSubmit, isEditing, isLoading, isPrefixInUse, isDuplicate } = useAssetPrefixForm({ 
+    prefix, 
+    onSuccess 
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -43,14 +46,16 @@ export const AssetPrefixForm: React.FC<AssetPrefixFormProps> = ({
             <AssetPrefixBasicFields 
               control={form.control} 
               isPrefixInUse={isPrefixInUse}
+              isDuplicate={isDuplicate}
+              form={form}
             />
 
             <div className="flex justify-end space-x-4 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit">
-                {isEditing ? 'Update Prefix' : 'Create Prefix'}
+              <Button type="submit" disabled={isLoading || isDuplicate}>
+                {isLoading ? 'Saving...' : (isEditing ? 'Update Prefix' : 'Create Prefix')}
               </Button>
             </div>
           </form>

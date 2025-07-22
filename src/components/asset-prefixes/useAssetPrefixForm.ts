@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
+import { useDuplicateCheck } from './hooks/useDuplicateCheck';
 import type { Database } from '@/integrations/supabase/types';
 
 type AssetTagPrefix = Database['public']['Tables']['asset_tag_prefixes']['Row'];
@@ -73,6 +74,28 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
     },
   });
 
+  // Watch form values for duplicate checking
+  const watchedValues = form.watch();
+  
+  // Check for duplicates
+  const { data: isDuplicate = false } = useDuplicateCheck({
+    prefixLetter: watchedValues.prefix_letter || '',
+    numberCode: watchedValues.number_code || '',
+    excludeId: prefix?.id,
+  });
+
+  // Add duplicate validation to form
+  const validateNoDuplicate = () => {
+    if (isDuplicate) {
+      form.setError('number_code', {
+        type: 'manual',
+        message: 'This prefix letter and number combination already exists',
+      });
+      return false;
+    }
+    return true;
+  };
+
   const onSubmit = async (data: AssetPrefixFormData) => {
     if (!userProfile?.tenant_id) {
       toast({
@@ -80,6 +103,11 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
         description: 'User profile not found',
         variant: 'destructive',
       });
+      return;
+    }
+
+    // Check for duplicates before submission
+    if (!validateNoDuplicate()) {
       return;
     }
 
@@ -151,5 +179,7 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
     isEditing,
     isLoading,
     isPrefixInUse,
+    isDuplicate,
+    validateNoDuplicate,
   };
 };
