@@ -30,9 +30,25 @@ export const useCategories = () => {
 
   const createCategory = useMutation({
     mutationFn: async (categoryData: { name: string; description?: string }) => {
+      // Get current user's tenant_id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+
+      if (userError) throw userError;
+      if (!userData?.tenant_id) throw new Error('User tenant not found');
+
       const { data, error } = await supabase
         .from('categories')
-        .insert(categoryData)
+        .insert({
+          ...categoryData,
+          tenant_id: userData.tenant_id
+        })
         .select()
         .single();
       
@@ -50,10 +66,10 @@ export const useCategories = () => {
   });
 
   const updateCategory = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; name: string; description?: string }) => {
+    mutationFn: async ({ id, name, description }: { id: string; name: string; description?: string }) => {
       const { data, error } = await supabase
         .from('categories')
-        .update(updates)
+        .update({ name, description })
         .eq('id', id)
         .select()
         .single();

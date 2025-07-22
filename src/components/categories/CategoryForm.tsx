@@ -56,10 +56,14 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
       if (isEditing && category) {
         await updateCategory.mutateAsync({
           id: category.id,
-          ...data,
+          name: data.name,
+          description: data.description,
         });
       } else {
-        await createCategory.mutateAsync(data);
+        await createCategory.mutateAsync({
+          name: data.name,
+          description: data.description,
+        });
       }
       form.reset();
       onClose();
