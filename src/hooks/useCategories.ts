@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -27,12 +28,75 @@ export const useCategories = () => {
     },
   });
 
-  // Note: Category creation can be added later if needed through admin interface
+  const createCategory = useMutation({
+    mutationFn: async (categoryData: { name: string; description?: string }) => {
+      const { data, error } = await supabase
+        .from('categories')
+        .insert(categoryData)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Category created successfully');
+    },
+    onError: (error) => {
+      console.error('Error creating category:', error);
+      toast.error('Failed to create category');
+    },
+  });
+
+  const updateCategory = useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; name: string; description?: string }) => {
+      const { data, error } = await supabase
+        .from('categories')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Category updated successfully');
+    },
+    onError: (error) => {
+      console.error('Error updating category:', error);
+      toast.error('Failed to update category');
+    },
+  });
+
+  const deleteCategory = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Category deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Error deleting category:', error);
+      toast.error('Failed to delete category');
+    },
+  });
 
   return {
     categories,
     isLoading,
     error,
     refetch,
+    createCategory,
+    updateCategory,
+    deleteCategory,
   };
 };

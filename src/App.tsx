@@ -1,85 +1,89 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/contexts/auth';
-import { GlobalSettingsProvider } from '@/contexts/GlobalSettingsContext';
-import { ContractNotificationWrapper } from '@/components/auth/ContractNotificationWrapper';
-import { AuthNavigationHandler } from '@/components/auth/AuthNavigationHandler';
-import { AppLayout } from '@/components/layout/AppLayout';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/auth";
+import { GlobalSettingsProvider } from "@/contexts/GlobalSettingsContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AuthNavigationHandler } from "@/components/auth/AuthNavigationHandler";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { ContractNotificationWrapper } from "@/components/auth/ContractNotificationWrapper";
+import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 
-// Pages
-import Index from '@/pages/Index';
-import AuthPage from '@/components/auth/AuthPage';
-import WorkOrders from '@/pages/WorkOrders';
-import Assets from '@/pages/Assets';
-import Maintenance from '@/pages/Maintenance';
-import Inventory from '@/pages/Inventory';
-import Reports from '@/pages/Reports';
-import UserManagement from '@/pages/UserManagement';
-import Departments from '@/pages/Departments';
-import DepartmentDetails from '@/pages/DepartmentDetails';
-import AssetPrefixManager from '@/pages/AssetPrefixManager';
-import JobTitles from '@/pages/JobTitles';
-import JobTitleDetails from '@/pages/JobTitleDetails';
-import Companies from '@/pages/Companies';
-import Addresses from '@/pages/Addresses';
-import AddressBook from '@/pages/AddressBook';
-import SystemAuditLog from '@/pages/SystemAuditLog';
-import AdminSettings from '@/pages/AdminSettings';
-import ServiceContracts from '@/pages/ServiceContracts';
-import NotFound from '@/pages/NotFound';
+import Index from "./pages/Index";
+import Assets from "./pages/Assets";
+import WorkOrders from "./pages/WorkOrders";
+import Maintenance from "./pages/Maintenance";
+import Inventory from "./pages/Inventory";
+import Reports from "./pages/Reports";
+import UserManagement from "./pages/UserManagement";
+import Departments from "./pages/Departments";
+import DepartmentDetails from "./pages/DepartmentDetails";
+import JobTitles from "./pages/JobTitles";
+import JobTitleDetails from "./pages/JobTitleDetails";
+import Companies from "./pages/Companies";
+import Addresses from "./pages/Addresses";
+import AddressBook from "./pages/AddressBook";
+import ServiceContracts from "./pages/ServiceContracts";
+import AssetPrefixManager from "./pages/AssetPrefixManager";
+import CategoryManager from "./pages/CategoryManager";
+import SystemAuditLog from "./pages/SystemAuditLog";
+import AdminSettings from "./pages/AdminSettings";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <GlobalSettingsProvider>
-            <AuthNavigationHandler />
-            <ContractNotificationWrapper>
-            <Routes>
-              <Route path="/auth" element={<AuthPage />} />
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout>
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/work-orders" element={<WorkOrders />} />
-                        <Route path="/assets" element={<Assets />} />
-                        <Route path="/maintenance" element={<Maintenance />} />
-                        <Route path="/inventory" element={<Inventory />} />
-                        <Route path="/reports" element={<Reports />} />
-                        <Route path="/users" element={<UserManagement />} />
-                        <Route path="/departments" element={<Departments />} />
-                        <Route path="/departments/:id" element={<DepartmentDetails />} />
-                        <Route path="/asset-prefixes" element={<AssetPrefixManager />} />
-                        <Route path="/job-titles" element={<JobTitles />} />
-                        <Route path="/job-titles/:id" element={<JobTitleDetails />} />
-                        <Route path="/companies" element={<Companies />} />
-                        <Route path="/addresses" element={<Addresses />} />
-                        <Route path="/address-book" element={<AddressBook />} />
-                        <Route path="/admin/service-contracts" element={<ServiceContracts />} />
-                        <Route path="/system-audit-log" element={<SystemAuditLog />} />
-                        <Route path="/settings" element={<AdminSettings />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-            <Toaster />
-          </ContractNotificationWrapper>
-          </GlobalSettingsProvider>
-        </AuthProvider>
-      </Router>
+      <TooltipProvider>
+        <ErrorBoundary>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <GlobalSettingsProvider>
+                <AuthNavigationHandler />
+                <ContractNotificationWrapper>
+                  <Routes>
+                    <Route path="/auth" element={<div>Auth page placeholder</div>} />
+                    <Route path="/*" element={
+                      <ProtectedRoute>
+                        <AppLayout>
+                          <Routes>
+                            <Route path="/" element={<Index />} />
+                            <Route path="/assets" element={<Assets />} />
+                            <Route path="/work-orders" element={<WorkOrders />} />
+                            <Route path="/maintenance" element={<Maintenance />} />
+                            <Route path="/inventory" element={<Inventory />} />
+                            <Route path="/address-book" element={<AddressBook />} />
+                            <Route path="/reports" element={<Reports />} />
+                            <Route path="/users" element={<UserManagement />} />
+                            <Route path="/departments" element={<Departments />} />
+                            <Route path="/departments/:id" element={<DepartmentDetails />} />
+                            <Route path="/job-titles" element={<JobTitles />} />
+                            <Route path="/job-titles/:id" element={<JobTitleDetails />} />
+                            <Route path="/companies" element={<Companies />} />
+                            <Route path="/addresses" element={<Addresses />} />
+                            <Route path="/admin/service-contracts" element={<ServiceContracts />} />
+                            <Route path="/categories" element={<CategoryManager />} />
+                            <Route path="/asset-prefixes" element={<AssetPrefixManager />} />
+                            <Route path="/system-audit-log" element={<SystemAuditLog />} />
+                            <Route path="/settings" element={<AdminSettings />} />
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </AppLayout>
+                      </ProtectedRoute>
+                    } />
+                  </Routes>
+                </ContractNotificationWrapper>
+              </GlobalSettingsProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </ErrorBoundary>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

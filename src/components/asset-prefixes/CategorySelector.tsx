@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/select';
 import { Control } from 'react-hook-form';
 import { useCategories } from '@/hooks/useCategories';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface CategorySelectorProps {
   control: Control<any>;
@@ -61,18 +62,31 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  <div>
-                    <div className="font-medium">{category.name}</div>
-                    {category.description && (
-                      <div className="text-sm text-muted-foreground">
-                        {category.description}
-                      </div>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
+              {categories.length === 0 ? (
+                <div className="p-2 text-center text-muted-foreground">
+                  <p className="text-sm mb-2">No categories available</p>
+                  <Link 
+                    to="/categories" 
+                    className="inline-flex items-center space-x-1 text-xs text-primary hover:underline"
+                  >
+                    <span>Manage categories</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </div>
+              ) : (
+                categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    <div>
+                      <div className="font-medium">{category.name}</div>
+                      {category.description && (
+                        <div className="text-sm text-muted-foreground">
+                          {category.description}
+                        </div>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
           <FormMessage />
