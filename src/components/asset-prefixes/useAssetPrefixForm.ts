@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -43,6 +43,8 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
   const [isLoading, setIsLoading] = useState(false);
   const isEditing = !!prefix;
 
+  console.log('useAssetPrefixForm initialized with:', { isEditing, prefix });
+
   // Check if the current prefix is in use by existing assets
   const { data: isPrefixInUse = false } = useQuery({
     queryKey: ['prefixInUse', prefix?.id, userProfile?.tenant_id],
@@ -69,12 +71,32 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
   const form = useForm<AssetPrefixFormData>({
     resolver: zodResolver(assetPrefixSchema),
     defaultValues: {
-      prefix_letter: prefix?.prefix_letter || '',
-      number_code: prefix?.number_code ? parseInt(prefix.number_code).toString() : '',
-      description: prefix?.description || '',
-      category_id: prefix?.category_id || null,
+      prefix_letter: '',
+      number_code: '',
+      description: '',
+      category_id: null,
     },
   });
+
+  // Reset form when prefix changes
+  useEffect(() => {
+    console.log('Form reset triggered, prefix:', prefix);
+    if (prefix) {
+      form.reset({
+        prefix_letter: prefix.prefix_letter || '',
+        number_code: prefix.number_code ? parseInt(prefix.number_code).toString() : '',
+        description: prefix.description || '',
+        category_id: prefix.category_id || null,
+      });
+    } else {
+      form.reset({
+        prefix_letter: '',
+        number_code: '',
+        description: '',
+        category_id: null,
+      });
+    }
+  }, [prefix, form]);
 
   // Watch form values for duplicate checking
   const watchedValues = form.watch();
@@ -99,6 +121,8 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
   };
 
   const onSubmit = async (data: AssetPrefixFormData) => {
+    console.log('Form submission started with data:', data);
+    
     if (!userProfile?.tenant_id) {
       toast({
         title: 'Error',
@@ -110,6 +134,7 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
 
     // Check for duplicates before submission
     if (!validateNoDuplicate()) {
+      console.log('Duplicate validation failed');
       return;
     }
 
@@ -117,6 +142,7 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
 
     try {
       if (isEditing && prefix) {
+        console.log('Updating existing prefix:', prefix.id);
         // Update existing prefix
         const { error } = await supabase
           .from('asset_tag_prefixes')
@@ -128,13 +154,18 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
           })
           .eq('id', prefix.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error);
+          throw error;
+        }
 
+        console.log('Update successful');
         toast({
           title: 'Success',
           description: 'Asset tag prefix updated successfully',
         });
       } else {
+        console.log('Creating new prefix');
         // Create new prefix
         const { error } = await supabase
           .from('asset_tag_prefixes')
@@ -146,8 +177,12 @@ export const useAssetPrefixForm = ({ prefix, onSuccess }: UseAssetPrefixFormProp
             category_id: data.category_id || null,
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Create error:', error);
+          throw error;
+        }
 
+        console.log('Create successful');
         toast({
           title: 'Success',
           description: 'Asset tag prefix created successfully',

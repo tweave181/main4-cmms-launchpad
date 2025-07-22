@@ -3,6 +3,7 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -32,13 +33,24 @@ export const AssetPrefixForm: React.FC<AssetPrefixFormProps> = ({
     onSuccess 
   });
 
+  const handleClose = () => {
+    form.reset();
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Edit Asset Tag Prefix' : 'Create Asset Tag Prefix'}
           </DialogTitle>
+          <DialogDescription>
+            {isEditing 
+              ? 'Modify the asset tag prefix details. Note that prefixes in use cannot have their letter or number changed.'
+              : 'Create a new asset tag prefix to organize your assets. Each prefix can support up to 999 assets.'
+            }
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -51,7 +63,7 @@ export const AssetPrefixForm: React.FC<AssetPrefixFormProps> = ({
             />
 
             <div className="flex justify-end space-x-4 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading || isDuplicate}>

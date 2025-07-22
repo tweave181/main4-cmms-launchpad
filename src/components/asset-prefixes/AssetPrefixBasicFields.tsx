@@ -55,6 +55,11 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
     }
   };
 
+  // Get current form values for preview
+  const formValues = form.watch();
+  const previewPrefix = formValues.prefix_letter || 'X';
+  const previewNumber = (parseInt(formValues.number_code || '0') || 0).toString().padStart(3, '0');
+
   return (
     <TooltipProvider>
       <div className="flex gap-3">
@@ -207,8 +212,7 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
           </Tooltip>
         </div>
         <p className="text-lg font-mono font-bold text-blue-900 mt-1">
-          {control._formValues.prefix_letter || 'X'}
-          {(parseInt(control._formValues.number_code || '0') || 0).toString().padStart(3, '0')}/001
+          {previewPrefix}{previewNumber}/001
         </p>
         <p className="text-xs text-blue-600 mt-1">
           Example asset tag format

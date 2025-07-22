@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Edit, Trash2, CheckCircle, AlertTriangle, Archive } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 type AssetTagPrefix = Database['public']['Tables']['asset_tag_prefixes']['Row'];
@@ -38,14 +39,45 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
   onEditPrefix,
   onDeletePrefix,
 }) => {
+  const handleEdit = (prefix: AssetPrefixWithCount) => {
+    console.log('Edit button clicked for prefix:', prefix);
+    try {
+      onEditPrefix(prefix);
+    } catch (error) {
+      console.error('Error opening edit form:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to open edit form. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleDelete = async (prefix: AssetPrefixWithCount) => {
     if (prefix.asset_count > 0) {
-      alert(`Cannot delete prefix "${prefix.prefix_letter}${parseInt(prefix.number_code)}" - it is currently used by ${prefix.asset_count} asset(s).`);
+      toast({
+        title: 'Cannot Delete Prefix',
+        description: `This prefix is currently used by ${prefix.asset_count} asset(s). Please reassign or remove these assets first.`,
+        variant: 'destructive',
+      });
       return;
     }
 
     if (window.confirm(`Are you sure you want to delete the prefix "${prefix.prefix_letter}${parseInt(prefix.number_code)}"?`)) {
-      await onDeletePrefix(prefix.id);
+      try {
+        await onDeletePrefix(prefix.id);
+        toast({
+          title: 'Success',
+          description: 'Asset tag prefix deleted successfully',
+        });
+      } catch (error) {
+        console.error('Error deleting prefix:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete asset tag prefix. Please try again.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -156,8 +188,9 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onEditPrefix(prefix)}
+                    onClick={() => handleEdit(prefix)}
                     disabled={prefix.is_archived}
+                    title={prefix.is_archived ? 'Cannot edit archived prefix' : 'Edit prefix'}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -167,6 +200,7 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
                     onClick={() => handleDelete(prefix)}
                     className="text-red-600 hover:text-red-700"
                     disabled={prefix.asset_count > 0}
+                    title={prefix.asset_count > 0 ? 'Cannot delete prefix in use' : 'Delete prefix'}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

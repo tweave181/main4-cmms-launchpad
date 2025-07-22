@@ -7,6 +7,7 @@ import { AssetPrefixList } from '@/components/asset-prefixes/AssetPrefixList';
 import { AssetPrefixForm } from '@/components/asset-prefixes/AssetPrefixForm';
 import { AssetPrefixAuditLog } from '@/components/asset-prefixes/AssetPrefixAuditLog';
 import { useAssetPrefixes } from '@/hooks/useAssetPrefixes';
+import { toast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 type AssetTagPrefix = Database['public']['Tables']['asset_tag_prefixes']['Row'];
@@ -18,19 +19,52 @@ const AssetPrefixManager: React.FC = () => {
   const { prefixes, isLoading, refetch, deletePrefix } = useAssetPrefixes();
 
   const handleCreatePrefix = () => {
+    console.log('Create new prefix clicked');
     setEditingPrefix(null);
     setIsFormOpen(true);
   };
 
   const handleEditPrefix = (prefix: AssetTagPrefix) => {
-    setEditingPrefix(prefix);
-    setIsFormOpen(true);
+    console.log('Edit prefix called with:', prefix);
+    try {
+      setEditingPrefix(prefix);
+      setIsFormOpen(true);
+      console.log('Edit form should now be open');
+    } catch (error) {
+      console.error('Error setting up edit form:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to open edit form. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleFormSuccess = () => {
+  const handleFormSuccess = async () => {
+    console.log('Form success callback triggered');
     setIsFormOpen(false);
     setEditingPrefix(null);
-    refetch();
+    
+    try {
+      await refetch();
+      toast({
+        title: 'Success',
+        description: editingPrefix ? 'Asset tag prefix updated successfully' : 'Asset tag prefix created successfully',
+      });
+    } catch (error) {
+      console.error('Error refreshing data after form success:', error);
+      toast({
+        title: 'Warning',
+        description: 'Changes saved but failed to refresh the list. Please refresh the page.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleFormClose = () => {
+    console.log('Form close callback triggered');
+    setIsFormOpen(false);
+    setEditingPrefix(null);
   };
 
   if (isLoading) {
@@ -77,17 +111,12 @@ const AssetPrefixManager: React.FC = () => {
         </div>
       </div>
 
-      {isFormOpen && (
-        <AssetPrefixForm
-          prefix={editingPrefix}
-          isOpen={isFormOpen}
-          onClose={() => {
-            setIsFormOpen(false);
-            setEditingPrefix(null);
-          }}
-          onSuccess={handleFormSuccess}
-        />
-      )}
+      <AssetPrefixForm
+        prefix={editingPrefix}
+        isOpen={isFormOpen}
+        onClose={handleFormClose}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 };
