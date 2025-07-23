@@ -8,11 +8,20 @@ import { AssetDetailHeader } from './AssetDetailHeader';
 import { AssetWorkOrders } from './AssetWorkOrders';
 import { AssetBasicInfo } from './AssetBasicInfo';
 import { AssetFinancialInfo } from './AssetFinancialInfo';
+import { AssetServiceContractInfo } from './AssetServiceContractInfo';
 import { AssetDescriptionSection } from './AssetDescriptionSection';
 import { AssetRecordInfo } from './AssetRecordInfo';
 import type { Database } from '@/integrations/supabase/types';
 
-type Asset = Database['public']['Tables']['assets']['Row'];
+type Asset = Database['public']['Tables']['assets']['Row'] & {
+  service_contract?: {
+    id: string;
+    contract_title: string;
+    vendor_name: string;
+    status: string;
+    end_date: string;
+  } | null;
+};
 
 interface AssetDetailProps {
   asset: Asset;
@@ -34,6 +43,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
 
         <div className="space-y-6">
           <AssetBasicInfo asset={asset} />
+          <AssetServiceContractInfo asset={asset} />
           <AssetFinancialInfo asset={asset} />
           <AssetDescriptionSection asset={asset} />
           <AssetRecordInfo asset={asset} />

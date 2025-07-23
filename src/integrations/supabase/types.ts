@@ -266,6 +266,7 @@ export type Database = {
           purchase_cost: number | null
           purchase_date: string | null
           serial_number: string | null
+          service_contract_id: string | null
           status: Database["public"]["Enums"]["asset_status"]
           tenant_id: string
           updated_at: string
@@ -291,6 +292,7 @@ export type Database = {
           purchase_cost?: number | null
           purchase_date?: string | null
           serial_number?: string | null
+          service_contract_id?: string | null
           status?: Database["public"]["Enums"]["asset_status"]
           tenant_id: string
           updated_at?: string
@@ -316,6 +318,7 @@ export type Database = {
           purchase_cost?: number | null
           purchase_date?: string | null
           serial_number?: string | null
+          service_contract_id?: string | null
           status?: Database["public"]["Enums"]["asset_status"]
           tenant_id?: string
           updated_at?: string
@@ -342,6 +345,13 @@ export type Database = {
             columns: ["manufacturer_company_id"]
             isOneToOne: false
             referencedRelation: "company_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_service_contract_id_fkey"
+            columns: ["service_contract_id"]
+            isOneToOne: false
+            referencedRelation: "service_contracts"
             referencedColumns: ["id"]
           },
           {

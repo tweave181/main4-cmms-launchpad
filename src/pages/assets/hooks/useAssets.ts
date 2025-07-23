@@ -20,7 +20,8 @@ export const useAssets = () => {
             *,
             department:departments(name),
             location:locations(name, location_code),
-            manufacturer_company:company_details(company_name)
+            manufacturer_company:company_details(company_name),
+            service_contract:service_contracts(id, contract_title, vendor_name, status, end_date)
           `)
           .order('created_at', { ascending: false });
 
