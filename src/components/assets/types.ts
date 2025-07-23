@@ -20,6 +20,7 @@ export interface Asset {
   status: 'active' | 'inactive' | 'maintenance' | 'disposed';
   priority: 'low' | 'medium' | 'high' | 'critical';
   notes?: string;
+  service_contract_id?: string;
   created_at: string;
   updated_at: string;
   created_by?: string;
@@ -43,6 +44,7 @@ export interface AssetFormData {
   status: 'active' | 'inactive' | 'maintenance' | 'disposed';
   priority: 'low' | 'medium' | 'high' | 'critical';
   notes?: string;
+  service_contract_id?: string;
 }
 
 export interface AssetInsert {
@@ -62,6 +64,7 @@ export interface AssetInsert {
   status: 'active' | 'inactive' | 'maintenance' | 'disposed';
   priority: 'low' | 'medium' | 'high' | 'critical';
   notes?: string | null;
+  service_contract_id?: string | null;
   tenant_id: string;
   created_by?: string;
   updated_by?: string;
@@ -84,4 +87,5 @@ export const assetSchema = z.object({
   status: z.enum(['active', 'inactive', 'maintenance', 'disposed']),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   notes: z.string().optional(),
+  service_contract_id: z.string().optional(),
 });

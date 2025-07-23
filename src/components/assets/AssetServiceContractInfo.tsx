@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, ExternalLink } from 'lucide-react';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
+import { ContractDetailModal } from '@/components/contracts/ContractDetailModal';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'] & {
@@ -18,14 +20,13 @@ type Asset = Database['public']['Tables']['assets']['Row'] & {
 
 interface AssetServiceContractInfoProps {
   asset: Asset;
-  onViewContract?: (contractId: string) => void;
 }
 
 export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> = ({
   asset,
-  onViewContract,
 }) => {
   const { formatDate } = useGlobalSettings();
+  const [isContractModalOpen, setIsContractModalOpen] = React.useState(false);
 
   if (!asset.service_contract) {
     return null;
@@ -42,53 +43,59 @@ export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> =
   };
 
   return (
-    <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <FileText className="h-5 w-5 text-primary" />
-          <span>Connected Service Contract</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div>
-              <p className="text-sm font-medium">Contract Title</p>
-              <p className="text-sm text-gray-600">{asset.service_contract.contract_title}</p>
+    <>
+      <Card className="rounded-2xl">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <FileText className="h-5 w-5 text-primary" />
+            <span>Connected Service Contract</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm font-medium">Contract Title</p>
+                <p className="text-sm text-gray-600">{asset.service_contract.contract_title}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Vendor</p>
+                <p className="text-sm text-gray-600">{asset.service_contract.vendor_name}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium">Vendor</p>
-              <p className="text-sm text-gray-600">{asset.service_contract.vendor_name}</p>
+            <div className="text-right space-y-2">
+              <div>
+                <p className="text-sm font-medium">Status</p>
+                <Badge className={getStatusColor(asset.service_contract.status)} variant="secondary">
+                  {asset.service_contract.status}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm font-medium">End Date</p>
+                <p className="text-sm text-gray-600">{formatDate(asset.service_contract.end_date)}</p>
+              </div>
             </div>
           </div>
-          <div className="text-right space-y-2">
-            <div>
-              <p className="text-sm font-medium">Status</p>
-              <Badge className={getStatusColor(asset.service_contract.status)} variant="secondary">
-                {asset.service_contract.status}
-              </Badge>
-            </div>
-            <div>
-              <p className="text-sm font-medium">End Date</p>
-              <p className="text-sm text-gray-600">{formatDate(asset.service_contract.end_date)}</p>
-            </div>
-          </div>
-        </div>
 
-        {onViewContract && (
           <div className="pt-2 border-t">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onViewContract(asset.service_contract!.id)}
+              onClick={() => setIsContractModalOpen(true)}
               className="w-full"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               View Full Contract Details
             </Button>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <ContractDetailModal
+        isOpen={isContractModalOpen}
+        onClose={() => setIsContractModalOpen(false)}
+        contract={asset.service_contract as any}
+      />
+    </>
   );
 };

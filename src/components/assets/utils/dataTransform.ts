@@ -24,6 +24,7 @@ export const transformFormDataToAsset = (
     status: data.status || 'active',
     priority: data.priority || 'medium',
     notes: data.notes?.trim() || null,
+    service_contract_id: data.service_contract_id?.trim() || null,
     tenant_id: userProfile.tenant_id,
   };
 

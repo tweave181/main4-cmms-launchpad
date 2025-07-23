@@ -26,6 +26,7 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
       serial_number: asset?.serial_number || '',
       model: asset?.model || '',
       manufacturer: asset?.manufacturer || '',
+      manufacturer_company_id: asset?.manufacturer_company_id || '',
       category: asset?.category || '',
       location_id: asset?.location_id || '',
       department_id: asset?.department_id || '',
@@ -35,6 +36,7 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
       status: asset?.status || 'active',
       priority: asset?.priority || 'medium',
       notes: asset?.notes || '',
+      service_contract_id: asset?.service_contract_id || '',
     },
   });
 

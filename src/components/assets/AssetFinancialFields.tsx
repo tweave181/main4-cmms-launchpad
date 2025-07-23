@@ -2,13 +2,14 @@
 import React from 'react';
 import { Control } from 'react-hook-form';
 import {
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { ServiceContractSelector } from './fields/ServiceContractSelector';
 import type { AssetFormData } from './types';
 
 interface AssetFinancialFieldsProps {
@@ -17,7 +18,7 @@ interface AssetFinancialFieldsProps {
 
 export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({ control }) => {
   return (
-    <>
+    <div className="space-y-4">
       <FormField
         control={control}
         name="purchase_date"
@@ -42,7 +43,7 @@ export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({ cont
               <Input
                 type="number"
                 step="0.01"
-                placeholder="Enter purchase cost"
+                placeholder="0.00"
                 {...field}
               />
             </FormControl>
@@ -64,6 +65,8 @@ export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({ cont
           </FormItem>
         )}
       />
-    </>
+
+      <ServiceContractSelector control={control} />
+    </div>
   );
 };
