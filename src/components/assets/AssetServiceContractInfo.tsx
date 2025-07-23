@@ -3,10 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, ExternalLink, Plus } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { FileText, ExternalLink, Plus, Unlink } from 'lucide-react';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { ContractDetailModal } from '@/components/contracts/ContractDetailModal';
 import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'] & {
@@ -21,14 +24,51 @@ type Asset = Database['public']['Tables']['assets']['Row'] & {
 
 interface AssetServiceContractInfoProps {
   asset: Asset;
+  onUpdate?: () => void;
 }
 
 export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> = ({
   asset,
+  onUpdate,
 }) => {
   const { formatDate } = useGlobalSettings();
   const [isContractModalOpen, setIsContractModalOpen] = React.useState(false);
   const [isAddContractModalOpen, setIsAddContractModalOpen] = React.useState(false);
+  const [isUnlinking, setIsUnlinking] = React.useState(false);
+
+  const handleUnlinkContract = async () => {
+    try {
+      setIsUnlinking(true);
+      const { error } = await supabase
+        .from('assets')
+        .update({ service_contract_id: null })
+        .eq('id', asset.id);
+
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Success",
+        description: "Service contract unlinked successfully",
+      });
+      
+      // Call onUpdate to refresh the asset data
+      onUpdate?.();
+      
+      // Optionally open the Add Service Contract modal
+      setIsAddContractModalOpen(true);
+    } catch (error) {
+      console.error('Error unlinking contract:', error);
+      toast({
+        title: "Error",
+        description: "Failed to unlink service contract",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUnlinking(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -77,7 +117,7 @@ export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> =
                 </div>
               </div>
 
-              <div className="pt-2 border-t">
+              <div className="pt-2 border-t space-y-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -87,6 +127,41 @@ export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> =
                   <ExternalLink className="w-4 h-4 mr-2" />
                   View Full Contract Details
                 </Button>
+                
+                <div className="flex justify-end">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-destructive"
+                        disabled={isUnlinking}
+                      >
+                        <Unlink className="w-4 h-4 mr-1" />
+                        Unlink Contract
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Unlink Service Contract</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to unlink this service contract from the asset? 
+                          This action will remove the association but will not delete the contract itself.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleUnlinkContract}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={isUnlinking}
+                        >
+                          {isUnlinking ? "Unlinking..." : "Unlink Contract"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             </div>
           ) : (

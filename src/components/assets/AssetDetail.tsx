@@ -28,6 +28,7 @@ interface AssetDetailProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: () => void;
+  onUpdate?: () => void;
 }
 
 export const AssetDetail: React.FC<AssetDetailProps> = ({
@@ -35,6 +36,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   isOpen,
   onClose,
   onEdit,
+  onUpdate,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -45,7 +47,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           <AssetBasicInfo asset={asset} />
           <AssetDescriptionSection asset={asset} />
           <AssetFinancialInfo asset={asset} />
-          <AssetServiceContractInfo asset={asset} />
+          <AssetServiceContractInfo asset={asset} onUpdate={onUpdate} />
           <AssetRecordInfo asset={asset} />
           <AssetWorkOrders assetId={asset.id} />
         </div>
