@@ -41,19 +41,20 @@ interface ServiceContractModalProps {
   isOpen: boolean;
   onClose: () => void;
   contract?: any; // For editing existing contracts
+  assetId?: string; // For linking to a specific asset
 }
 
 export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
   isOpen,
   onClose,
-  contract
+  contract,
+  assetId
 }) => {
   const { userProfile } = useAuth();
   const { currency } = useGlobalSettings();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch companies for dropdown
   const { data: companies = [], isLoading: companiesLoading } = useQuery({
     queryKey: ['companies', userProfile?.tenant_id],
     queryFn: async () => {
@@ -95,7 +96,6 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
   const emailReminderEnabled = watch('email_reminder_enabled');
   const selectedVendorId = watch('vendor_company_id');
 
-  // Get selected company details for preview (moved after selectedVendorId declaration)
   const selectedCompany = companies.find(c => c.id === selectedVendorId);
 
   const [companySearchOpen, setCompanySearchOpen] = React.useState(false);
@@ -106,7 +106,6 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
         throw new Error('No tenant found');
       }
 
-      // Find the selected company to get the vendor name
       const selectedCompany = companies.find(c => c.id === data.vendor_company_id);
       if (!selectedCompany) {
         throw new Error('Selected vendor not found');
@@ -114,7 +113,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
 
       const contractData = {
         contract_title: data.contract_title,
-        vendor_name: selectedCompany.company_name, // Keep for backward compatibility
+        vendor_name: selectedCompany.company_name,
         vendor_company_id: data.vendor_company_id,
         description: data.description || null,
         start_date: data.start_date.toISOString().split('T')[0],
@@ -134,13 +133,29 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
         .single();
 
       if (error) throw error;
+
+      // If assetId is provided, link the asset to this contract
+      if (assetId) {
+        const { error: assetError } = await supabase
+          .from('assets')
+          .update({ service_contract_id: result.id })
+          .eq('id', assetId);
+
+        if (assetError) throw assetError;
+      }
+
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-contracts'] });
+      if (assetId) {
+        queryClient.invalidateQueries({ queryKey: ['assets'] });
+      }
       toast({
         title: 'Success',
-        description: 'Service contract created successfully',
+        description: assetId 
+          ? 'Service contract created and linked to asset successfully'
+          : 'Service contract created successfully',
       });
       reset();
       onClose();
@@ -155,7 +170,6 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
   });
 
   const onSubmit = (data: ContractFormData) => {
-    // Validate that end date is after start date
     if (data.end_date <= data.start_date) {
       toast({
         title: 'Validation Error',
@@ -174,6 +188,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
         <DialogHeader>
           <DialogTitle>
             {contract ? 'Edit Service Contract' : 'Add New Service Contract'}
+            {assetId && ' (Link to Asset)'}
           </DialogTitle>
         </DialogHeader>
 

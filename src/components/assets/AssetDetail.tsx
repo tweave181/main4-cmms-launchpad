@@ -43,9 +43,9 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
 
         <div className="space-y-6">
           <AssetBasicInfo asset={asset} />
-          <AssetServiceContractInfo asset={asset} />
-          <AssetFinancialInfo asset={asset} />
           <AssetDescriptionSection asset={asset} />
+          <AssetFinancialInfo asset={asset} />
+          <AssetServiceContractInfo asset={asset} />
           <AssetRecordInfo asset={asset} />
           <AssetWorkOrders assetId={asset.id} />
         </div>

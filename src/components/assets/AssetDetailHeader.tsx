@@ -42,7 +42,7 @@ export const AssetDetailHeader: React.FC<AssetDetailHeaderProps> = ({
       <DialogHeader>
         <div className="flex items-center justify-between">
           <DialogTitle className="text-2xl font-semibold">
-            {asset.name}
+            Asset Record For: {asset.name}
           </DialogTitle>
           <Button onClick={onEdit} className="rounded-2xl">
             <Edit2 className="w-4 h-4 mr-2" />
