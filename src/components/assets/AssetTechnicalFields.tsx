@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { SafeDropdownField } from './SafeDropdownField';
-import { CategorySelector } from '../asset-prefixes/CategorySelector';
 import { AssetStatusField } from './fields/AssetStatusField';
 import { AssetPriorityField } from './fields/AssetPriorityField';
 import type { AssetFormData } from './types';
@@ -78,8 +77,6 @@ export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({
         isLoading={companiesData.isLoading}
         error={companiesData.error}
       />
-
-      <CategorySelector control={control} name="category" />
 
       <AssetStatusField control={control} />
 

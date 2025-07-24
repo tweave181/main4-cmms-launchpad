@@ -114,8 +114,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 />
                 <AssetFinancialFields 
                   control={form.control}
-                  departmentsData={dropdownData.departments}
-                  locationsData={dropdownData.locations}
                   serviceContractsData={dropdownData.serviceContracts}
                 />
               </div>

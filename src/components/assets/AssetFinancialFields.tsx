@@ -15,39 +15,15 @@ import type { DropdownState } from './utils/dropdownHelpers';
 
 interface AssetFinancialFieldsProps {
   control: Control<AssetFormData>;
-  departmentsData: DropdownState;
-  locationsData: DropdownState;
   serviceContractsData: DropdownState;
 }
 
 export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({ 
   control, 
-  departmentsData, 
-  locationsData, 
   serviceContractsData 
 }) => {
   return (
     <div className="space-y-4">
-      <SafeDropdownField
-        control={control}
-        name="location_id"
-        label="Location"
-        placeholder="Select location"
-        options={locationsData.data}
-        isLoading={locationsData.isLoading}
-        error={locationsData.error}
-      />
-
-      <SafeDropdownField
-        control={control}
-        name="department_id"
-        label="Department"
-        placeholder="Select department"
-        options={departmentsData.data}
-        isLoading={departmentsData.isLoading}
-        error={departmentsData.error}
-      />
-
       <FormField
         control={control}
         name="purchase_date"
