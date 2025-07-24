@@ -1,11 +1,11 @@
 
 import React from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+} from '@/components/ui/form-dialog';
 import { InventoryPartForm } from './InventoryPartForm';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -25,17 +25,17 @@ export const CreatePartModal: React.FC<CreatePartModalProps> = ({
   isCreating,
 }) => {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Add New Part</DialogTitle>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={() => {}}>
+      <FormDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <FormDialogHeader>
+          <FormDialogTitle>Add New Part</FormDialogTitle>
+        </FormDialogHeader>
         <InventoryPartForm
           onSubmit={onCreatePart}
           onCancel={() => onOpenChange(false)}
           isSubmitting={isCreating}
         />
-      </DialogContent>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   );
 };

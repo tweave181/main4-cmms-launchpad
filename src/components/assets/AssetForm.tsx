@@ -1,17 +1,19 @@
 
 import React from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+} from '@/components/ui/form-dialog';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useAssetForm } from './useAssetForm';
+import { useFormDialog } from '@/hooks/useFormDialog';
 import { AssetFormErrorBoundary } from './AssetFormErrorBoundary';
 import { AssetBasicFields } from './AssetBasicFields';
 import { AssetTechnicalFields } from './AssetTechnicalFields';
@@ -36,6 +38,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   const { userProfile, loading } = useAuth();
   const { form, onSubmit, isEditing } = useAssetForm({ asset, onSuccess });
   const dropdownData = useAssetDropdownData();
+  const { showConfirmation, handleCancel, handleConfirmCancel, handleGoBack } = useFormDialog({
+    onClose,
+  });
 
   const handleRetry = () => {
     window.location.reload();
@@ -44,11 +49,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   // Show loading state while profile is being fetched
   if (loading) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Loading Profile</DialogTitle>
-          </DialogHeader>
+      <FormDialog open={isOpen} onOpenChange={() => {}}>
+        <FormDialogContent className="max-w-md">
+          <FormDialogHeader>
+            <FormDialogTitle>Loading Profile</FormDialogTitle>
+          </FormDialogHeader>
           
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -59,19 +64,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({
               Close
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </FormDialogContent>
+      </FormDialog>
     );
   }
 
   // Show warning if user profile is not available after loading
   if (!userProfile?.tenant_id) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Profile Error</DialogTitle>
-          </DialogHeader>
+      <FormDialog open={isOpen} onOpenChange={() => {}}>
+        <FormDialogContent className="max-w-md">
+          <FormDialogHeader>
+            <FormDialogTitle>Profile Error</FormDialogTitle>
+          </FormDialogHeader>
           
           <Alert>
             <AlertCircle className="h-4 w-4" />
@@ -89,49 +94,61 @@ export const AssetForm: React.FC<AssetFormProps> = ({
               Refresh Page
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </FormDialogContent>
+      </FormDialog>
     );
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? 'Edit Asset' : 'Create New Asset'}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <FormDialog open={isOpen} onOpenChange={() => {}}>
+        <FormDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <FormDialogHeader>
+            <FormDialogTitle>
+              {isEditing ? 'Edit Asset' : 'Create New Asset'}
+            </FormDialogTitle>
+          </FormDialogHeader>
 
-        <AssetFormErrorBoundary onRetry={handleRetry}>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <AssetBasicFields control={form.control} />
-                <AssetTechnicalFields 
-                  control={form.control} 
-                  companiesData={dropdownData.companies}
-                />
-                <AssetFinancialFields 
-                  control={form.control}
-                  serviceContractsData={dropdownData.serviceContracts}
-                />
-              </div>
+          <AssetFormErrorBoundary onRetry={handleRetry}>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <AssetBasicFields control={form.control} />
+                  <AssetTechnicalFields 
+                    control={form.control} 
+                    companiesData={dropdownData.companies}
+                  />
+                  <AssetFinancialFields 
+                    control={form.control}
+                    serviceContractsData={dropdownData.serviceContracts}
+                  />
+                </div>
 
-              <AssetDescriptionFields control={form.control} />
+                <AssetDescriptionFields control={form.control} />
 
-              <div className="flex justify-end space-x-4 pt-4">
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {isEditing ? 'Update Asset' : 'Create Asset'}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </AssetFormErrorBoundary>
-      </DialogContent>
-    </Dialog>
+                <div className="flex justify-end space-x-4 pt-4">
+                  <Button type="button" variant="outline" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {isEditing ? 'Update Asset' : 'Create Asset'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </AssetFormErrorBoundary>
+        </FormDialogContent>
+      </FormDialog>
+
+      <ConfirmationDialog
+        isOpen={showConfirmation}
+        onClose={handleGoBack}
+        onConfirm={handleConfirmCancel}
+        title="Are you sure you want to cancel?"
+        description="All unsaved changes will be lost."
+        confirmText="Yes, Cancel"
+        cancelText="Go Back"
+      />
+    </>
   );
 };
