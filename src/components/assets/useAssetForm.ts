@@ -60,20 +60,26 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
         return;
       }
 
-      // Transform form data to asset data
+      // Transform form data to asset data with defensive programming
       const assetData = transformFormDataToAsset(data, userProfile!, isEditing);
       console.log('Constructed asset data:', assetData);
 
-      // Perform database operation
-      if (isEditing) {
-        await updateAsset(asset!.id, assetData);
-      } else {
-        await createAsset(assetData);
+      // Perform database operation with enhanced error handling
+      try {
+        if (isEditing) {
+          await updateAsset(asset!.id, assetData);
+        } else {
+          await createAsset(assetData);
+        }
+        
+        console.log('Asset operation completed successfully');
+        onSuccess();
+      } catch (dbError: any) {
+        console.error('Database operation failed:', dbError);
+        throw dbError;
       }
-
-      console.log('Asset operation completed successfully');
-      onSuccess();
     } catch (error: any) {
+      console.error('Asset form submission failed:', error);
       logError(error, data, userProfile);
       showErrorToast(error);
     }

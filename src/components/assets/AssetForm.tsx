@@ -12,10 +12,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useAssetForm } from './useAssetForm';
+import { AssetFormErrorBoundary } from './AssetFormErrorBoundary';
 import { AssetBasicFields } from './AssetBasicFields';
 import { AssetTechnicalFields } from './AssetTechnicalFields';
 import { AssetFinancialFields } from './AssetFinancialFields';
 import { AssetDescriptionFields } from './AssetDescriptionFields';
+import { useAssetDropdownData } from './hooks/useAssetDropdownData';
 import type { Asset } from './types';
 
 interface AssetFormProps {
@@ -33,6 +35,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 }) => {
   const { userProfile, loading } = useAuth();
   const { form, onSubmit, isEditing } = useAssetForm({ asset, onSuccess });
+  const dropdownData = useAssetDropdownData();
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
 
   // Show loading state while profile is being fetched
   if (loading) {
@@ -96,26 +103,36 @@ export const AssetForm: React.FC<AssetFormProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AssetBasicFields control={form.control} />
-              <AssetTechnicalFields control={form.control} />
-              <AssetFinancialFields control={form.control} />
-            </div>
+        <AssetFormErrorBoundary onRetry={handleRetry}>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AssetBasicFields control={form.control} />
+                <AssetTechnicalFields 
+                  control={form.control} 
+                  companiesData={dropdownData.companies}
+                />
+                <AssetFinancialFields 
+                  control={form.control}
+                  departmentsData={dropdownData.departments}
+                  locationsData={dropdownData.locations}
+                  serviceContractsData={dropdownData.serviceContracts}
+                />
+              </div>
 
-            <AssetDescriptionFields control={form.control} />
+              <AssetDescriptionFields control={form.control} />
 
-            <div className="flex justify-end space-x-4 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit">
-                {isEditing ? 'Update Asset' : 'Create Asset'}
-              </Button>
-            </div>
-          </form>
-        </Form>
+              <div className="flex justify-end space-x-4 pt-4">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {isEditing ? 'Update Asset' : 'Create Asset'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </AssetFormErrorBoundary>
       </DialogContent>
     </Dialog>
   );

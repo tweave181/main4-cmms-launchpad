@@ -2,23 +2,52 @@
 import React from 'react';
 import { Control } from 'react-hook-form';
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { ServiceContractSelector } from './fields/ServiceContractSelector';
+import { SafeDropdownField } from './SafeDropdownField';
 import type { AssetFormData } from './types';
+import type { DropdownState } from './utils/dropdownHelpers';
 
 interface AssetFinancialFieldsProps {
   control: Control<AssetFormData>;
+  departmentsData: DropdownState;
+  locationsData: DropdownState;
+  serviceContractsData: DropdownState;
 }
 
-export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({ control }) => {
+export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({ 
+  control, 
+  departmentsData, 
+  locationsData, 
+  serviceContractsData 
+}) => {
   return (
     <div className="space-y-4">
+      <SafeDropdownField
+        control={control}
+        name="location_id"
+        label="Location"
+        placeholder="Select location"
+        options={locationsData.data}
+        isLoading={locationsData.isLoading}
+        error={locationsData.error}
+      />
+
+      <SafeDropdownField
+        control={control}
+        name="department_id"
+        label="Department"
+        placeholder="Select department"
+        options={departmentsData.data}
+        isLoading={departmentsData.isLoading}
+        error={departmentsData.error}
+      />
+
       <FormField
         control={control}
         name="purchase_date"
@@ -40,11 +69,11 @@ export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({ cont
           <FormItem>
             <FormLabel>Purchase Cost</FormLabel>
             <FormControl>
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                {...field}
+              <Input 
+                type="number" 
+                step="0.01" 
+                placeholder="Enter purchase cost" 
+                {...field} 
               />
             </FormControl>
             <FormMessage />
@@ -66,7 +95,15 @@ export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({ cont
         )}
       />
 
-      <ServiceContractSelector control={control} />
+      <SafeDropdownField
+        control={control}
+        name="service_contract_id"
+        label="Service Contract"
+        placeholder="Select service contract"
+        options={serviceContractsData.data}
+        isLoading={serviceContractsData.isLoading}
+        error={serviceContractsData.error}
+      />
     </div>
   );
 };

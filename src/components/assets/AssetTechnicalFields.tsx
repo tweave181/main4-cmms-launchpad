@@ -8,41 +8,25 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { LocationSelector } from '@/components/locations/LocationSelector';
-import { AssetManufacturerFields } from './AssetManufacturerFields';
+import { SafeDropdownField } from './SafeDropdownField';
+import { CategorySelector } from '../asset-prefixes/CategorySelector';
+import { AssetStatusField } from './fields/AssetStatusField';
+import { AssetPriorityField } from './fields/AssetPriorityField';
 import type { AssetFormData } from './types';
+import type { DropdownState } from './utils/dropdownHelpers';
 
 interface AssetTechnicalFieldsProps {
   control: Control<AssetFormData>;
+  companiesData: DropdownState;
 }
 
-export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({
-  control,
+export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({ 
+  control, 
+  companiesData 
 }) => {
   return (
-    <>
-      <FormField
-        control={control}
-        name="asset_tag"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Asset Tag</FormLabel>
-            <FormControl>
-              <Input placeholder="Enter asset tag" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
+    <div className="space-y-4">
       <FormField
         control={control}
         name="serial_number"
@@ -71,76 +55,35 @@ export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({
         )}
       />
 
-      <AssetManufacturerFields control={control} />
-
       <FormField
         control={control}
-        name="category"
+        name="manufacturer"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Category</FormLabel>
+            <FormLabel>Manufacturer</FormLabel>
             <FormControl>
-              <Input placeholder="Enter category" {...field} />
+              <Input placeholder="Enter manufacturer" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      <LocationSelector
+      <SafeDropdownField
         control={control}
-        name="location_id"
-        label="Location"
-        placeholder="Select location"
+        name="manufacturer_company_id"
+        label="Manufacturer Company"
+        placeholder="Select manufacturer company"
+        options={companiesData.data}
+        isLoading={companiesData.isLoading}
+        error={companiesData.error}
       />
 
-      <FormField
-        control={control}
-        name="status"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Status</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="disposed">Disposed</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <CategorySelector control={control} name="category" />
 
-      <FormField
-        control={control}
-        name="priority"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Priority</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </>
+      <AssetStatusField control={control} />
+
+      <AssetPriorityField control={control} />
+    </div>
   );
 };
