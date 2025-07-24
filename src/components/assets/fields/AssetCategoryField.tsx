@@ -54,12 +54,17 @@ export const AssetCategoryField: React.FC<AssetCategoryFieldProps> = ({
           
           <Select 
             onValueChange={(value) => {
-              const selectedCategory = categories.find(cat => cat.id === value);
-              const categoryName = selectedCategory?.name || value;
-              field.onChange(categoryName);
-              onCategoryChange(categoryName);
+              if (value === 'none') {
+                field.onChange('');
+                onCategoryChange('');
+              } else {
+                const selectedCategory = categories.find(cat => cat.id === value);
+                const categoryName = selectedCategory?.name || value;
+                field.onChange(categoryName);
+                onCategoryChange(categoryName);
+              }
             }}
-            value={categories.find(cat => cat.name === field.value)?.id || ''}
+            value={categories.find(cat => cat.name === field.value)?.id || 'none'}
             disabled={isLoading}
           >
             <FormControl>
@@ -75,7 +80,7 @@ export const AssetCategoryField: React.FC<AssetCategoryFieldProps> = ({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="">Select...</SelectItem>
+              <SelectItem value="none">Select...</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}

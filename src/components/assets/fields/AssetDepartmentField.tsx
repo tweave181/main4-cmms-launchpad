@@ -50,8 +50,10 @@ export const AssetDepartmentField: React.FC<AssetDepartmentFieldProps> = ({ cont
           )}
           
           <Select 
-            onValueChange={field.onChange} 
-            value={field.value || ''}
+            onValueChange={(value) => {
+              field.onChange(value === 'none' ? '' : value);
+            }} 
+            value={field.value || 'none'}
             disabled={isLoading}
           >
             <FormControl>
@@ -67,7 +69,7 @@ export const AssetDepartmentField: React.FC<AssetDepartmentFieldProps> = ({ cont
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="">Select...</SelectItem>
+              <SelectItem value="none">Select...</SelectItem>
               {departments.map((department) => (
                 <SelectItem key={department.id} value={department.id}>
                   {department.name}

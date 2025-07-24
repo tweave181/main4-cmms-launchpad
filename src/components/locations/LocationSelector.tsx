@@ -58,8 +58,10 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           )}
           
           <Select 
-            onValueChange={field.onChange} 
-            value={field.value || ''}
+            onValueChange={(value) => {
+              field.onChange(value === 'none' ? '' : value);
+            }} 
+            value={field.value || 'none'}
             disabled={isLoading}
           >
             <FormControl>
@@ -75,7 +77,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="">Select...</SelectItem>
+              <SelectItem value="none">Select...</SelectItem>
               {locations.map((location) => (
                 <SelectItem key={location.id} value={location.id}>
                   <div className="flex items-center gap-2">
