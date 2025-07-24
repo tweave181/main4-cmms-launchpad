@@ -1,11 +1,11 @@
 
 import React from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+} from '@/components/ui/form-dialog';
 import { WorkOrderForm } from './WorkOrderForm';
 import { useUpdateWorkOrder } from '@/hooks/useWorkOrders';
 import type { WorkOrder, WorkOrderFormData } from '@/types/workOrder';
@@ -42,11 +42,11 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Work Order</DialogTitle>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={() => {}}>
+      <FormDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <FormDialogHeader>
+          <FormDialogTitle>Edit Work Order</FormDialogTitle>
+        </FormDialogHeader>
         
         <WorkOrderForm
           workOrder={workOrder}
@@ -54,7 +54,7 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
           onCancel={handleCancel}
           loading={updateWorkOrderMutation.isPending}
         />
-      </DialogContent>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   );
 };

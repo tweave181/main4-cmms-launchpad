@@ -1,12 +1,13 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+  FormDialogTrigger,
+} from '@/components/ui/form-dialog';
 import {
   Form,
   FormControl,
@@ -23,11 +24,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { UserPlus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useCreateInvitation } from '@/hooks/mutations/useCreateInvitation';
+import { useFormDialog } from '@/hooks/useFormDialog';
 import { toast } from '@/components/ui/use-toast';
 
 const inviteUserSchema = z.object({
@@ -42,6 +45,10 @@ type InviteUserFormData = z.infer<typeof inviteUserSchema>;
 export const InviteUserDialog: React.FC = () => {
   const [open, setOpen] = useState(false);
   const createInvitationMutation = useCreateInvitation();
+
+  const { showConfirmation, handleCancel, handleConfirmCancel, handleGoBack } = useFormDialog({
+    onClose: () => setOpen(false),
+  });
 
   const form = useForm<InviteUserFormData>({
     resolver: zodResolver(inviteUserSchema),
@@ -72,76 +79,92 @@ export const InviteUserDialog: React.FC = () => {
     }
   };
 
+  const handleFormCancel = () => {
+    handleCancel();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="flex items-center space-x-2">
-          <UserPlus className="h-4 w-4" />
-          <span>Invite User</span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Invite New User</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="user@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <>
+      <FormDialog open={open} onOpenChange={() => {}}>
+        <FormDialogTrigger asChild>
+          <Button className="flex items-center space-x-2" onClick={() => setOpen(true)}>
+            <UserPlus className="h-4 w-4" />
+            <span>Invite User</span>
+          </Button>
+        </FormDialogTrigger>
+        <FormDialogContent className="sm:max-w-[425px]">
+          <FormDialogHeader>
+            <FormDialogTitle>Invite New User</FormDialogTitle>
+          </FormDialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
+                      <Input placeholder="user@example.com" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="technician">Technician</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="contractor">Contractor</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createInvitationMutation.isPending}
-              >
-                {createInvitationMutation.isPending ? 'Sending...' : 'Send Invitation'}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="technician">Technician</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="contractor">Contractor</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleFormCancel}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createInvitationMutation.isPending}
+                >
+                  {createInvitationMutation.isPending ? 'Sending...' : 'Send Invitation'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </FormDialogContent>
+      </FormDialog>
+
+      <ConfirmationDialog
+        isOpen={showConfirmation}
+        onClose={handleGoBack}
+        onConfirm={handleConfirmCancel}
+        title="Are you sure you want to cancel?"
+        description="All unsaved changes will be lost."
+        confirmText="Yes, Cancel"
+        cancelText="Go Back"
+      />
+    </>
   );
 };

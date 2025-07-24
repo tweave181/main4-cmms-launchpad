@@ -1,11 +1,11 @@
 
 import React from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+} from '@/components/ui/form-dialog';
 import { WorkOrderForm } from './WorkOrderForm';
 import { useCreateWorkOrder } from '@/hooks/useWorkOrders';
 import type { WorkOrderFormData } from '@/types/workOrder';
@@ -34,17 +34,17 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Work Order</DialogTitle>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={() => {}}>
+      <FormDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <FormDialogHeader>
+          <FormDialogTitle>Create New Work Order</FormDialogTitle>
+        </FormDialogHeader>
         <WorkOrderForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           loading={createMutation.isPending}
         />
-      </DialogContent>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   );
 };

@@ -1,11 +1,11 @@
 
 import React, { useEffect } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+} from '@/components/ui/form-dialog';
 import { PMScheduleForm } from './PMScheduleForm';
 import { useUpdatePMSchedule, usePMSchedule } from '@/hooks/usePreventiveMaintenance';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,18 +39,18 @@ export const EditPMModal: React.FC<EditPMModalProps> = ({
 
   if (isLoading) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Preventive Maintenance Schedule</DialogTitle>
-          </DialogHeader>
+      <FormDialog open={open} onOpenChange={() => {}}>
+        <FormDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <FormDialogHeader>
+            <FormDialogTitle>Edit Preventive Maintenance Schedule</FormDialogTitle>
+          </FormDialogHeader>
           <div className="space-y-4">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-12 w-full" />
           </div>
-        </DialogContent>
-      </Dialog>
+        </FormDialogContent>
+      </FormDialog>
     );
   }
 
@@ -77,18 +77,18 @@ export const EditPMModal: React.FC<EditPMModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Preventive Maintenance Schedule</DialogTitle>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={() => {}}>
+      <FormDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <FormDialogHeader>
+          <FormDialogTitle>Edit Preventive Maintenance Schedule</FormDialogTitle>
+        </FormDialogHeader>
         <PMScheduleForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           loading={updateMutation.isPending}
           initialData={initialData}
         />
-      </DialogContent>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   );
 };

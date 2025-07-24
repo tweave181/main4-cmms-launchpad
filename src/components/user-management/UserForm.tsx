@@ -14,6 +14,7 @@ interface UserFormProps {
   initialData?: Partial<UserFormData>;
   isLoading?: boolean;
   submitLabel?: string;
+  onCancel?: () => void;
 }
 
 export const UserForm: React.FC<UserFormProps> = ({
@@ -21,6 +22,7 @@ export const UserForm: React.FC<UserFormProps> = ({
   initialData,
   isLoading = false,
   submitLabel = 'Save User',
+  onCancel,
 }) => {
   const { form, handleSubmit } = useUserForm({ initialData, onSubmit });
 
@@ -35,6 +37,11 @@ export const UserForm: React.FC<UserFormProps> = ({
         </div>
 
         <div className="flex justify-end space-x-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? 'Saving...' : submitLabel}
           </Button>

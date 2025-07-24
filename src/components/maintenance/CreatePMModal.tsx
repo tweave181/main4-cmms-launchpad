@@ -1,11 +1,11 @@
 
 import React from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  FormDialog,
+  FormDialogContent,
+  FormDialogHeader,
+  FormDialogTitle,
+} from '@/components/ui/form-dialog';
 import { PMScheduleForm } from './PMScheduleForm';
 import { useCreatePMSchedule } from '@/hooks/usePreventiveMaintenance';
 import type { PMScheduleFormData } from '@/types/preventiveMaintenance';
@@ -34,17 +34,17 @@ export const CreatePMModal: React.FC<CreatePMModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create Preventive Maintenance Schedule</DialogTitle>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={() => {}}>
+      <FormDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <FormDialogHeader>
+          <FormDialogTitle>Create Preventive Maintenance Schedule</FormDialogTitle>
+        </FormDialogHeader>
         <PMScheduleForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           loading={createMutation.isPending}
         />
-      </DialogContent>
-    </Dialog>
+      </FormDialogContent>
+    </FormDialog>
   );
 };
