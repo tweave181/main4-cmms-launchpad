@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, User, Wrench, DollarSign, Edit } from 'lucide-react';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
+import { useAuth } from '@/contexts/auth';
 import { ActivityLog } from './ActivityLog';
 import type { WorkOrder } from '@/types/workOrder';
 
@@ -32,6 +33,11 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
   onEdit,
 }) => {
   const { formatDate, formatCurrency } = useGlobalSettings();
+  const { userProfile } = useAuth();
+  
+  const isAdmin = userProfile?.role === 'admin';
+  const isCompleted = workOrder.status === 'completed';
+  const canEdit = isAdmin || !isCompleted;
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open': return 'bg-blue-100 text-blue-800';
@@ -67,7 +73,7 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
                 <span>{workOrder.title}</span>
               </div>
             </DialogTitle>
-            {onEdit && (
+            {onEdit && canEdit && (
               <Button
                 variant="outline"
                 size="sm"
@@ -77,6 +83,11 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
                 <Edit className="h-4 w-4" />
                 <span>Edit</span>
               </Button>
+            )}
+            {!canEdit && isCompleted && (
+              <Badge variant="secondary" className="text-xs">
+                Read Only
+              </Badge>
             )}
           </div>
         </DialogHeader>

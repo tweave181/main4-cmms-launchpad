@@ -2,11 +2,14 @@
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Clock, User, Wrench, Building2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Clock, User, Wrench, Building2, MessageSquarePlus } from 'lucide-react';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { cn } from '@/lib/utils';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useAuth } from '@/contexts/auth';
 import { ContractorDetailsModal } from './ContractorDetailsModal';
+import { AddCommentModal } from './AddCommentModal';
 import type { WorkOrder } from '@/types/workOrder';
 
 interface WorkOrderListProps {
@@ -64,11 +67,15 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
   loading = false,
 }) => {
   const { formatDate } = useGlobalSettings();
+  const { userProfile } = useAuth();
   const [selectedContractor, setSelectedContractor] = useState<{ 
     id: string; 
     workOrder: WorkOrder; 
   } | null>(null);
+  const [commentModalOpen, setCommentModalOpen] = useState<string | null>(null);
   const { data: contractors = [] } = useCompanies('contractor');
+  
+  const isAdmin = userProfile?.role === 'admin';
   
   const handleContractorClick = (e: React.MouseEvent, contractorId: string, workOrder: WorkOrder) => {
     e.stopPropagation();
@@ -77,6 +84,15 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
 
   const handleCloseModal = () => {
     setSelectedContractor(null);
+  };
+
+  const handleCommentClick = (e: React.MouseEvent, workOrderId: string) => {
+    e.stopPropagation();
+    setCommentModalOpen(workOrderId);
+  };
+
+  const handleCloseCommentModal = () => {
+    setCommentModalOpen(null);
   };
   if (loading) {
     return (
@@ -128,10 +144,16 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
           daysOverdue = getDaysOverdue(workOrder.due_date);
         }
 
+        const isCompleted = workOrder.status === 'completed';
+        const canEdit = isAdmin || !isCompleted;
+
         return (
           <Card
             key={workOrder.id}
-            className="cursor-pointer hover:shadow-md transition-shadow"
+            className={cn(
+              "cursor-pointer hover:shadow-md transition-shadow",
+              !canEdit && "opacity-75"
+            )}
             onClick={() => onWorkOrderClick(workOrder)}
           >
             <CardContent className="p-4">
@@ -142,7 +164,16 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
                   </div>
                   <h3 className="font-semibold text-lg truncate pr-2">{workOrder.title}</h3>
                 </div>
-                <div className="flex space-x-2 flex-shrink-0">
+                <div className="flex items-center space-x-2 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleCommentClick(e, workOrder.id)}
+                    className="p-2 h-8 w-8"
+                    title="Add comment"
+                  >
+                    <MessageSquarePlus className="h-4 w-4" />
+                  </Button>
                   <Badge className={cn('text-xs', getPriorityColor(workOrder.priority))}>
                     {workOrder.priority.toUpperCase()}
                   </Badge>
@@ -183,12 +214,15 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
                   </div>
                 )}
 
-                {workOrder.assigned_to && (
-                  <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span>Assigned</span>
-                  </div>
-                )}
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4" />
+                  <span>Assigned To:</span>
+                  {workOrder.assigned_to ? (
+                    <span className="text-green-600">Assigned</span>
+                  ) : (
+                    <span className="text-red-600">Unassigned</span>
+                  )}
+                </div>
 
                 {workOrder.assigned_to_contractor && workOrder.contractor_company_id && (
                   <div className="flex items-center space-x-2">
@@ -220,6 +254,14 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
           onClose={handleCloseModal}
           contractorId={selectedContractor.id}
           workOrder={selectedContractor.workOrder}
+        />
+      )}
+      
+      {commentModalOpen && (
+        <AddCommentModal
+          workOrderId={commentModalOpen}
+          isOpen={!!commentModalOpen}
+          onClose={handleCloseCommentModal}
         />
       )}
     </div>

@@ -13,7 +13,8 @@ import { useOfflineWorkOrders } from '@/hooks/useOfflineWorkOrders';
 import type { WorkOrder, WorkOrderFilters } from '@/types/workOrder';
 
 const WorkOrders: React.FC = () => {
-  const [filters, setFilters] = useState<WorkOrderFilters>({});
+  // Set default filter to show only "Open" work orders
+  const [filters, setFilters] = useState<WorkOrderFilters>({ status: 'open' });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -44,7 +45,8 @@ const WorkOrders: React.FC = () => {
   };
 
   const handleClearFilters = () => {
-    setFilters({});
+    // Reset to default filter (only open work orders)
+    setFilters({ status: 'open' });
   };
 
   const handleQRScanned = (code: string) => {

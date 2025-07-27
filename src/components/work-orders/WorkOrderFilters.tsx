@@ -43,7 +43,7 @@ export const WorkOrderFiltersComponent: React.FC<WorkOrderFiltersComponentProps>
     onFiltersChange({ ...filters, search });
   };
 
-  const hasActiveFilters = filters.status || filters.priority || filters.work_type || filters.search;
+  const hasActiveFilters = (filters.status && filters.status !== 'open') || filters.priority || filters.work_type || filters.search;
 
   return (
     <div className="space-y-4 mb-6">
