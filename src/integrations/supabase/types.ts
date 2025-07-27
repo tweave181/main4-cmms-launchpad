@@ -1456,6 +1456,10 @@ export type Database = {
       work_order_comments: {
         Row: {
           comment: string
+          comment_status: Database["public"]["Enums"]["comment_status"] | null
+          comment_time_closed: string | null
+          comment_time_created: string | null
+          comment_time_worked: string | null
           comment_type: string
           created_at: string
           id: string
@@ -1464,6 +1468,10 @@ export type Database = {
         }
         Insert: {
           comment: string
+          comment_status?: Database["public"]["Enums"]["comment_status"] | null
+          comment_time_closed?: string | null
+          comment_time_created?: string | null
+          comment_time_worked?: string | null
           comment_type?: string
           created_at?: string
           id?: string
@@ -1472,6 +1480,10 @@ export type Database = {
         }
         Update: {
           comment?: string
+          comment_status?: Database["public"]["Enums"]["comment_status"] | null
+          comment_time_closed?: string | null
+          comment_time_created?: string | null
+          comment_time_worked?: string | null
           comment_type?: string
           created_at?: string
           id?: string
@@ -1684,6 +1696,7 @@ export type Database = {
         | "contractor"
       asset_priority: "low" | "medium" | "high" | "critical"
       asset_status: "active" | "inactive" | "maintenance" | "disposed"
+      comment_status: "open" | "closed"
       contract_status: "Active" | "Expired" | "Terminated" | "Pending Review"
       employment_status: "Full Time" | "Part Time" | "Bank Staff" | "Contractor"
       part_unit:
@@ -1833,6 +1846,7 @@ export const Constants = {
       ],
       asset_priority: ["low", "medium", "high", "critical"],
       asset_status: ["active", "inactive", "maintenance", "disposed"],
+      comment_status: ["open", "closed"],
       contract_status: ["Active", "Expired", "Terminated", "Pending Review"],
       employment_status: ["Full Time", "Part Time", "Bank Staff", "Contractor"],
       part_unit: [
