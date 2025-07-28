@@ -45,6 +45,7 @@ export interface WorkOrderFormData {
   due_date?: string;
   assigned_to_contractor?: boolean;
   contractor_company_id?: string;
+  work_order_number?: string; // Optional for forms, will be auto-generated
 }
 
 // Updated WorkOrderFilters to use valid enum values or undefined (never empty strings)
