@@ -9,6 +9,7 @@ import { CreateWorkOrderModal } from '@/components/work-orders/CreateWorkOrderMo
 import { WorkOrderDetail } from '@/components/work-orders/WorkOrderDetail';
 import { EditWorkOrderModal } from '@/components/work-orders/EditWorkOrderModal';
 import { MobileActionButtons } from '@/components/mobile/MobileActionButtons';
+import { WorkOrderDebugPanel } from '@/components/work-orders/WorkOrderDebugPanel';
 import { useOfflineWorkOrders } from '@/hooks/useOfflineWorkOrders';
 import type { WorkOrder, WorkOrderFilters } from '@/types/workOrder';
 
@@ -98,6 +99,11 @@ const WorkOrders: React.FC = () => {
           />
         </CardContent>
       </Card>
+
+      {/* Debug Panel */}
+      <div className="mt-6">
+        <WorkOrderDebugPanel />
+      </div>
 
       <CreateWorkOrderModal
         open={isCreateModalOpen}

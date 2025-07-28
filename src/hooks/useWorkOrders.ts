@@ -15,6 +15,10 @@ export const useWorkOrders = (filters?: WorkOrderFilters) => {
         throw new Error('No tenant found');
       }
 
+      // Log tenant ID being used for filtering
+      console.log('🔍 DEBUG: Fetching work orders for tenant:', userProfile.tenant_id);
+      console.log('🔍 DEBUG: Applied filters:', filters);
+
       let query = supabase
         .from('work_orders')
         .select(`
@@ -48,6 +52,25 @@ export const useWorkOrders = (filters?: WorkOrderFilters) => {
       if (error) {
         console.error('Error fetching work orders:', error);
         throw error;
+      }
+
+      // Log detailed results for debugging
+      console.log('🔍 DEBUG: Total work orders fetched:', data?.length || 0);
+      if (data && data.length > 0) {
+        const statusCounts = data.reduce((acc, wo) => {
+          acc[wo.status] = (acc[wo.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        console.log('🔍 DEBUG: Status breakdown:', statusCounts);
+        console.log('🔍 DEBUG: First few work orders:', data.slice(0, 3).map(wo => ({
+          id: wo.id,
+          work_order_number: wo.work_order_number,
+          title: wo.title,
+          status: wo.status,
+          priority: wo.priority
+        })));
+      } else {
+        console.log('🔍 DEBUG: No work orders found with current filters');
       }
 
       return data as WorkOrder[];
