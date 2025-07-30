@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Control } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -8,15 +8,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
+import { AssetSelectionModal } from './AssetSelectionModal';
 import type { WorkOrderFormData } from '@/types/workOrder';
 
 interface AssetSelectionFieldProps {
@@ -27,15 +23,16 @@ export const AssetSelectionField: React.FC<AssetSelectionFieldProps> = ({
   control,
 }) => {
   const { userProfile } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: assets = [] } = useQuery({
-    queryKey: ['assets', userProfile?.tenant_id],
+  // Get selected asset details for display
+  const { data: selectedAsset } = useQuery({
+    queryKey: ['selected-asset-details', userProfile?.tenant_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('assets')
         .select('id, name, asset_tag')
-        .eq('status', 'active')
-        .order('name');
+        .eq('status', 'active');
 
       if (error) throw error;
       return data;
@@ -47,32 +44,44 @@ export const AssetSelectionField: React.FC<AssetSelectionFieldProps> = ({
     <FormField
       control={control}
       name="asset_id"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Asset</FormLabel>
-          <Select 
-            onValueChange={(value) => {
-              field.onChange(value === 'no-asset' ? undefined : value);
-            }} 
-            value={field.value || 'no-asset'}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select an asset" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="no-asset">No Asset</SelectItem>
-              {assets.map((asset) => (
-                <SelectItem key={asset.id} value={asset.id}>
-                  {asset.name} {asset.asset_tag && `(${asset.asset_tag})`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        const currentAsset = selectedAsset?.find(asset => asset.id === field.value);
+        const displayValue = currentAsset 
+          ? `${currentAsset.name}${currentAsset.asset_tag ? ` (${currentAsset.asset_tag})` : ''}`
+          : '';
+
+        return (
+          <FormItem>
+            <FormLabel>Asset</FormLabel>
+            <div className="flex space-x-2">
+              <FormControl>
+                <Input
+                  placeholder={field.value ? displayValue : "No asset selected"}
+                  value={displayValue}
+                  readOnly
+                  className="flex-1"
+                />
+              </FormControl>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsModalOpen(true)}
+              >
+                Select Asset
+              </Button>
+            </div>
+            <FormMessage />
+
+            <AssetSelectionModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onSelect={(asset) => {
+                field.onChange(asset.id);
+              }}
+            />
+          </FormItem>
+        );
+      }}
     />
   );
 };
