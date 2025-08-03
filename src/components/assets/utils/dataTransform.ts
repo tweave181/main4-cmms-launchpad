@@ -13,7 +13,7 @@ export const transformFormDataToAsset = (
     asset_tag: data.asset_tag?.trim() || null,
     serial_number: data.serial_number?.trim() || null,
     model: data.model?.trim() || null,
-    manufacturer: data.manufacturer?.trim() || null,
+    manufacturer: null, // Remove free-text manufacturer field
     manufacturer_company_id: data.manufacturer_company_id || null,
     category: data.category?.trim() || null,
     location_id: data.location_id?.trim() || null,

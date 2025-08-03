@@ -115,8 +115,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <AssetBasicFields control={form.control} />
                   <AssetTechnicalFields 
-                    control={form.control} 
-                    companiesData={dropdownData.companies}
+                    control={form.control}
                   />
                   <AssetFinancialFields 
                     control={form.control}

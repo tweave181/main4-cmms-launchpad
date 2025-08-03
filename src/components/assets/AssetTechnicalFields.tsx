@@ -9,20 +9,17 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { SafeDropdownField } from './SafeDropdownField';
 import { AssetStatusField } from './fields/AssetStatusField';
 import { AssetPriorityField } from './fields/AssetPriorityField';
+import { ManufacturerField } from './fields/ManufacturerField';
 import type { AssetFormData } from './types';
-import type { DropdownState } from './utils/dropdownHelpers';
 
 interface AssetTechnicalFieldsProps {
   control: Control<AssetFormData>;
-  companiesData: DropdownState;
 }
 
 export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({ 
-  control, 
-  companiesData 
+  control 
 }) => {
   return (
     <div className="space-y-4">
@@ -54,29 +51,7 @@ export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({
         )}
       />
 
-      <FormField
-        control={control}
-        name="manufacturer"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Manufacturer</FormLabel>
-            <FormControl>
-              <Input placeholder="Enter manufacturer" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <SafeDropdownField
-        control={control}
-        name="manufacturer_company_id"
-        label="Manufacturer Company"
-        placeholder="Select manufacturer company"
-        options={companiesData.data}
-        isLoading={companiesData.isLoading}
-        error={companiesData.error}
-      />
+      <ManufacturerField control={control} />
 
       <AssetStatusField control={control} />
 

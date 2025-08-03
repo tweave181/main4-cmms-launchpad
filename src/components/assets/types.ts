@@ -33,7 +33,6 @@ export interface AssetFormData {
   asset_tag?: string;
   serial_number?: string;
   model?: string;
-  manufacturer?: string;
   manufacturer_company_id?: string;
   category?: string;
   location_id?: string;
@@ -76,7 +75,6 @@ export const assetSchema = z.object({
   asset_tag: z.string().optional(),
   serial_number: z.string().optional(),
   model: z.string().optional(),
-  manufacturer: z.string().optional(),
   manufacturer_company_id: z.string().optional(),
   category: z.string().optional(),
   location_id: z.string().optional(),
