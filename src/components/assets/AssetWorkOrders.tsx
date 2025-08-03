@@ -81,9 +81,6 @@ export const AssetWorkOrders: React.FC<AssetWorkOrdersProps> = ({
   };
   const handleRowClick = (workOrderId: string) => {
     setSelectedWorkOrderId(workOrderId);
-  };
-  const handleRowDoubleClick = (workOrderId: string) => {
-    setSelectedWorkOrderId(workOrderId);
     setIsDetailOpen(true);
   };
   if (isLoading) {
@@ -117,6 +114,7 @@ export const AssetWorkOrders: React.FC<AssetWorkOrdersProps> = ({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="bg-gray-300">Work Order #</TableHead>
                     <TableHead className="bg-gray-300">Title</TableHead>
                     <TableHead className="bg-gray-300">Status</TableHead>
                     <TableHead className="bg-gray-300">Priority</TableHead>
@@ -125,7 +123,10 @@ export const AssetWorkOrders: React.FC<AssetWorkOrdersProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {workOrders.map(workOrder => <TableRow key={workOrder.id} className={`cursor-pointer hover:bg-gray-50 ${selectedWorkOrderId === workOrder.id ? 'bg-blue-50 border-blue-200' : ''}`} onClick={() => handleRowClick(workOrder.id)} onDoubleClick={() => handleRowDoubleClick(workOrder.id)}>
+                  {workOrders.map(workOrder => <TableRow key={workOrder.id} className={`cursor-pointer hover:bg-gray-50 ${selectedWorkOrderId === workOrder.id ? 'bg-blue-50 border-blue-200' : ''}`} onClick={() => handleRowClick(workOrder.id)}>
+                      <TableCell>
+                        <span className="font-mono text-sm font-medium">{workOrder.work_order_number}</span>
+                      </TableCell>
                       <TableCell>
                         <div>
                           <p className="font-medium">{workOrder.title}</p>
