@@ -1,61 +1,38 @@
-
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Edit, Trash, Search, Plus, FileText } from 'lucide-react';
 import { useCompanies, useDeleteCompany } from '@/hooks/useCompanies';
 import { AddressDisplay } from '@/components/addresses/AddressDisplay';
 import { COMPANY_TYPES } from '@/types/company';
 import type { CompanyDetails } from '@/types/company';
-
 interface CompanyManagementTableProps {
   onEditCompany: (company: CompanyDetails) => void;
   onCreateCompany: () => void;
   onViewHistory: (company: CompanyDetails) => void;
 }
-
 export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
   onEditCompany,
   onCreateCompany,
-  onViewHistory,
+  onViewHistory
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  const { data: companies = [], isLoading } = useCompanies();
+  const {
+    data: companies = [],
+    isLoading
+  } = useCompanies();
   const deleteMutation = useDeleteCompany();
 
   // Filter companies based on search and type filter
-  const filteredCompanies = companies.filter((company) => {
-    const matchesSearch = company.company_name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+  const filteredCompanies = companies.filter(company => {
+    const matchesSearch = company.company_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'all' || company.type.includes(typeFilter);
     return matchesSearch && matchesType;
   });
@@ -63,48 +40,29 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
   // Paginate results
   const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCompanies = filteredCompanies.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
-
+  const paginatedCompanies = filteredCompanies.slice(startIndex, startIndex + itemsPerPage);
   const handleDelete = (company: CompanyDetails) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete "${company.company_name}"? This action cannot be undone.`
-      )
-    ) {
+    if (window.confirm(`Are you sure you want to delete "${company.company_name}"? This action cannot be undone.`)) {
       deleteMutation.mutate(company.id);
     }
   };
-
   const resetFilters = () => {
     setSearchTerm('');
     setTypeFilter('all');
     setCurrentPage(1);
   };
-
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
+    return <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       {/* Header with filters */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center flex-1">
           <div className="relative flex-1 md:max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search companies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+            <Input placeholder="Search companies..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
           
           <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -113,19 +71,15 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              {COMPANY_TYPES.map((type) => (
-                <SelectItem key={type} value={type}>
+              {COMPANY_TYPES.map(type => <SelectItem key={type} value={type}>
                   {type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </SelectItem>
-              ))}
+                </SelectItem>)}
             </SelectContent>
           </Select>
 
-          {(searchTerm || typeFilter !== 'all') && (
-            <Button variant="outline" onClick={resetFilters}>
+          {(searchTerm || typeFilter !== 'all') && <Button variant="outline" onClick={resetFilters}>
               Clear Filters
-            </Button>
-          )}
+            </Button>}
         </div>
 
         <Button onClick={onCreateCompany}>
@@ -144,37 +98,29 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Company Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Contact Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="bg-gray-300">Company Name</TableHead>
+              <TableHead className="bg-gray-300">Type</TableHead>
+              <TableHead className="bg-gray-300">Contact Name</TableHead>
+              <TableHead className="bg-gray-300">Email</TableHead>
+              <TableHead className="bg-gray-300">Phone</TableHead>
+              <TableHead className="bg-gray-300">Address</TableHead>
+              <TableHead className="text-right bg-gray-300">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedCompanies.length === 0 ? (
-              <TableRow>
+            {paginatedCompanies.length === 0 ? <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                  {searchTerm || typeFilter !== 'all'
-                    ? 'No companies match your filters'
-                    : 'No companies found'}
+                  {searchTerm || typeFilter !== 'all' ? 'No companies match your filters' : 'No companies found'}
                 </TableCell>
-              </TableRow>
-            ) : (
-              paginatedCompanies.map((company) => (
-                <TableRow key={company.id}>
+              </TableRow> : paginatedCompanies.map(company => <TableRow key={company.id}>
                   <TableCell className="font-medium">
                     {company.company_name}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {company.type.map((type) => (
-                        <Badge key={type} variant="secondary" className="text-xs">
+                      {company.type.map(type => <Badge key={type} variant="secondary" className="text-xs">
                           {type.replace('_', ' ')}
-                        </Badge>
-                      ))}
+                        </Badge>)}
                     </div>
                   </TableCell>
                   <TableCell>{company.contact_name || '-'}</TableCell>
@@ -185,73 +131,41 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onViewHistory(company)}
-                        title="View History"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => onViewHistory(company)} title="View History">
                         <FileText className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEditCompany(company)}
-                        title="Edit Company"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => onEditCompany(company)} title="Edit Company">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(company)}
-                        disabled={deleteMutation.isPending}
-                        title="Delete Company"
-                        className="text-red-600 hover:text-red-700"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(company)} disabled={deleteMutation.isPending} title="Delete Company" className="text-red-600 hover:text-red-700">
                         <Trash className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
-              ))
-            )}
+                </TableRow>)}
           </TableBody>
         </Table>
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <Pagination>
+      {totalPages > 1 && <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious 
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-              />
+              <PaginationPrevious onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
             </PaginationItem>
             
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  onClick={() => setCurrentPage(page)}
-                  isActive={currentPage === page}
-                  className="cursor-pointer"
-                >
+            {Array.from({
+          length: totalPages
+        }, (_, i) => i + 1).map(page => <PaginationItem key={page}>
+                <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">
                   {page}
                 </PaginationLink>
-              </PaginationItem>
-            ))}
+              </PaginationItem>)}
             
             <PaginationItem>
-              <PaginationNext 
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-              />
+              <PaginationNext onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
             </PaginationItem>
           </PaginationContent>
-        </Pagination>
-      )}
-    </div>
-  );
+        </Pagination>}
+    </div>;
 };
