@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -13,24 +12,12 @@ interface AssetRecordInfoProps {
 export const AssetRecordInfo: React.FC<AssetRecordInfoProps> = ({ asset }) => {
   const { formatDate } = useGlobalSettings();
   return (
-    <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle>Record Information</CardTitle>
-      </CardHeader>
-      <CardContent className="flex justify-between items-center">
-        <div>
-          <p className="text-sm font-medium">Created At</p>
-          <p className="text-sm text-gray-600">
-            {formatDate(asset.created_at)}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-medium">Last Updated</p>
-          <p className="text-sm text-gray-600">
-            {formatDate(asset.updated_at)}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="text-sm text-muted-foreground">
+      <span className="inline-flex flex-wrap items-center gap-x-6 gap-y-2">
+        <span>Record Information</span>
+        <span>Created At: {formatDate(asset.created_at)}</span>
+        <span>Last Updated: {formatDate(asset.updated_at)}</span>
+      </span>
+    </div>
   );
 };
