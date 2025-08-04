@@ -4,6 +4,8 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
+import { ReusableTabs } from '@/components/ui/reusable-tabs';
+import { FileText, Wrench, Settings } from 'lucide-react';
 import { AssetDetailHeader } from './AssetDetailHeader';
 import { AssetWorkOrders } from './AssetWorkOrders';
 import { AssetBasicInfo } from './AssetBasicInfo';
@@ -38,6 +40,27 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   onEdit,
   onUpdate,
 }) => {
+  const tabs = [
+    {
+      value: 'service-contract',
+      label: 'Service Contract',
+      icon: FileText,
+      content: <AssetServiceContractInfo asset={asset} onUpdate={onUpdate} />
+    },
+    {
+      value: 'work-orders',
+      label: 'Work Orders',
+      icon: Wrench,
+      content: <AssetWorkOrders assetId={asset.id} />
+    },
+    {
+      value: 'maintenance',
+      label: 'Maintenance',
+      icon: Settings,
+      content: <div className="p-4 text-center text-muted-foreground">Maintenance features coming soon</div>
+    }
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -47,9 +70,13 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           <AssetBasicInfo asset={asset} />
           <AssetDescriptionSection asset={asset} />
           <AssetFinancialInfo asset={asset} />
-          <AssetServiceContractInfo asset={asset} onUpdate={onUpdate} />
           <AssetRecordInfo asset={asset} />
-          <AssetWorkOrders assetId={asset.id} />
+          
+          <ReusableTabs
+            tabs={tabs}
+            defaultValue="service-contract"
+            className="mt-6"
+          />
         </div>
       </DialogContent>
     </Dialog>
