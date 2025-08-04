@@ -135,23 +135,13 @@ export const AddressDetailModal = ({ address, isOpen, onClose }: AddressDetailMo
 
           <Separator />
 
-          {/* System Information Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Record Information</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="space-y-1">
-                <label className="font-medium text-muted-foreground">Created</label>
-                <div>{formatDate(address.created_at)}</div>
-              </div>
-              <div className="space-y-1">
-                <label className="font-medium text-muted-foreground">Last Updated</label>
-                <div>{formatDate(address.updated_at)}</div>
-              </div>
-            </div>
+          {/* Record Information */}
+          <div className="text-sm text-muted-foreground">
+            <span className="inline-flex flex-wrap items-center gap-x-6 gap-y-2">
+              <span>Record Information</span>
+              <span>Created At: {formatDate(address.created_at)}</span>
+              <span>Last Updated: {formatDate(address.updated_at)}</span>
+            </span>
           </div>
 
           {/* Notes Section */}

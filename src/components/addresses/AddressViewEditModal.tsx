@@ -268,15 +268,12 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
                 
                 {/* Record Information */}
                 <div className="pt-4 border-t">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
-                    <div>
-                      <span className="font-medium">Created:</span>
-                      <div>{new Date(address.created_at).toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Updated:</span>
-                      <div>{new Date(address.updated_at).toLocaleString()}</div>
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    <span className="inline-flex flex-wrap items-center gap-x-6 gap-y-2">
+                      <span>Record Information</span>
+                      <span>Created At: {new Date(address.created_at).toLocaleDateString()}</span>
+                      <span>Last Updated: {new Date(address.updated_at).toLocaleDateString()}</span>
+                    </span>
                   </div>
                 </div>
 

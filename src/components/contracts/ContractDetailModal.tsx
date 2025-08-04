@@ -347,6 +347,15 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
               </div>
             </CardContent>
           </Card>
+
+          {/* Record Information */}
+          <div className="text-sm text-muted-foreground">
+            <span className="inline-flex flex-wrap items-center gap-x-6 gap-y-2">
+              <span>Record Information</span>
+              <span>Created At: {formatDate(contract.start_date)}</span>
+              <span>Last Updated: {formatDate(contract.end_date)}</span>
+            </span>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -225,6 +225,15 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
               </CardContent>
             </Card>
           </div>
+
+          {/* Record Information */}
+          <div className="text-sm text-muted-foreground">
+            <span className="inline-flex flex-wrap items-center gap-x-6 gap-y-2">
+              <span>Record Information</span>
+              <span>Created At: {formatDate(workOrder.created_at)}</span>
+              <span>Last Updated: {formatDate(workOrder.updated_at)}</span>
+            </span>
+          </div>
           
           <ActivityLog workOrderId={workOrder.id} />
         </div>
