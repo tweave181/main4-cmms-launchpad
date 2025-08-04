@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AuthNavigationHandler } from "@/components/auth/AuthNavigationHandler";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ContractNotificationWrapper } from "@/components/auth/ContractNotificationWrapper";
+import { SessionTimeoutProvider } from "@/components/auth/SessionTimeoutProvider";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 import AuthPage from "@/components/auth/AuthPage";
 
@@ -44,44 +45,46 @@ function App() {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <AuthProvider>
-              <GlobalSettingsProvider>
+        <AuthProvider>
+          <GlobalSettingsProvider>
+              <SessionTimeoutProvider>
                 <AuthNavigationHandler />
                 <ContractNotificationWrapper>
                   <Routes>
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/*" element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <Routes>
-                            <Route path="/" element={<Index />} />
-                            <Route path="/assets" element={<Assets />} />
-                            <Route path="/work-orders" element={<WorkOrders />} />
-                            <Route path="/maintenance" element={<Maintenance />} />
-                            <Route path="/inventory" element={<Inventory />} />
-                            <Route path="/address-book" element={<AddressBook />} />
-                            <Route path="/reports" element={<Reports />} />
-                            <Route path="/users" element={<UserManagement />} />
-                            <Route path="/departments" element={<Departments />} />
-                            <Route path="/departments/:id" element={<DepartmentDetails />} />
-                            <Route path="/job-titles" element={<JobTitles />} />
-                            <Route path="/job-titles/:id" element={<JobTitleDetails />} />
-                            <Route path="/companies" element={<Companies />} />
-                            <Route path="/addresses" element={<Addresses />} />
-                            <Route path="/admin/service-contracts" element={<ServiceContracts />} />
-                            <Route path="/categories" element={<CategoryManager />} />
-                            <Route path="/asset-prefixes" element={<AssetPrefixManager />} />
-                            <Route path="/system-audit-log" element={<SystemAuditLog />} />
-                            <Route path="/settings" element={<AdminSettings />} />
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
-                        </AppLayout>
-                      </ProtectedRoute>
-                    } />
-                  </Routes>
-                </ContractNotificationWrapper>
-              </GlobalSettingsProvider>
-            </AuthProvider>
+                     <Route path="/auth" element={<AuthPage />} />
+                     <Route path="/*" element={
+                       <ProtectedRoute>
+                         <AppLayout>
+                           <Routes>
+                             <Route path="/" element={<Index />} />
+                             <Route path="/assets" element={<Assets />} />
+                             <Route path="/work-orders" element={<WorkOrders />} />
+                             <Route path="/maintenance" element={<Maintenance />} />
+                             <Route path="/inventory" element={<Inventory />} />
+                             <Route path="/address-book" element={<AddressBook />} />
+                             <Route path="/reports" element={<Reports />} />
+                             <Route path="/users" element={<UserManagement />} />
+                             <Route path="/departments" element={<Departments />} />
+                             <Route path="/departments/:id" element={<DepartmentDetails />} />
+                             <Route path="/job-titles" element={<JobTitles />} />
+                             <Route path="/job-titles/:id" element={<JobTitleDetails />} />
+                             <Route path="/companies" element={<Companies />} />
+                             <Route path="/addresses" element={<Addresses />} />
+                             <Route path="/admin/service-contracts" element={<ServiceContracts />} />
+                             <Route path="/categories" element={<CategoryManager />} />
+                             <Route path="/asset-prefixes" element={<AssetPrefixManager />} />
+                             <Route path="/system-audit-log" element={<SystemAuditLog />} />
+                             <Route path="/settings" element={<AdminSettings />} />
+                             <Route path="*" element={<NotFound />} />
+                           </Routes>
+                         </AppLayout>
+                       </ProtectedRoute>
+                     } />
+                    </Routes>
+                  </ContractNotificationWrapper>
+                </SessionTimeoutProvider>
+          </GlobalSettingsProvider>
+        </AuthProvider>
           </BrowserRouter>
         </ErrorBoundary>
       </TooltipProvider>
