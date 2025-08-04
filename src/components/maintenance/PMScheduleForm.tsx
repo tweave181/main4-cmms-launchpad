@@ -304,7 +304,7 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
           )}
         />
 
-        <div className="flex justify-end space-x-4 pt-4 border-t">
+        <div className="flex justify-start space-x-4 pt-4 border-t">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>

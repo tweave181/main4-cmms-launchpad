@@ -46,7 +46,7 @@ export const DepartmentForm: React.FC<DepartmentFormProps> = ({
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
 
-          <div className="flex justify-end space-x-4 pt-4">
+          <div className="flex justify-start space-x-4 pt-4">
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
@@ -71,7 +71,7 @@ export const DepartmentForm: React.FC<DepartmentFormProps> = ({
             </AlertDescription>
           </Alert>
 
-          <div className="flex justify-end space-x-4 pt-4">
+          <div className="flex justify-start space-x-4 pt-4">
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
@@ -127,7 +127,7 @@ export const DepartmentForm: React.FC<DepartmentFormProps> = ({
               )}
             />
 
-            <div className="flex justify-end space-x-4 pt-4">
+            <div className="flex justify-start space-x-4 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>

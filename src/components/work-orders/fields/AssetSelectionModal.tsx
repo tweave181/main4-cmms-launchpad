@@ -240,7 +240,7 @@ export const AssetSelectionModal: React.FC<AssetSelectionModalProps> = ({
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4 border-t">
+        <div className="flex justify-start space-x-2 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>

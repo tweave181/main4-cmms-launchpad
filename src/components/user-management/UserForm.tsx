@@ -36,7 +36,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           <UserJobTitleField control={form.control} />
         </div>
 
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-start space-x-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel

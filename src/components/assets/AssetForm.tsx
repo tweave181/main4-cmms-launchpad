@@ -59,7 +59,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
 
-          <div className="flex justify-end space-x-4 pt-4">
+          <div className="flex justify-start space-x-4 pt-4">
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
@@ -86,7 +86,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             </AlertDescription>
           </Alert>
 
-          <div className="flex justify-end space-x-4 pt-4">
+          <div className="flex justify-start space-x-4 pt-4">
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
@@ -125,7 +125,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
                 <AssetDescriptionFields control={form.control} />
 
-                <div className="flex justify-end space-x-4 pt-4">
+                <div className="flex justify-start space-x-4 pt-4">
                   <Button type="button" variant="outline" onClick={handleCancel}>
                     Cancel
                   </Button>

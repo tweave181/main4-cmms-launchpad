@@ -281,7 +281,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
                 </div>
 
                 {isEditMode && isAdmin && (
-                  <div className="flex justify-end space-x-2 pt-4 border-t">
+                  <div className="flex justify-start space-x-2 pt-4 border-t">
                     <Button
                       type="button"
                       variant="outline"

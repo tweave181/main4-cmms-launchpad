@@ -86,7 +86,7 @@ export const AddCommentModal: React.FC<AddCommentModalProps> = ({
             )}
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-start space-x-2">
             <Button
               type="button"
               variant="outline"

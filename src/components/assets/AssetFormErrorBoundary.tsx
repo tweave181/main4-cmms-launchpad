@@ -56,7 +56,7 @@ export class AssetFormErrorBoundary extends React.Component<
             </AlertDescription>
           </Alert>
           
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-start space-x-2">
             <Button variant="outline" onClick={this.handleRetry}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Try Again

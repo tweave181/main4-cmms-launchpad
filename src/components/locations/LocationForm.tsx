@@ -159,7 +159,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
               )}
             />
 
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className="flex justify-start space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={handleClose}>
                 Cancel
               </Button>

@@ -113,7 +113,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
             <CompanyAddressFields control={form.control} />
             <CompanyTypeFields control={form.control} />
 
-            <div className="flex justify-end space-x-4 pt-4">
+            <div className="flex justify-start space-x-4 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>

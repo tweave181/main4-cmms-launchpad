@@ -210,7 +210,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
                 </Alert>
               )}
 
-              <div className="flex justify-end space-x-2 pt-4 border-t">
+              <div className="flex justify-start space-x-2 pt-4 border-t">
                 <Button
                   type="button"
                   variant="outline"
