@@ -1,27 +1,19 @@
-
 import React from 'react';
-import {
-  TableHeader,
-  TableHead,
-  TableRow,
-} from '@/components/ui/table';
-
+import { TableHeader, TableHead, TableRow } from '@/components/ui/table';
 export const UserTableHeader: React.FC = () => {
-  return (
-    <TableHeader>
+  return <TableHeader>
       <TableRow>
-        <TableHead>Name</TableHead>
-        <TableHead>Email</TableHead>
-        <TableHead>Role</TableHead>
-        <TableHead>Employment</TableHead>
-        <TableHead>Department</TableHead>
-        <TableHead>Job Title</TableHead>
+        <TableHead className="bg-gray-300">Name</TableHead>
+        <TableHead className="bg-gray-300">Email</TableHead>
+        <TableHead className="bg-slate-300">Role</TableHead>
+        <TableHead className="bg-gray-300">Employment</TableHead>
+        <TableHead className="bg-gray-300">Department</TableHead>
+        <TableHead className="bg-gray-300">Job Title</TableHead>
         <TableHead>Phone</TableHead>
         <TableHead>Status</TableHead>
         <TableHead>Last Login</TableHead>
         <TableHead>Joined</TableHead>
         <TableHead className="w-[70px]"></TableHead>
       </TableRow>
-    </TableHeader>
-  );
+    </TableHeader>;
 };
