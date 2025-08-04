@@ -70,13 +70,14 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           <AssetBasicInfo asset={asset} />
           <AssetDescriptionSection asset={asset} />
           <AssetFinancialInfo asset={asset} />
-          <AssetRecordInfo asset={asset} />
           
           <ReusableTabs
             tabs={tabs}
             defaultValue="service-contract"
             className="mt-6"
           />
+          
+          <AssetRecordInfo asset={asset} />
         </div>
       </DialogContent>
     </Dialog>

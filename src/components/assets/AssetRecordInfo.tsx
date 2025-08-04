@@ -17,14 +17,14 @@ export const AssetRecordInfo: React.FC<AssetRecordInfoProps> = ({ asset }) => {
       <CardHeader>
         <CardTitle>Record Information</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="flex justify-between items-center">
         <div>
           <p className="text-sm font-medium">Created At</p>
           <p className="text-sm text-gray-600">
             {formatDate(asset.created_at)}
           </p>
         </div>
-        <div>
+        <div className="text-right">
           <p className="text-sm font-medium">Last Updated</p>
           <p className="text-sm text-gray-600">
             {formatDate(asset.updated_at)}
