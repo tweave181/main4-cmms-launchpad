@@ -28,22 +28,22 @@ const Maintenance: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="list" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
-              <TabsTrigger value="list" className="flex items-center space-x-2">
-                <List className="h-4 w-4" />
-                <span>Schedule List</span>
-              </TabsTrigger>
-              <TabsTrigger value="calendar" className="flex items-center space-x-2">
-                <CalendarIcon className="h-4 w-4" />
-                <span>Calendar View</span>
-              </TabsTrigger>
-            </TabsList>
+            <div className="mb-4">
+              <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
+                <TabsTrigger value="list" className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                  Schedule List
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                  Calendar View
+                </TabsTrigger>
+              </TabsList>
+            </div>
             
-            <TabsContent value="list" className="mt-6">
+            <TabsContent value="list" className="mt-0">
               <PMScheduleList />
             </TabsContent>
             
-            <TabsContent value="calendar" className="mt-6">
+            <TabsContent value="calendar" className="mt-0">
               <PMCalendarView />
             </TabsContent>
           </Tabs>
