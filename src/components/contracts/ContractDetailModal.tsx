@@ -8,7 +8,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { Building2, Calendar, DollarSign, FileText, AlertCircle, Package } from 'lucide-react';
-
 interface ServiceContract {
   id: string;
   contract_title: string;
@@ -30,7 +29,6 @@ interface ServiceContract {
     address: string | null;
   } | null;
 }
-
 interface ContractLine {
   id: string;
   line_description: string;
@@ -38,7 +36,6 @@ interface ContractLine {
   sla: string | null;
   cost_per_line: number | null;
 }
-
 interface LinkedAsset {
   id: string;
   asset_tag: string | null;
@@ -52,63 +49,64 @@ interface LinkedAsset {
     name: string;
   } | null;
 }
-
 interface ContractDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   contract: ServiceContract | null;
 }
-
 export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
   isOpen,
   onClose,
-  contract,
+  contract
 }) => {
-  const { formatDate, formatCurrency } = useGlobalSettings();
-
-  const { data: contractLines = [], isLoading: isLoadingLines } = useQuery({
+  const {
+    formatDate,
+    formatCurrency
+  } = useGlobalSettings();
+  const {
+    data: contractLines = [],
+    isLoading: isLoadingLines
+  } = useQuery({
     queryKey: ['contract-lines', contract?.id],
     queryFn: async () => {
       if (!contract?.id) return [];
-
-      const { data, error } = await supabase
-        .from('contract_lines')
-        .select('*')
-        .eq('contract_id', contract.id)
-        .order('created_at', { ascending: true });
-
+      const {
+        data,
+        error
+      } = await supabase.from('contract_lines').select('*').eq('contract_id', contract.id).order('created_at', {
+        ascending: true
+      });
       if (error) throw error;
       return data as ContractLine[];
     },
-    enabled: !!contract?.id && isOpen,
+    enabled: !!contract?.id && isOpen
   });
-
-  const { data: linkedAssets = [], isLoading: isLoadingAssets } = useQuery({
+  const {
+    data: linkedAssets = [],
+    isLoading: isLoadingAssets
+  } = useQuery({
     queryKey: ['contract-assets', contract?.id],
     queryFn: async () => {
       if (!contract?.id) return [];
-
-      const { data, error } = await supabase
-        .from('assets')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('assets').select(`
           id,
           asset_tag,
           name,
           category,
           location:locations(name, location_code),
           department:departments(name)
-        `)
-        .eq('service_contract_id', contract.id)
-        .order('asset_tag', { ascending: true });
-
+        `).eq('service_contract_id', contract.id).order('asset_tag', {
+        ascending: true
+      });
       if (error) throw error;
       return data as LinkedAsset[];
     },
-    enabled: !!contract?.id && isOpen,
+    enabled: !!contract?.id && isOpen
   });
-
   const isLoading = isLoadingLines || isLoadingAssets;
-
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'Active':
@@ -123,11 +121,8 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
         return 'secondary';
     }
   };
-
   if (!contract) return null;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -186,35 +181,25 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
                 </div>
               </div>
               
-              {contract.description && (
-                <>
+              {contract.description && <>
                   <Separator />
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Description</label>
                     <div className="text-sm">{contract.description}</div>
                   </div>
-                </>
-              )}
+                </>}
 
-              {contract.company_details && (
-                <>
+              {contract.company_details && <>
                   <Separator />
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Vendor Contact Information</label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                      {contract.company_details.email && (
-                        <div>Email: {contract.company_details.email}</div>
-                      )}
-                      {contract.company_details.phone && (
-                        <div>Phone: {contract.company_details.phone}</div>
-                      )}
-                      {contract.company_details.address && (
-                        <div className="md:col-span-2">Address: {contract.company_details.address}</div>
-                      )}
+                      {contract.company_details.email && <div>Email: {contract.company_details.email}</div>}
+                      {contract.company_details.phone && <div>Phone: {contract.company_details.phone}</div>}
+                      {contract.company_details.address && <div className="md:col-span-2">Address: {contract.company_details.address}</div>}
                     </div>
                   </div>
-                </>
-              )}
+                </>}
             </CardContent>
           </Card>
 
@@ -224,15 +209,11 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
               <CardTitle>Line Items / Covered Services</CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
+              {isLoading ? <div className="flex items-center justify-center py-8">
                   <div className="text-muted-foreground">Loading...</div>
-                </div>
-              ) : (
-                <div className="space-y-6">
+                </div> : <div className="space-y-6">
                   {/* Contract Lines Section */}
-                  {contractLines.length > 0 && (
-                    <div>
+                  {contractLines.length > 0 && <div>
                       <h4 className="text-sm font-semibold mb-3">Contract Line Items</h4>
                       <Table>
                         <TableHeader>
@@ -244,8 +225,7 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {contractLines.map((line) => (
-                            <TableRow key={line.id}>
+                          {contractLines.map(line => <TableRow key={line.id}>
                               <TableCell className="font-medium">
                                 {line.line_description}
                               </TableCell>
@@ -258,12 +238,10 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
                               <TableCell className="text-right">
                                 {line.cost_per_line ? formatCurrency(line.cost_per_line) : 'N/A'}
                               </TableCell>
-                            </TableRow>
-                          ))}
+                            </TableRow>)}
                         </TableBody>
                       </Table>
-                    </div>
-                  )}
+                    </div>}
 
                   {/* Linked Assets Section */}
                   <div>
@@ -271,65 +249,49 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
                       <Package className="h-4 w-4" />
                       Assets Covered by This Contract
                     </h4>
-                    {linkedAssets.length === 0 ? (
-                      <div className="text-center py-6 border border-dashed rounded-lg">
+                    {linkedAssets.length === 0 ? <div className="text-center py-6 border border-dashed rounded-lg">
                         <Package className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                         <p className="text-muted-foreground text-sm">
                           No assets are currently linked to this contract.
                         </p>
-                      </div>
-                    ) : (
-                      <Table>
+                      </div> : <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Asset Tag</TableHead>
+                            <TableHead className="bg-gray-200">Asset Tag</TableHead>
                             <TableHead>Asset Name</TableHead>
                             <TableHead>Location</TableHead>
                             <TableHead>Category</TableHead>
-                            <TableHead>Department</TableHead>
+                            <TableHead className="bg-gray-300">Department</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {linkedAssets.map((asset) => (
-                            <TableRow 
-                              key={asset.id}
-                              className="cursor-pointer hover:bg-muted/50"
-                              onClick={() => {
-                                // Optional: Navigate to asset details
-                                window.open(`/assets?asset=${asset.id}`, '_blank');
-                              }}
-                            >
+                          {linkedAssets.map(asset => <TableRow key={asset.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
+                      // Optional: Navigate to asset details
+                      window.open(`/assets?asset=${asset.id}`, '_blank');
+                    }}>
                               <TableCell className="font-medium">
                                 {asset.asset_tag || 'N/A'}
                               </TableCell>
                               <TableCell>{asset.name}</TableCell>
                               <TableCell>
-                                {asset.location ? 
-                                  `${asset.location.name} (${asset.location.location_code})` : 
-                                  'N/A'
-                                }
+                                {asset.location ? `${asset.location.name} (${asset.location.location_code})` : 'N/A'}
                               </TableCell>
                               <TableCell>{asset.category || 'N/A'}</TableCell>
                               <TableCell>{asset.department?.name || 'N/A'}</TableCell>
-                            </TableRow>
-                          ))}
+                            </TableRow>)}
                         </TableBody>
-                      </Table>
-                    )}
+                      </Table>}
                   </div>
 
                   {/* Show message if no line items and no assets */}
-                  {contractLines.length === 0 && linkedAssets.length === 0 && (
-                    <div className="text-center py-8">
+                  {contractLines.length === 0 && linkedAssets.length === 0 && <div className="text-center py-8">
                       <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                       <h3 className="text-lg font-semibold mb-2">No coverage items found</h3>
                       <p className="text-muted-foreground">
                         No line items or assets are currently associated with this contract.
                       </p>
-                    </div>
-                  )}
-                </div>
-              )}
+                    </div>}
+                </div>}
             </CardContent>
           </Card>
 
@@ -358,6 +320,5 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
           </div>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
