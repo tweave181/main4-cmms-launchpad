@@ -13,7 +13,6 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { formatDistanceToNow, format } from 'date-fns';
-
 interface ServiceContract {
   id: string;
   contract_title: string;
@@ -35,25 +34,32 @@ interface ServiceContract {
     address: string | null;
   } | null;
 }
-
 const ServiceContracts: React.FC = () => {
-  const { userProfile } = useAuth();
-  const { formatDate, formatCurrency } = useGlobalSettings();
+  const {
+    userProfile
+  } = useAuth();
+  const {
+    formatDate,
+    formatCurrency
+  } = useGlobalSettings();
   const [selectedContract, setSelectedContract] = useState<ServiceContract | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [contractForDetail, setContractForDetail] = useState<ServiceContract | null>(null);
-
-  const { data: contracts = [], isLoading, error } = useQuery({
+  const {
+    data: contracts = [],
+    isLoading,
+    error
+  } = useQuery({
     queryKey: ['service-contracts', userProfile?.tenant_id],
     queryFn: async () => {
       if (!userProfile?.tenant_id) {
         throw new Error('No tenant found');
       }
-
-      const { data, error } = await supabase
-        .from('service_contracts')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('service_contracts').select(`
           *,
           company_details:vendor_company_id (
             id,
@@ -62,16 +68,14 @@ const ServiceContracts: React.FC = () => {
             phone,
             address
           )
-        `)
-        .eq('tenant_id', userProfile.tenant_id)
-        .order('end_date', { ascending: true });
-
+        `).eq('tenant_id', userProfile.tenant_id).order('end_date', {
+        ascending: true
+      });
       if (error) throw error;
       return data as ServiceContract[];
     },
-    enabled: !!userProfile?.tenant_id,
+    enabled: !!userProfile?.tenant_id
   });
-
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'Active':
@@ -86,35 +90,28 @@ const ServiceContracts: React.FC = () => {
         return 'secondary';
     }
   };
-
   const getDaysUntilExpiry = (endDate: string) => {
     const today = new Date();
     const expiryDate = new Date(endDate);
     const diffTime = expiryDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
-
   const handleViewDetails = (contract: ServiceContract) => {
     setContractForDetail(contract);
     setIsDetailModalOpen(true);
   };
-
   if (isLoading) {
-    return (
-      <div className="p-6">
+    return <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Service Contracts</h1>
         </div>
         <div className="flex items-center justify-center h-32">
           <div className="text-muted-foreground">Loading contracts...</div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (error) {
-    return (
-      <div className="p-6">
+    return <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Service Contracts</h1>
         </div>
@@ -125,12 +122,9 @@ const ServiceContracts: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="p-6 space-y-6">
+  return <div className="p-6 space-y-6">
       {/* Breadcrumbs */}
       <Breadcrumb>
         <BreadcrumbList>
@@ -194,9 +188,9 @@ const ServiceContracts: React.FC = () => {
               <div>
                 <p className="text-2xl font-bold">
                   {contracts.filter(c => {
-                    const days = getDaysUntilExpiry(c.end_date);
-                    return days <= 30 && days > 0;
-                  }).length}
+                  const days = getDaysUntilExpiry(c.end_date);
+                  return days <= 30 && days > 0;
+                }).length}
                 </p>
                 <p className="text-xs text-muted-foreground">Expiring Soon</p>
               </div>
@@ -222,11 +216,10 @@ const ServiceContracts: React.FC = () => {
       {/* Contracts Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Service Contracts</CardTitle>
+          <CardTitle>Service Contracts List</CardTitle>
         </CardHeader>
         <CardContent>
-          {contracts.length === 0 ? (
-            <div className="text-center py-8">
+          {contracts.length === 0 ? <div className="text-center py-8">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No service contracts found</h3>
               <p className="text-muted-foreground mb-4">
@@ -236,36 +229,31 @@ const ServiceContracts: React.FC = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Add Contract
               </Button>
-            </div>
-          ) : (
-            <Table>
+            </div> : <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Contract</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead>End Date</TableHead>
-                  <TableHead>Days Until Expiry</TableHead>
-                  <TableHead>Cost</TableHead>
-                  <TableHead>Reminders</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="bg-gray-300 rounded-md">Contract</TableHead>
+                  <TableHead className="bg-gray-300">Vendor</TableHead>
+                  <TableHead className="bg-gray-300">Status</TableHead>
+                  <TableHead className="bg-gray-300">Start Date</TableHead>
+                  <TableHead className="bg-gray-300">End Date</TableHead>
+                  <TableHead className="bg-gray-300">Days Until Expiry</TableHead>
+                  <TableHead className="bg-gray-300">Cost</TableHead>
+                  <TableHead className="bg-gray-300">Reminders</TableHead>
+                  <TableHead className="bg-gray-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contracts.map((contract) => {
-                  const daysUntilExpiry = getDaysUntilExpiry(contract.end_date);
-                  return (
-                    <TableRow key={contract.id}>
+                {contracts.map(contract => {
+              const daysUntilExpiry = getDaysUntilExpiry(contract.end_date);
+              return <TableRow key={contract.id}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{contract.contract_title}</div>
-                          {contract.description && (
-                            <div className="text-sm text-muted-foreground">
+                          {contract.description && <div className="text-sm text-muted-foreground">
                               {contract.description.substring(0, 50)}
                               {contract.description.length > 50 && '...'}
-                            </div>
-                          )}
+                            </div>}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -288,41 +276,24 @@ const ServiceContracts: React.FC = () => {
                          {formatDate(contract.end_date)}
                        </TableCell>
                       <TableCell>
-                        <div className={`font-medium ${
-                          daysUntilExpiry <= 7 ? 'text-red-600' :
-                          daysUntilExpiry <= 30 ? 'text-yellow-600' :
-                          'text-green-600'
-                        }`}>
+                        <div className={`font-medium ${daysUntilExpiry <= 7 ? 'text-red-600' : daysUntilExpiry <= 30 ? 'text-yellow-600' : 'text-green-600'}`}>
                           {daysUntilExpiry > 0 ? `${daysUntilExpiry} days` : 'Expired'}
                         </div>
                       </TableCell>
                        <TableCell>
-                         {contract.contract_cost ? 
-                           formatCurrency(contract.contract_cost) : 
-                           'N/A'
-                         }
+                         {contract.contract_cost ? formatCurrency(contract.contract_cost) : 'N/A'}
                        </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          {contract.email_reminder_enabled ? (
-                            <Mail className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                          )}
-                          {contract.reminder_days_before && (
-                            <span className="text-sm text-muted-foreground">
+                          {contract.email_reminder_enabled ? <Mail className="h-4 w-4 text-green-600" /> : <Mail className="h-4 w-4 text-muted-foreground" />}
+                          {contract.reminder_days_before && <span className="text-sm text-muted-foreground">
                               {contract.reminder_days_before}d
-                            </span>
-                          )}
+                            </span>}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewDetails(contract)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handleViewDetails(contract)}>
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button variant="outline" size="sm">
@@ -330,27 +301,16 @@ const ServiceContracts: React.FC = () => {
                           </Button>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  );
-                })}
+                    </TableRow>;
+            })}
               </TableBody>
-            </Table>
-          )}
+            </Table>}
         </CardContent>
       </Card>
 
-      <ServiceContractModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      <ServiceContractModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-      <ContractDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        contract={contractForDetail}
-      />
-    </div>
-  );
+      <ContractDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} contract={contractForDetail} />
+    </div>;
 };
-
 export default ServiceContracts;
