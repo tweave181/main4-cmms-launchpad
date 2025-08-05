@@ -5,30 +5,28 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { Edit, Trash, Search, Plus, FileText } from 'lucide-react';
-import { useCompanies, useDeleteCompany } from '@/hooks/useCompanies';
-import { AddressDisplay } from '@/components/addresses/AddressDisplay';
+import { Search, Plus, FileText } from 'lucide-react';
+import { useCompanies } from '@/hooks/useCompanies';
 import { COMPANY_TYPES } from '@/types/company';
+import { CompanyDetailModal } from './CompanyDetailModal';
 import type { CompanyDetails } from '@/types/company';
 interface CompanyManagementTableProps {
-  onEditCompany: (company: CompanyDetails) => void;
   onCreateCompany: () => void;
   onViewHistory: (company: CompanyDetails) => void;
 }
 export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
-  onEditCompany,
   onCreateCompany,
   onViewHistory
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
   const itemsPerPage = 10;
   const {
     data: companies = [],
     isLoading
   } = useCompanies();
-  const deleteMutation = useDeleteCompany();
 
   // Filter companies based on search and type filter
   const filteredCompanies = companies.filter(company => {
@@ -41,11 +39,11 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
   const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedCompanies = filteredCompanies.slice(startIndex, startIndex + itemsPerPage);
-  const handleDelete = (company: CompanyDetails) => {
-    if (window.confirm(`Are you sure you want to delete "${company.company_name}"? This action cannot be undone.`)) {
-      deleteMutation.mutate(company.id);
-    }
+  
+  const handleCompanyClick = (company: CompanyDetails) => {
+    setSelectedCompany(company);
   };
+  
   const resetFilters = () => {
     setSearchTerm('');
     setTypeFilter('all');
@@ -103,15 +101,18 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
               <TableHead className="bg-gray-300">Contact Name</TableHead>
               <TableHead className="bg-gray-300">Email</TableHead>
               <TableHead className="bg-gray-300">Phone</TableHead>
-              <TableHead className="text-center bg-gray-300">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedCompanies.length === 0 ? <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                   {searchTerm || typeFilter !== 'all' ? 'No companies match your filters' : 'No companies found'}
                 </TableCell>
-              </TableRow> : paginatedCompanies.map(company => <TableRow key={company.id}>
+              </TableRow> : paginatedCompanies.map(company => <TableRow 
+                key={company.id}
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => handleCompanyClick(company)}
+              >
                   <TableCell className="font-medium">
                     {company.company_name}
                   </TableCell>
@@ -125,19 +126,6 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
                   <TableCell>{company.contact_name || '-'}</TableCell>
                   <TableCell>{company.email || '-'}</TableCell>
                   <TableCell>{company.phone || '-'}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex justify-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => onViewHistory(company)} title="View History">
-                        <FileText className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => onEditCompany(company)} title="Edit Company">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(company)} disabled={deleteMutation.isPending} title="Delete Company" className="text-red-600 hover:text-red-700">
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
                 </TableRow>)}
           </TableBody>
         </Table>
@@ -163,5 +151,13 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
             </PaginationItem>
           </PaginationContent>
         </Pagination>}
+
+      {selectedCompany && (
+        <CompanyDetailModal
+          company={selectedCompany}
+          isOpen={!!selectedCompany}
+          onClose={() => setSelectedCompany(null)}
+        />
+      )}
     </div>;
 };

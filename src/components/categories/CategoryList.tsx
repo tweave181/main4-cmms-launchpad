@@ -8,11 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { Category, useCategories } from '@/hooks/useCategories';
+import { Category } from '@/hooks/useCategories';
 
 interface CategoryListProps {
   categories: Category[];
@@ -25,17 +23,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({
   onEditCategory,
   onCategoryClick,
 }) => {
-  const { deleteCategory } = useCategories();
-
-  const handleDelete = async (category: Category) => {
-    if (window.confirm(`Are you sure you want to delete the category "${category.name}"?`)) {
-      try {
-        await deleteCategory.mutateAsync(category.id);
-      } catch (error) {
-        // Error handling is done in the mutation
-      }
-    }
-  };
 
   if (categories.length === 0) {
     return (
@@ -56,7 +43,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Created</TableHead>
-            
           </TableRow>
         </TableHeader>
         <TableBody>

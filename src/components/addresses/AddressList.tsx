@@ -89,13 +89,12 @@ export const AddressList: React.FC<AddressListProps> = ({ onAddAddress }) => {
                 <TableHead>Town/City</TableHead>
                 <TableHead>Postcode</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {addresses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                     {search ? 'No addresses found matching your search.' : 'No addresses found. Create your first address to get started.'}
                   </TableCell>
                 </TableRow>

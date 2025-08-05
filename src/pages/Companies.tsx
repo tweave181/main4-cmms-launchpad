@@ -39,7 +39,7 @@ const Companies: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <CompanyManagementTable onCreateCompany={handleCreateCompany} onEditCompany={handleEditCompany} onViewHistory={handleViewHistory} />
+          <CompanyManagementTable onCreateCompany={handleCreateCompany} onViewHistory={handleViewHistory} />
         </CardContent>
       </Card>
 
