@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUsers } from '@/hooks/queries/useUsers';
@@ -7,11 +7,17 @@ import { useUpdateUserStatus } from '@/hooks/mutations/useUpdateUserStatus';
 import { UserTableHeader } from './UserTableHeader';
 import { UserTableRow } from './UserTableRow';
 import { UserListEmptyState } from './UserListEmptyState';
+import { UserDetailModal } from './UserDetailModal';
 import { toast } from '@/components/ui/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type User = Database['public']['Tables']['users']['Row'];
 
 export const UserList: React.FC = () => {
   const { data: users, isLoading, error } = useUsers();
   const updateUserStatusMutation = useUpdateUserStatus();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const handleToggleUserStatus = async (userId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
@@ -29,6 +35,11 @@ export const UserList: React.FC = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user);
+    setIsDetailModalOpen(true);
   };
 
   if (isLoading) {
@@ -69,10 +80,24 @@ export const UserList: React.FC = () => {
               user={user}
               onToggleStatus={handleToggleUserStatus}
               isUpdating={updateUserStatusMutation.isPending}
+              onUserClick={handleUserClick}
             />
           ))}
         </TableBody>
       </Table>
+
+      {selectedUser && (
+        <UserDetailModal
+          user={selectedUser}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedUser(null);
+          }}
+          onToggleStatus={handleToggleUserStatus}
+          isUpdating={updateUserStatusMutation.isPending}
+        />
+      )}
     </div>
   );
 };

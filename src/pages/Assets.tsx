@@ -144,6 +144,11 @@ const Assets: React.FC = () => {
             setIsDetailOpen(false);
             handleEditAsset(selectedAsset);
           }}
+          onDelete={() => {
+            setIsDetailOpen(false);
+            setSelectedAsset(null);
+            deleteAsset(selectedAsset.id);
+          }}
         />
       )}
     </div>

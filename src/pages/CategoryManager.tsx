@@ -61,6 +61,7 @@ const CategoryManager: React.FC = () => {
           <CategoryList
             categories={categories}
             onEditCategory={handleEditCategory}
+            onCategoryClick={handleEditCategory}
           />
         </CardContent>
       </Card>

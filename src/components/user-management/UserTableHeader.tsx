@@ -13,7 +13,7 @@ export const UserTableHeader: React.FC = () => {
         <TableHead>Status</TableHead>
         <TableHead>Last Login</TableHead>
         <TableHead>Joined</TableHead>
-        <TableHead className="w-[70px]"></TableHead>
+        
       </TableRow>
     </TableHeader>;
 };

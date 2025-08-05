@@ -30,6 +30,7 @@ interface AssetDetailProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: () => void;
+  onDelete?: () => void;
   onUpdate?: () => void;
 }
 
@@ -38,6 +39,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   isOpen,
   onClose,
   onEdit,
+  onDelete,
   onUpdate,
 }) => {
   const tabs = [
@@ -64,7 +66,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <AssetDetailHeader asset={asset} onEdit={onEdit} />
+        <AssetDetailHeader asset={asset} onEdit={onEdit} onDelete={onDelete} />
 
         <div className="space-y-6">
           <AssetBasicInfo asset={asset} />

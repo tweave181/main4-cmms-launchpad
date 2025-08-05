@@ -1,9 +1,6 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Eye, Edit, Trash } from 'lucide-react';
 import { useDepartments } from '@/hooks/useDepartments';
 import type { Database } from '@/integrations/supabase/types';
 type Asset = Database['public']['Tables']['assets']['Row'];
@@ -59,7 +56,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
             <TableHead className="bg-slate-300">Location</TableHead>
             <TableHead className="bg-gray-300">Status</TableHead>
             <TableHead className="bg-gray-300">Priority</TableHead>
-            <TableHead className="w-[50px] bg-gray-300">Actions</TableHead>
+            
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -77,29 +74,6 @@ export const AssetTable: React.FC<AssetTableProps> = ({
               </TableCell>
               <TableCell>{getStatusBadge(asset.status)}</TableCell>
               <TableCell>{getPriorityBadge(asset.priority)}</TableCell>
-              <TableCell onClick={e => e.stopPropagation()}>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onViewAsset(asset)}>
-                      <Eye className="mr-2 h-4 w-4" />
-                      View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onEditAsset(asset)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDeleteAsset(asset.id)} className="text-red-600">
-                      <Trash className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
             </TableRow>)}
         </TableBody>
       </Table>

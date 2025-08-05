@@ -3,7 +3,8 @@ import React from 'react';
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit2 } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
+import { useAuth } from '@/contexts/auth';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'];
@@ -11,12 +12,15 @@ type Asset = Database['public']['Tables']['assets']['Row'];
 interface AssetDetailHeaderProps {
   asset: Asset;
   onEdit: () => void;
+  onDelete?: () => void;
 }
 
 export const AssetDetailHeader: React.FC<AssetDetailHeaderProps> = ({
   asset,
   onEdit,
+  onDelete,
 }) => {
+  const { isAdmin } = useAuth();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -44,10 +48,18 @@ export const AssetDetailHeader: React.FC<AssetDetailHeaderProps> = ({
           <DialogTitle className="text-2xl font-semibold">
             Asset Record For: {asset.name}
           </DialogTitle>
-          <Button onClick={onEdit} className="rounded-2xl">
-            <Edit2 className="w-4 h-4 mr-2" />
-            Edit Asset
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={onEdit} className="rounded-2xl">
+              <Edit2 className="w-4 h-4 mr-2" />
+              Edit Asset
+            </Button>
+            {isAdmin && onDelete && (
+              <Button onClick={onDelete} variant="destructive" className="rounded-2xl">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Asset
+              </Button>
+            )}
+          </div>
         </div>
       </DialogHeader>
 

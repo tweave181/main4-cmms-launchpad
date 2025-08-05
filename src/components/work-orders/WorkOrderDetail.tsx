@@ -9,7 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, User, Wrench, DollarSign, Edit } from 'lucide-react';
+import { Calendar, Clock, User, Wrench, DollarSign, Edit, Trash2 } from 'lucide-react';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { useAuth } from '@/contexts/auth';
 import { ActivityLog } from './ActivityLog';
@@ -24,6 +24,7 @@ interface WorkOrderDetailProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
@@ -31,6 +32,7 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
   isOpen,
   onClose,
   onEdit,
+  onDelete,
 }) => {
   const { formatDate, formatCurrency } = useGlobalSettings();
   const { userProfile } = useAuth();
@@ -73,22 +75,35 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
                 <span>{workOrder.title}</span>
               </div>
             </DialogTitle>
-            {onEdit && canEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onEdit}
-                className="flex items-center space-x-2"
-              >
-                <Edit className="h-4 w-4" />
-                <span>Edit</span>
-              </Button>
-            )}
-            {!canEdit && isCompleted && (
-              <Badge variant="secondary" className="text-xs">
-                Read Only
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {onEdit && canEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onEdit}
+                  className="flex items-center space-x-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  <span>Edit</span>
+                </Button>
+              )}
+              {isAdmin && onDelete && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={onDelete}
+                  className="flex items-center space-x-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete</span>
+                </Button>
+              )}
+              {!canEdit && isCompleted && (
+                <Badge variant="secondary" className="text-xs">
+                  Read Only
+                </Badge>
+              )}
+            </div>
           </div>
         </DialogHeader>
 

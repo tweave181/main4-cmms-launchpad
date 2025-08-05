@@ -6,7 +6,7 @@ import { Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { UserRoleBadge } from './UserRoleBadge';
 import { UserEmploymentBadge } from './UserEmploymentBadge';
-import { UserActionsDropdown } from './UserActionsDropdown';
+
 import type { Database } from '@/integrations/supabase/types';
 
 type User = Database['public']['Tables']['users']['Row'] & {
@@ -18,15 +18,17 @@ interface UserTableRowProps {
   user: User;
   onToggleStatus: (userId: string, currentStatus: string) => void;
   isUpdating: boolean;
+  onUserClick: (user: User) => void;
 }
 
 export const UserTableRow: React.FC<UserTableRowProps> = ({
   user,
   onToggleStatus,
   isUpdating,
+  onUserClick,
 }) => {
   return (
-    <TableRow>
+    <TableRow className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => onUserClick(user)}>
       <TableCell className="font-medium">{user.name}</TableCell>
       <TableCell>{user.email}</TableCell>
       <TableCell>
@@ -64,13 +66,6 @@ export const UserTableRow: React.FC<UserTableRowProps> = ({
       </TableCell>
       <TableCell>
         {format(new Date(user.created_at), 'MMM d, yyyy')}
-      </TableCell>
-      <TableCell>
-        <UserActionsDropdown
-          user={user}
-          onToggleStatus={onToggleStatus}
-          isUpdating={isUpdating}
-        />
       </TableCell>
     </TableRow>
   );

@@ -17,11 +17,13 @@ import { Category, useCategories } from '@/hooks/useCategories';
 interface CategoryListProps {
   categories: Category[];
   onEditCategory: (category: Category) => void;
+  onCategoryClick: (category: Category) => void;
 }
 
 export const CategoryList: React.FC<CategoryListProps> = ({
   categories,
   onEditCategory,
+  onCategoryClick,
 }) => {
   const { deleteCategory } = useCategories();
 
@@ -54,12 +56,12 @@ export const CategoryList: React.FC<CategoryListProps> = ({
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Created</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            
           </TableRow>
         </TableHeader>
         <TableBody>
           {categories.map((category) => (
-            <TableRow key={category.id}>
+            <TableRow key={category.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => onCategoryClick(category)}>
               <TableCell className="font-medium">
                 {category.name}
               </TableCell>
@@ -70,26 +72,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({
               </TableCell>
               <TableCell>
                 {new Date(category.created_at).toLocaleDateString()}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEditCategory(category)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(category)}
-                    className="text-red-600 hover:text-red-700"
-                    disabled={deleteCategory.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
               </TableCell>
             </TableRow>
           ))}
