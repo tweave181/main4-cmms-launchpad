@@ -103,13 +103,12 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
               <TableHead className="bg-gray-300">Contact Name</TableHead>
               <TableHead className="bg-gray-300">Email</TableHead>
               <TableHead className="bg-gray-300">Phone</TableHead>
-              <TableHead className="bg-gray-300">Address</TableHead>
-              <TableHead className="text-right bg-gray-300">Actions</TableHead>
+              <TableHead className="text-center bg-gray-300">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedCompanies.length === 0 ? <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                   {searchTerm || typeFilter !== 'all' ? 'No companies match your filters' : 'No companies found'}
                 </TableCell>
               </TableRow> : paginatedCompanies.map(company => <TableRow key={company.id}>
@@ -126,11 +125,8 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
                   <TableCell>{company.contact_name || '-'}</TableCell>
                   <TableCell>{company.email || '-'}</TableCell>
                   <TableCell>{company.phone || '-'}</TableCell>
-                  <TableCell>
-                    <AddressDisplay address={company.company_address || null} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                  <TableCell className="text-center">
+                    <div className="flex justify-center gap-1">
                       <Button variant="ghost" size="sm" onClick={() => onViewHistory(company)} title="View History">
                         <FileText className="h-4 w-4" />
                       </Button>
