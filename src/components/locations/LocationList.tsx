@@ -11,6 +11,13 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { MapPin, Plus, Search } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
@@ -18,6 +25,7 @@ import { useLocations } from '@/hooks/useLocations';
 import { LocationForm } from './LocationForm';
 import { LocationDetailModal } from './LocationDetailModal';
 import type { Location, LocationFilters } from '@/types/location';
+import { LOCATION_LEVELS } from '@/types/location';
 
 export const LocationList: React.FC = () => {
   const { userProfile } = useAuth();
@@ -40,7 +48,15 @@ export const LocationList: React.FC = () => {
   };
 
   const handleSearchChange = (value: string) => {
-    setFilters({ search: value || undefined });
+    setFilters(prev => ({ ...prev, search: value || undefined }));
+  };
+
+  const handleParentLocationChange = (value: string) => {
+    setFilters(prev => ({ ...prev, parent_location_id: value === 'all' ? undefined : value }));
+  };
+
+  const handleLocationLevelChange = (value: string) => {
+    setFilters(prev => ({ ...prev, location_level: value === 'all' ? undefined : value }));
   };
 
   if (isLoading) {
@@ -69,8 +85,8 @@ export const LocationList: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Search */}
-          <div className="flex items-center space-x-2 mb-6">
+          {/* Search and Filters */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -79,6 +95,34 @@ export const LocationList: React.FC = () => {
                 onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
+            
+            <Select onValueChange={handleParentLocationChange}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Filter by Parent" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {locations.filter(loc => !loc.parent_location_id).map((location) => (
+                  <SelectItem key={location.id} value={location.id}>
+                    {location.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select onValueChange={handleLocationLevelChange}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Filter by Level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem>
+                {LOCATION_LEVELS.map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {level}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Locations Table */}
@@ -86,10 +130,10 @@ export const LocationList: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead>Location Name</TableHead>
+                  <TableHead>Level</TableHead>
+                  <TableHead>Parent Site/Location</TableHead>
+                  <TableHead>Created Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -115,16 +159,21 @@ export const LocationList: React.FC = () => {
                       className="cursor-pointer hover:bg-muted/50 transition-colors"
                       onClick={() => handleLocationClick(location)}
                     >
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {location.name}
+                          <Badge variant="secondary" className="font-mono text-xs">
+                            {location.location_code}
+                          </Badge>
+                        </div>
+                      </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="font-mono">
-                          {location.location_code}
+                        <Badge variant="outline">
+                          {location.location_level || 'Building'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {location.name}
-                      </TableCell>
                       <TableCell className="text-gray-600">
-                        {location.description || '-'}
+                        {location.parent_location?.name || '-'}
                       </TableCell>
                       <TableCell className="text-gray-600">
                         {formatDate(location.created_at)}

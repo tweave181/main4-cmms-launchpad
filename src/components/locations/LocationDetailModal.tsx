@@ -117,6 +117,16 @@ export const LocationDetailModal: React.FC<LocationDetailModalProps> = ({
                   <p className="text-sm font-medium">Location Code</p>
                   <p className="text-sm text-gray-600 font-mono">{location.location_code}</p>
                 </div>
+                <div>
+                  <p className="text-sm font-medium">Location Level</p>
+                  <p className="text-sm text-gray-600">{location.location_level || 'Building'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Parent Location</p>
+                  <p className="text-sm text-gray-600">
+                    {location.parent_location?.name || 'None (Top Level)'}
+                  </p>
+                </div>
                 <div className="md:col-span-2">
                   <p className="text-sm font-medium">Description</p>
                   <p className="text-sm text-gray-600">

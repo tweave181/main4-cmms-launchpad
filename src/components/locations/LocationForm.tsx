@@ -20,10 +20,18 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { HelpCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
-import { useCreateLocation, useUpdateLocation } from '@/hooks/useLocations';
+import { useCreateLocation, useUpdateLocation, useLocations } from '@/hooks/useLocations';
 import type { Location, LocationFormData } from '@/types/location';
+import { LOCATION_LEVELS } from '@/types/location';
 
 const locationSchema = z.object({
   name: z.string().min(1, 'Location name is required').max(100, 'Name too long'),
@@ -33,6 +41,8 @@ const locationSchema = z.object({
     .regex(/^[A-Z]+$/, 'Location code must contain only uppercase letters')
     .optional(),
   description: z.string().max(500, 'Description too long').optional(),
+  parent_location_id: z.string().optional(),
+  location_level: z.string().optional(),
 });
 
 interface LocationFormProps {
@@ -50,6 +60,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
   const isAdmin = userProfile?.role === 'admin';
   const createLocation = useCreateLocation();
   const updateLocation = useUpdateLocation();
+  const { data: allLocations = [] } = useLocations();
 
   const form = useForm<LocationFormData>({
     resolver: zodResolver(locationSchema),
@@ -57,6 +68,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
       name: location?.name || '',
       location_code: location?.location_code || '',
       description: location?.description || '',
+      parent_location_id: location?.parent_location_id || '',
+      location_level: location?.location_level || 'Building',
     },
   });
 
@@ -139,6 +152,59 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                 )}
               />
             )}
+
+            <FormField
+              control={form.control}
+              name="parent_location_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Parent Location or Site</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select parent location (optional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">None (Top Level)</SelectItem>
+                      {allLocations
+                        .filter(loc => loc.id !== location?.id) // Don't allow self-reference
+                        .map((loc) => (
+                          <SelectItem key={loc.id} value={loc.id}>
+                            {loc.name} ({loc.location_code})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location_level"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location Level</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select location level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {LOCATION_LEVELS.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

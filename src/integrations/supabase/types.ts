@@ -859,7 +859,9 @@ export type Database = {
           description: string | null
           id: string
           location_code: string
+          location_level: string | null
           name: string
+          parent_location_id: string | null
           tenant_id: string
           updated_at: string
         }
@@ -868,7 +870,9 @@ export type Database = {
           description?: string | null
           id?: string
           location_code: string
+          location_level?: string | null
           name: string
+          parent_location_id?: string | null
           tenant_id: string
           updated_at?: string
         }
@@ -877,11 +881,20 @@ export type Database = {
           description?: string | null
           id?: string
           location_code?: string
+          location_level?: string | null
           name?: string
+          parent_location_id?: string | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "locations_parent_location_id_fkey"
+            columns: ["parent_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "locations_tenant_id_fkey"
             columns: ["tenant_id"]
