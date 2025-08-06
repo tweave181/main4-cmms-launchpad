@@ -27,6 +27,7 @@ export const AppSidebar = () => {
     { icon: Briefcase, label: 'Job Titles', href: '/job-titles' },
     { icon: Building2, label: 'Company Details', href: '/companies' },
     { icon: MapPin, label: 'Addresses', href: '/addresses' },
+    { icon: MapPin, label: 'Locations', href: '/locations' },
     { icon: ScrollText, label: 'Service Contracts', href: '/admin/service-contracts' },
     { icon: FolderOpen, label: 'Categories', href: '/categories' },
     { icon: Cog, label: 'Asset Prefixes', href: '/asset-prefixes' },
