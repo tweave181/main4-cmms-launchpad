@@ -41,8 +41,8 @@ const locationSchema = z.object({
     .regex(/^[A-Z]+$/, 'Location code must contain only uppercase letters')
     .optional(),
   description: z.string().max(500, 'Description too long').optional(),
-  parent_location_id: z.string().optional(),
-  location_level: z.string().optional(),
+  parent_location_id: z.string().optional().or(z.literal('')),
+  location_level: z.string().min(1, 'Location level is required'),
 });
 
 interface LocationFormProps {
@@ -75,10 +75,18 @@ export const LocationForm: React.FC<LocationFormProps> = ({
 
   const onSubmit = async (data: LocationFormData) => {
     try {
+      // Clean up data before submission
+      const cleanedData = {
+        ...data,
+        parent_location_id: data.parent_location_id === '' ? undefined : data.parent_location_id,
+        description: data.description === '' ? undefined : data.description,
+        location_code: data.location_code === '' ? undefined : data.location_code,
+      };
+
       if (location) {
-        await updateLocation.mutateAsync({ id: location.id, data });
+        await updateLocation.mutateAsync({ id: location.id, data: cleanedData });
       } else {
-        await createLocation.mutateAsync(data);
+        await createLocation.mutateAsync(cleanedData);
       }
       onClose();
       form.reset();
@@ -158,14 +166,14 @@ export const LocationForm: React.FC<LocationFormProps> = ({
               name="parent_location_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Parent Location or Site</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <FormLabel>Parent Location or Site (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select parent location (optional)" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-background border border-border shadow-md z-50">
                       <SelectItem value="">None (Top Level)</SelectItem>
                       {allLocations
                         .filter(loc => loc.id !== location?.id) // Don't allow self-reference
@@ -186,14 +194,14 @@ export const LocationForm: React.FC<LocationFormProps> = ({
               name="location_level"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Location Level</FormLabel>
+                  <FormLabel>Location Level *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select location level" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-background border border-border shadow-md z-50">
                       {LOCATION_LEVELS.map((level) => (
                         <SelectItem key={level} value={level}>
                           {level}
