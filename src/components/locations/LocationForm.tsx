@@ -41,7 +41,7 @@ const locationSchema = z.object({
     .regex(/^[A-Z]+$/, 'Location code must contain only uppercase letters')
     .optional(),
   description: z.string().max(500, 'Description too long').optional(),
-  parent_location_id: z.string().optional().or(z.literal('')),
+  parent_location_id: z.string().optional().or(z.literal('none')),
   location_level: z.string().min(1, 'Location level is required'),
 });
 
@@ -68,7 +68,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
       name: location?.name || '',
       location_code: location?.location_code || '',
       description: location?.description || '',
-      parent_location_id: location?.parent_location_id || '',
+      parent_location_id: location?.parent_location_id || 'none',
       location_level: location?.location_level || 'Building',
     },
   });
@@ -78,7 +78,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
       // Clean up data before submission
       const cleanedData = {
         ...data,
-        parent_location_id: data.parent_location_id === '' ? undefined : data.parent_location_id,
+        parent_location_id: data.parent_location_id === 'none' || data.parent_location_id === '' ? undefined : data.parent_location_id,
         description: data.description === '' ? undefined : data.description,
         location_code: data.location_code === '' ? undefined : data.location_code,
       };
@@ -167,14 +167,14 @@ export const LocationForm: React.FC<LocationFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Parent Location or Site (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select onValueChange={field.onChange} value={field.value || "none"}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select parent location (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-background border border-border shadow-md z-50">
-                      <SelectItem value="">None (Top Level)</SelectItem>
+                      <SelectItem value="none">None (Top Level)</SelectItem>
                       {allLocations
                         .filter(loc => loc.id !== location?.id) // Don't allow self-reference
                         .map((loc) => (
