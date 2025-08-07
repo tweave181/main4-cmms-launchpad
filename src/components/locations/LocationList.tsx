@@ -12,7 +12,7 @@ import { useLocations } from '@/hooks/useLocations';
 import { LocationForm } from './LocationForm';
 import { LocationDetailModal } from './LocationDetailModal';
 import type { Location, LocationFilters } from '@/types/location';
-import { LOCATION_LEVELS } from '@/types/location';
+import { useLocationLevels } from '@/hooks/useLocationLevels';
 export const LocationList: React.FC = () => {
   const {
     userProfile
@@ -29,6 +29,7 @@ export const LocationList: React.FC = () => {
     data: locations = [],
     isLoading
   } = useLocations(filters);
+  const { data: locationLevels = [] } = useLocationLevels({ is_active: true });
   const handleCreateClick = () => {
     setEditingLocation(undefined);
     setIsFormOpen(true);
@@ -51,7 +52,7 @@ export const LocationList: React.FC = () => {
   const handleLocationLevelChange = (value: string) => {
     setFilters(prev => ({
       ...prev,
-      location_level: value === 'all' ? undefined : value
+      location_level_id: value === 'all' ? undefined : value
     }));
   };
   if (isLoading) {
@@ -99,8 +100,8 @@ export const LocationList: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Levels</SelectItem>
-                {LOCATION_LEVELS.map(level => <SelectItem key={level} value={level}>
-                    {level}
+                {locationLevels.map(level => <SelectItem key={level.id} value={level.id}>
+                    {level.name}
                   </SelectItem>)}
               </SelectContent>
             </Select>
@@ -140,7 +141,7 @@ export const LocationList: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {location.location_level || 'Building'}
+                          {location.location_level_data?.name || location.location_level || 'Building'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-gray-600">

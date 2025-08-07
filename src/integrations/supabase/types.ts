@@ -853,6 +853,36 @@ export type Database = {
           },
         ]
       }
+      location_levels: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           created_at: string
@@ -860,6 +890,7 @@ export type Database = {
           id: string
           location_code: string
           location_level: string | null
+          location_level_id: string | null
           name: string
           parent_location_id: string | null
           tenant_id: string
@@ -871,6 +902,7 @@ export type Database = {
           id?: string
           location_code: string
           location_level?: string | null
+          location_level_id?: string | null
           name: string
           parent_location_id?: string | null
           tenant_id: string
@@ -882,12 +914,20 @@ export type Database = {
           id?: string
           location_code?: string
           location_level?: string | null
+          location_level_id?: string | null
           name?: string
           parent_location_id?: string | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_locations_location_level_id"
+            columns: ["location_level_id"]
+            isOneToOne: false
+            referencedRelation: "location_levels"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "locations_parent_location_id_fkey"
             columns: ["parent_location_id"]
@@ -1678,6 +1718,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      insert_default_location_levels: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
       }
       is_admin: {
         Args: Record<PropertyKey, never>

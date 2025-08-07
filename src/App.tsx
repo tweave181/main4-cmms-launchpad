@@ -28,6 +28,7 @@ import JobTitleDetails from "./pages/JobTitleDetails";
 import Companies from "./pages/Companies";
 import Addresses from "./pages/Addresses";
 import Locations from "./pages/Locations";
+import LocationLevels from "./pages/LocationLevels";
 import AddressBook from "./pages/AddressBook";
 import ServiceContracts from "./pages/ServiceContracts";
 import AssetPrefixManager from "./pages/AssetPrefixManager";
@@ -68,8 +69,9 @@ function App() {
                              <Route path="/departments" element={<Departments />} />
                              <Route path="/departments/:id" element={<DepartmentDetails />} />
                              <Route path="/job-titles" element={<JobTitles />} />
-                             <Route path="/job-titles/:id" element={<JobTitleDetails />} />
-                              <Route path="/companies" element={<Companies />} />
+                              <Route path="/job-titles/:id" element={<JobTitleDetails />} />
+                              <Route path="/location-levels" element={<LocationLevels />} />
+                               <Route path="/companies" element={<Companies />} />
                               <Route path="/addresses" element={<Addresses />} />
                               <Route path="/locations" element={<Locations />} />
                               <Route path="/admin/service-contracts" element={<ServiceContracts />} />

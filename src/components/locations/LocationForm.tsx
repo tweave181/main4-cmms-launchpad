@@ -30,8 +30,8 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useCreateLocation, useUpdateLocation, useLocations } from '@/hooks/useLocations';
+import { useLocationLevels } from '@/hooks/useLocationLevels';
 import type { Location, LocationFormData } from '@/types/location';
-import { LOCATION_LEVELS } from '@/types/location';
 
 const locationSchema = z.object({
   name: z.string().min(1, 'Location name is required').max(100, 'Name too long'),
@@ -42,7 +42,7 @@ const locationSchema = z.object({
     .optional(),
   description: z.string().max(500, 'Description too long').optional(),
   parent_location_id: z.string().optional().or(z.literal('none')),
-  location_level: z.string().min(1, 'Location level is required'),
+  location_level_id: z.string().min(1, 'Location level is required'),
 });
 
 interface LocationFormProps {
@@ -61,6 +61,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
   const createLocation = useCreateLocation();
   const updateLocation = useUpdateLocation();
   const { data: allLocations = [] } = useLocations();
+  const { data: locationLevels = [] } = useLocationLevels({ is_active: true });
 
   const form = useForm<LocationFormData>({
     resolver: zodResolver(locationSchema),
@@ -69,7 +70,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
       location_code: location?.location_code || '',
       description: location?.description || '',
       parent_location_id: location?.parent_location_id || 'none',
-      location_level: location?.location_level || 'Building',
+      location_level_id: location?.location_level_id || '',
     },
   });
 
@@ -191,7 +192,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
 
             <FormField
               control={form.control}
-              name="location_level"
+              name="location_level_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Location Level *</FormLabel>
@@ -202,11 +203,17 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-background border border-border shadow-md z-50">
-                      {LOCATION_LEVELS.map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level}
+                      {locationLevels.length === 0 ? (
+                        <SelectItem value="" disabled>
+                          No location levels available - Contact admin
                         </SelectItem>
-                      ))}
+                      ) : (
+                        locationLevels.map((level) => (
+                          <SelectItem key={level.id} value={level.id}>
+                            {level.name} {level.code && `(${level.code})`}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
