@@ -10,53 +10,27 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Plus, Search, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
-import { useLocationLevels, useDeleteLocationLevel } from '@/hooks/useLocationLevels';
+import { Plus, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useLocationLevels } from '@/hooks/useLocationLevels';
 import { LocationLevelForm } from './LocationLevelForm';
 import type { LocationLevel } from '@/types/location';
 
 export const LocationLevelList: React.FC = () => {
   const [search, setSearch] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingLevel, setEditingLevel] = useState<LocationLevel | undefined>();
-  const [deletingLevel, setDeletingLevel] = useState<LocationLevel | null>(null);
+  const navigate = useNavigate();
 
   const { data: locationLevels = [], isLoading } = useLocationLevels({
     search: search || undefined,
   });
-  const deleteLocationLevel = useDeleteLocationLevel();
 
-  const handleEdit = (level: LocationLevel) => {
-    setEditingLevel(level);
-    setIsFormOpen(true);
-  };
-
-  const handleDelete = async () => {
-    if (deletingLevel) {
-      await deleteLocationLevel.mutateAsync(deletingLevel.id);
-      setDeletingLevel(null);
-    }
+  const handleRowClick = (level: LocationLevel) => {
+    navigate(`/location-levels/${level.id}`);
   };
 
   const handleCloseForm = () => {
     setIsFormOpen(false);
-    setEditingLevel(undefined);
   };
 
   if (isLoading) {
@@ -93,19 +67,22 @@ export const LocationLevelList: React.FC = () => {
               <TableHead>Code</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead className="w-[70px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {locationLevels.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={4} className="text-center text-muted-foreground">
                   No location levels found. Create one to get started.
                 </TableCell>
               </TableRow>
             ) : (
               locationLevels.map((level) => (
-                <TableRow key={level.id}>
+                <TableRow 
+                  key={level.id} 
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleRowClick(level)}
+                >
                   <TableCell className="font-medium">{level.name}</TableCell>
                   <TableCell>
                     {level.code ? (
@@ -124,28 +101,6 @@ export const LocationLevelList: React.FC = () => {
                   <TableCell>
                     {new Date(level.created_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-background border border-border shadow-md z-50">
-                        <DropdownMenuItem onClick={() => handleEdit(level)}>
-                          <Edit2 className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => setDeletingLevel(level)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Deactivate
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -156,29 +111,7 @@ export const LocationLevelList: React.FC = () => {
       <LocationLevelForm
         isOpen={isFormOpen}
         onClose={handleCloseForm}
-        locationLevel={editingLevel}
       />
-
-      <AlertDialog open={!!deletingLevel} onOpenChange={() => setDeletingLevel(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Deactivate Location Level</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to deactivate "{deletingLevel?.name}"? 
-              This will make it unavailable for new locations but won't affect existing locations.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Deactivate
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
