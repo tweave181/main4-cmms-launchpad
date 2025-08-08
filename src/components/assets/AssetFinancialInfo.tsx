@@ -32,7 +32,7 @@ export const AssetFinancialInfo: React.FC<AssetFinancialInfoProps> = ({ asset })
           <span>Financial Information</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="flex items-center space-x-2">
           <DollarSign className="h-4 w-4 text-gray-500" />
           <div>
