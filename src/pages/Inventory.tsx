@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Boxes } from 'lucide-react';
 import { useInventoryParts } from './inventory/hooks/useInventoryParts';
 import { InventorySearchAndFilters } from './inventory/components/InventorySearchAndFilters';
-import { InventoryPartList } from './inventory/components/InventoryPartList';
+import { InventoryPartTable } from './inventory/components/InventoryPartTable';
 import { InventoryEmptyState } from './inventory/components/InventoryEmptyState';
 import { CreatePartModal } from './inventory/components/CreatePartModal';
 import type { Database } from '@/integrations/supabase/types';
@@ -115,10 +115,8 @@ const Inventory: React.FC = () => {
               onCreatePart={() => setCreateModalOpen(true)}
             />
           ) : (
-            <InventoryPartList
+            <InventoryPartTable
               parts={filteredParts}
-              onViewPart={handleViewPart}
-              onEditPart={handleEditPart}
               onDeletePart={deletePart}
             />
           )}
@@ -128,7 +126,9 @@ const Inventory: React.FC = () => {
       <CreatePartModal
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
-        onCreatePart={createPart}
+        onCreatePart={async (data) => {
+          await createPart(data);
+        }}
         isCreating={isCreating}
       />
     </div>

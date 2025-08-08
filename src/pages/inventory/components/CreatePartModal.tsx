@@ -14,7 +14,7 @@ type InventoryPartInsert = Omit<Database['public']['Tables']['inventory_parts'][
 interface CreatePartModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreatePart: (data: InventoryPartInsert) => void;
+  onCreatePart: (data: InventoryPartInsert) => Promise<void>;
   isCreating: boolean;
 }
 
@@ -24,14 +24,23 @@ export const CreatePartModal: React.FC<CreatePartModalProps> = ({
   onCreatePart,
   isCreating,
 }) => {
+  const handleCreatePart = async (data: InventoryPartInsert) => {
+    try {
+      await onCreatePart(data);
+      onOpenChange(false); // Auto-close on success
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
+
   return (
-    <FormDialog open={open} onOpenChange={() => {}}>
+    <FormDialog open={open} onOpenChange={onOpenChange}>
       <FormDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <FormDialogHeader>
           <FormDialogTitle>Add New Part</FormDialogTitle>
         </FormDialogHeader>
         <InventoryPartForm
-          onSubmit={onCreatePart}
+          onSubmit={handleCreatePart}
           onCancel={() => onOpenChange(false)}
           isSubmitting={isCreating}
         />

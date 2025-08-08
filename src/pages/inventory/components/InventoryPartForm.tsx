@@ -14,7 +14,7 @@ type InventoryPartData = Omit<Database['public']['Tables']['inventory_parts']['I
 
 interface InventoryPartFormProps {
   initialData?: Partial<InventoryPartData>;
-  onSubmit: (data: InventoryPartData) => void;
+  onSubmit: (data: InventoryPartData) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
 }

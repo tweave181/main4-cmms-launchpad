@@ -21,7 +21,7 @@ type InventoryPartData = Omit<Database['public']['Tables']['inventory_parts']['I
 
 interface UseInventoryPartFormProps {
   initialData?: Partial<InventoryPartData>;
-  onSubmit: (data: InventoryPartData) => void;
+  onSubmit: (data: InventoryPartData) => Promise<void>;
 }
 
 export const useInventoryPartForm = ({ initialData, onSubmit }: UseInventoryPartFormProps) => {
@@ -40,7 +40,7 @@ export const useInventoryPartForm = ({ initialData, onSubmit }: UseInventoryPart
     },
   });
 
-  const handleSubmit = (data: FormData) => {
+  const handleSubmit = async (data: FormData) => {
     const submitData: InventoryPartData = {
       name: data.name,
       sku: data.sku,
@@ -54,7 +54,7 @@ export const useInventoryPartForm = ({ initialData, onSubmit }: UseInventoryPart
         ? data.storage_locations.split(',').map(loc => loc.trim()).filter(Boolean)
         : null,
     };
-    onSubmit(submitData);
+    await onSubmit(submitData);
   };
 
   return {

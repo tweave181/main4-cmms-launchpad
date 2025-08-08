@@ -163,7 +163,7 @@ export const useInventoryParts = () => {
     parts: parts || [],
     isLoading,
     refetch,
-    createPart: createPartMutation.mutate,
+    createPart: createPartMutation.mutateAsync,
     updatePart: updatePartMutation.mutate,
     deletePart: deletePartMutation.mutate,
     createStockTransaction: createStockTransactionMutation.mutate,

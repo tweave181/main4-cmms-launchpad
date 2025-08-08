@@ -30,6 +30,7 @@ import Addresses from "./pages/Addresses";
 import Locations from "./pages/Locations";
 import LocationLevels from "./pages/LocationLevels";
 import LocationLevelDetails from "./pages/LocationLevelDetails";
+import InventoryPartDetail from "./pages/InventoryPartDetail";
 import AddressBook from "./pages/AddressBook";
 import ServiceContracts from "./pages/ServiceContracts";
 import AssetPrefixManager from "./pages/AssetPrefixManager";
@@ -63,7 +64,8 @@ function App() {
                              <Route path="/assets" element={<Assets />} />
                              <Route path="/work-orders" element={<WorkOrders />} />
                              <Route path="/maintenance" element={<Maintenance />} />
-                             <Route path="/inventory" element={<Inventory />} />
+                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/inventory/:id" element={<InventoryPartDetail />} />
                              <Route path="/address-book" element={<AddressBook />} />
                              <Route path="/reports" element={<Reports />} />
                              <Route path="/users" element={<UserManagement />} />
