@@ -1,54 +1,36 @@
 import React from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Address } from '@/types/address';
 import { MapPin, Calendar, Tag } from 'lucide-react';
 import { AddressTypeBadges } from './AddressTypeBadges';
-
 interface AddressDetailModalProps {
   address: Address | null;
   isOpen: boolean;
   onClose: () => void;
 }
-
-export const AddressDetailModal = ({ address, isOpen, onClose }: AddressDetailModalProps) => {
+export const AddressDetailModal = ({
+  address,
+  isOpen,
+  onClose
+}: AddressDetailModalProps) => {
   if (!address) return null;
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric',
+      day: 'numeric'
     });
   };
-
   const getFullAddress = () => {
-    const addressParts = [
-      address.address_line_1,
-      address.address_line_2,
-      address.address_line_3,
-      address.town_or_city,
-      address.county_or_state,
-      address.postcode,
-    ].filter(Boolean);
-    
+    const addressParts = [address.address_line_1, address.address_line_2, address.address_line_3, address.town_or_city, address.county_or_state, address.postcode].filter(Boolean);
     return addressParts.join(', ');
   };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Company Details
-          </DialogTitle>
+          
         </DialogHeader>
 
         <div className="space-y-6">
@@ -61,21 +43,11 @@ export const AddressDetailModal = ({ address, isOpen, onClose }: AddressDetailMo
             
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <div className="font-medium">{address.address_line_1}</div>
-              {address.address_line_2 && (
-                <div className="text-muted-foreground">{address.address_line_2}</div>
-              )}
-              {address.address_line_3 && (
-                <div className="text-muted-foreground">{address.address_line_3}</div>
-              )}
-              {address.town_or_city && (
-                <div className="text-muted-foreground">{address.town_or_city}</div>
-              )}
-              {address.county_or_state && (
-                <div className="text-muted-foreground">{address.county_or_state}</div>
-              )}
-              {address.postcode && (
-                <div className="font-medium">{address.postcode}</div>
-              )}
+              {address.address_line_2 && <div className="text-muted-foreground">{address.address_line_2}</div>}
+              {address.address_line_3 && <div className="text-muted-foreground">{address.address_line_3}</div>}
+              {address.town_or_city && <div className="text-muted-foreground">{address.town_or_city}</div>}
+              {address.county_or_state && <div className="text-muted-foreground">{address.county_or_state}</div>}
+              {address.postcode && <div className="font-medium">{address.postcode}</div>}
             </div>
           </div>
 
@@ -155,6 +127,5 @@ export const AddressDetailModal = ({ address, isOpen, onClose }: AddressDetailMo
           </div>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
