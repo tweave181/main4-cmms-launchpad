@@ -49,7 +49,6 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
             <TableHead>Stock Level</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Status</TableHead>
-            {isAdmin && <TableHead className="w-[100px]">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -68,21 +67,6 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
                 <TableCell>
                   <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
                 </TableCell>
-                {isAdmin && (
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeletePart(part.id);
-                      }}
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                )}
               </TableRow>
             );
           })}
