@@ -11,9 +11,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { MapPin, Edit, Save, X, Trash2 } from 'lucide-react';
 import { AddressFormFields } from './AddressFormFields';
 import { useAddress, useUpdateAddress, useDeleteAddress } from '@/hooks/useAddresses';
+import { useAddressUsage } from '@/hooks/useAddressUsage';
 import { useAuth } from '@/contexts/auth';
 import type { Address, AddressFormData } from '@/types/address';
 import {
@@ -64,6 +71,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
   
   // Always call hooks - the hook will handle null/empty IDs gracefully
   const { data: address, isLoading, error } = useAddress(addressId || '');
+  const { data: addressUsage } = useAddressUsage(addressId || '');
   const updateAddressMutation = useUpdateAddress();
   const deleteAddressMutation = useDeleteAddress();
 
@@ -230,15 +238,27 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
                         <Edit className="h-4 w-4" />
                         <span>Edit</span>
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowDeleteDialog(true)}
-                        className="flex items-center space-x-1 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span>Delete</span>
-                      </Button>
+                       <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowDeleteDialog(true)}
+                              disabled={addressUsage?.isInUse}
+                              className="flex items-center space-x-1 text-destructive hover:text-destructive disabled:text-muted-foreground"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span>Delete</span>
+                            </Button>
+                          </TooltipTrigger>
+                          {addressUsage?.isInUse && (
+                            <TooltipContent>
+                              <p>This address is in use and cannot be deleted.</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
                     </>
                   )}
                   
@@ -311,6 +331,23 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete this address record. This action cannot be undone.
+              {addressUsage?.usageDetails && addressUsage.usageDetails.length > 0 && (
+                <div className="mt-2 text-sm">
+                  <strong>Note:</strong> This address is currently in use by:
+                  <ul className="mt-1 list-disc list-inside">
+                    {addressUsage.usageDetails.map((usage, index) => (
+                      <li key={index}>
+                        {usage.count} {usage.type}{usage.count > 1 ? 's' : ''}
+                        {usage.examples && usage.examples.length > 0 && (
+                          <span className="text-muted-foreground">
+                            {' '}({usage.examples.join(', ')}{usage.count > usage.examples.length ? ', ...' : ''})
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
