@@ -257,10 +257,10 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
                       </div> : <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="bg-gray-200">Asset Tag</TableHead>
-                            <TableHead>Asset Name</TableHead>
-                            <TableHead>Location</TableHead>
-                            <TableHead>Category</TableHead>
+                            <TableHead className="bg-gray-300">Asset Tag</TableHead>
+                            <TableHead className="bg-gray-300">Asset Name</TableHead>
+                            <TableHead className="bg-gray-300">Location</TableHead>
+                            <TableHead className="bg-gray-300">Category</TableHead>
                             <TableHead className="bg-gray-300">Department</TableHead>
                           </TableRow>
                         </TableHeader>
