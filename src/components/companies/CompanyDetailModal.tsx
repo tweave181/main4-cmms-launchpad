@@ -68,6 +68,11 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
       <Dialog open={isOpen && !isEditOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
+            <div className="mb-4">
+              <h2 className="text-lg font-medium text-muted-foreground mb-2">
+                Company Details Record For: {company.company_name}
+              </h2>
+            </div>
             <div className="flex items-center justify-between">
               <DialogTitle className="text-2xl font-semibold flex items-center gap-2">
                 <Building2 className="h-6 w-6 text-primary" />
@@ -164,29 +169,6 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
               </Card>
             )}
 
-            {/* Activity Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  Activity Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium">Created</p>
-                  <p className="text-sm text-gray-600">
-                    {formatDate(company.created_at)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Last Updated</p>
-                  <p className="text-sm text-gray-600">
-                    {formatDate(company.updated_at)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Record Information */}
             <div className="text-sm text-muted-foreground">

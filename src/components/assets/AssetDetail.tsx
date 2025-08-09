@@ -66,6 +66,11 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <div className="mb-4">
+          <h2 className="text-lg font-medium text-muted-foreground mb-2">
+            Asset Details Record For: {asset.name || asset.id}
+          </h2>
+        </div>
         <AssetDetailHeader asset={asset} onEdit={onEdit} onDelete={onDelete} />
 
         <div className="space-y-6">
