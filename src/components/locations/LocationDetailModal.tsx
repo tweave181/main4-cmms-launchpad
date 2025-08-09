@@ -136,30 +136,6 @@ export const LocationDetailModal: React.FC<LocationDetailModalProps> = ({
               </CardContent>
             </Card>
 
-            {/* Activity Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  Activity Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium">Created</p>
-                  <p className="text-sm text-gray-600">
-                    {formatDate(location.created_at)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Last Updated</p>
-                  <p className="text-sm text-gray-600">
-                    {formatDate(location.updated_at)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Record Information */}
             <div className="text-sm text-muted-foreground">
               <span className="inline-flex flex-wrap items-center gap-x-6 gap-y-2">
