@@ -4,15 +4,12 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
-import { ReusableTabs } from '@/components/ui/reusable-tabs';
-import { FileText, Wrench, Settings } from 'lucide-react';
 import { AssetDetailHeader } from './AssetDetailHeader';
-import { AssetWorkOrders } from './AssetWorkOrders';
 import { AssetBasicInfo } from './AssetBasicInfo';
 import { AssetFinancialInfo } from './AssetFinancialInfo';
-import { AssetServiceContractInfo } from './AssetServiceContractInfo';
 import { AssetDescriptionSection } from './AssetDescriptionSection';
 import { AssetRecordInfo } from './AssetRecordInfo';
+import { AssetDetailTabs } from './AssetDetailTabs';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'] & {
@@ -42,27 +39,6 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   onDelete,
   onUpdate,
 }) => {
-  const tabs = [
-    {
-      value: 'service-contract',
-      label: 'Service Contract',
-      icon: FileText,
-      content: <AssetServiceContractInfo asset={asset} onUpdate={onUpdate} />
-    },
-    {
-      value: 'work-orders',
-      label: 'Work Orders',
-      icon: Wrench,
-      content: <AssetWorkOrders assetId={asset.id} />
-    },
-    {
-      value: 'maintenance',
-      label: 'Maintenance',
-      icon: Settings,
-      content: <div className="p-4 text-center text-muted-foreground">Maintenance features coming soon</div>
-    }
-  ];
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -78,11 +54,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           <AssetDescriptionSection asset={asset} />
           <AssetFinancialInfo asset={asset} />
           
-          <ReusableTabs
-            tabs={tabs}
-            defaultValue="service-contract"
-            className="mt-6"
-          />
+          <AssetDetailTabs asset={asset} onUpdate={onUpdate} />
           
           <AssetRecordInfo asset={asset} />
         </div>
