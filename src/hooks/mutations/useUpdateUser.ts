@@ -15,6 +15,10 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async ({ userId, updates }: UpdateUserParams) => {
+      // Fetch previous state from cache (best effort)
+      const prev = queryClient.getQueryData<any>(['users']) as any[] | undefined;
+      const before = prev?.find((u) => u.id === userId) || null;
+
       const { data, error } = await supabase
         .from('users')
         .update({
@@ -27,6 +31,23 @@ export const useUpdateUser = () => {
 
       if (error) {
         throw error;
+      }
+
+      try {
+        const { data: auth } = await supabase.auth.getUser();
+        const changes: Record<string, any> = {};
+        Object.keys(updates).forEach((k) => {
+          changes[k] = { before: before ? before[k] : undefined, after: (updates as any)[k] };
+        });
+        await (supabase as any).from('audit_logs').insert({
+          user_id: auth.user?.id,
+          action: 'profile.update',
+          entity_type: 'user',
+          entity_id: userId,
+          changes,
+        });
+      } catch (e) {
+        console.warn('Audit log insert failed (profile.update)', e);
       }
 
       return data;

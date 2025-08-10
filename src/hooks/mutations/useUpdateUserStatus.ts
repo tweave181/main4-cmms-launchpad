@@ -30,6 +30,20 @@ export const useUpdateUserStatus = () => {
       }
 
       console.log('User status updated successfully:', data);
+
+      try {
+        const { data: auth } = await supabase.auth.getUser();
+        await (supabase as any).from('audit_logs').insert({
+          user_id: auth.user?.id,
+          action: 'profile.update',
+          entity_type: 'user',
+          entity_id: userId,
+          changes: { status: { before: undefined, after: status } },
+        });
+      } catch (e) {
+        console.warn('Audit log insert failed (status change)', e);
+      }
+
       return data;
     },
     onSuccess: () => {
