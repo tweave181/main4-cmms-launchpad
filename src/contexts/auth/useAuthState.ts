@@ -271,8 +271,31 @@ export const useAuthState = () => {
             await supabase.functions.invoke('log-login', {
               body: { userAgent: navigator.userAgent },
             });
-          } catch (e) {
-            console.warn('Login audit logging failed', e);
+          } catch (e: any) {
+            console.warn('Login audit logging failed via edge function, falling back to direct client call', e?.message || e);
+            try {
+              const { data: auth } = await supabase.auth.getUser();
+              const userId = auth.user?.id;
+              if (userId) {
+                // Update last_login directly
+                await supabase
+                  .from('users')
+                  .update({ last_login: new Date().toISOString() })
+                  .eq('id', userId);
+                // Insert audit log row
+                await (supabase as any)
+                  .from('audit_logs')
+                  .insert({
+                    user_id: userId,
+                    action: 'login',
+                    entity_type: 'user',
+                    entity_id: userId,
+                    user_agent: navigator.userAgent,
+                  });
+              }
+            } catch (fallbackErr) {
+              console.warn('Login audit logging fallback failed', fallbackErr);
+            }
           }
         }, 0);
       }
