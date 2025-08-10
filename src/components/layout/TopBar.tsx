@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/auth';
 import { LogOut, User, Shield } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 export const TopBar: React.FC = () => {
   const {
     userProfile,
@@ -16,6 +17,7 @@ export const TopBar: React.FC = () => {
     loading,
     ready
   } = useAuth();
+  const navigate = useNavigate();
   const handleSignOut = async () => {
     try {
       // Check if session exists before attempting any session-dependent operations
@@ -37,6 +39,8 @@ export const TopBar: React.FC = () => {
         title: "Success",
         description: "You've been securely logged out"
       });
+      // Navigate to auth page to prevent remaining on protected routes
+      navigate('/auth', { replace: true });
     } catch (error: any) {
       // Log error for debugging but show user-friendly message
       console.error('Logout error:', error);
@@ -46,6 +50,8 @@ export const TopBar: React.FC = () => {
         title: "Success",
         description: "You've been securely logged out"
       });
+      // Still navigate to auth to ensure user exits the app UI
+      navigate('/auth', { replace: true });
     }
   };
   return <header className="border-b bg-white shadow-sm">
