@@ -37,7 +37,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
   isUpdating,
 }) => {
   const { isAdmin } = useAuth();
-  const { formatDate } = useGlobalSettings();
+  const { formatDate, formatDateTime } = useGlobalSettings();
 
   const handleToggleStatus = () => {
     onToggleStatus(user.id, user.status);
@@ -48,10 +48,13 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-semibold flex items-center gap-2">
-              <User className="h-6 w-6 text-primary" />
-              {user.name}
-            </DialogTitle>
+            <div>
+              <p className="text-sm text-gray-500">User Record for:</p>
+              <DialogTitle className="text-2xl font-semibold flex items-center gap-2">
+                <User className="h-6 w-6 text-primary" />
+                {user.name || user.email}
+              </DialogTitle>
+            </div>
             <div className="flex items-center gap-2">
               <EditUserDialog 
                 user={user}
@@ -161,7 +164,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
                 <p className="text-sm font-medium">Last Login</p>
                 <p className="text-sm text-gray-600">
                   {user.last_login 
-                    ? formatDate(user.last_login)
+                    ? formatDateTime(user.last_login)
                     : 'Never'
                   }
                 </p>

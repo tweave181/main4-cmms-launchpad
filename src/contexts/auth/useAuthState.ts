@@ -265,6 +265,18 @@ export const useAuthState = () => {
         await handleSessionReady(session);
       }, 0);
 
+      if (event === 'SIGNED_IN') {
+        setTimeout(async () => {
+          try {
+            await supabase.functions.invoke('log-login', {
+              body: { userAgent: navigator.userAgent },
+            });
+          } catch (e) {
+            console.warn('Login audit logging failed', e);
+          }
+        }, 0);
+      }
+
       setLoading(false);
     });
 

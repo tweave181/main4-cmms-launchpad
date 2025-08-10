@@ -96,6 +96,7 @@ interface GlobalSettingsContextType {
   // Formatting utilities
   formatCurrency: (amount: number | string | null | undefined) => string;
   formatDate: (date: string | Date | null | undefined) => string;
+  formatDateTime: (date: string | Date | null | undefined) => string;
   translate: (key: string) => string;
   // Current settings values with fallbacks
   currency: string;
@@ -131,30 +132,53 @@ export const GlobalSettingsProvider: React.FC<GlobalSettingsProviderProps> = ({ 
   const country = settings?.country || DEFAULT_SETTINGS.country;
   const organizationName = settings?.organization_name || 'CMMS Pro';
 
-  // Create bound formatting functions with current settings
-  const boundFormatCurrency = (amount: number | string | null | undefined) =>
-    formatCurrency(amount, currency);
+// Create bound formatting functions with current settings
+const boundFormatCurrency = (amount: number | string | null | undefined) =>
+  formatCurrency(amount, currency);
 
-  const boundFormatDate = (date: string | Date | null | undefined) =>
-    formatDate(date, dateFormat);
+const boundFormatDate = (date: string | Date | null | undefined) =>
+  formatDate(date, dateFormat);
 
-  const boundTranslate = (key: string) =>
-    translate(key, language);
+const boundFormatDateTime = (date: string | Date | null | undefined) => {
+  if (!date) return '';
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return '';
+  try {
+    const fmt = new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: false,
+      timeZone: timezone || 'UTC'
+    });
+    return fmt.format(dateObj).replace(',', '');
+  } catch {
+    // Fallback without timezone
+    const dd = dateObj.getDate().toString().padStart(2, '0');
+    const mm = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const yyyy = dateObj.getFullYear();
+    const hh = dateObj.getHours().toString().padStart(2, '0');
+    const min = dateObj.getMinutes().toString().padStart(2, '0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+  }
+};
 
-  const value: GlobalSettingsContextType = {
-    settings,
-    isLoading,
-    error,
-    formatCurrency: boundFormatCurrency,
-    formatDate: boundFormatDate,
-    translate: boundTranslate,
-    currency,
-    dateFormat,
-    language,
-    timezone,
-    country,
-    organizationName,
-  };
+const boundTranslate = (key: string) =>
+  translate(key, language);
+
+const value: GlobalSettingsContextType = {
+  settings,
+  isLoading,
+  error,
+  formatCurrency: boundFormatCurrency,
+  formatDate: boundFormatDate,
+  formatDateTime: boundFormatDateTime,
+  translate: boundTranslate,
+  currency,
+  dateFormat,
+  language,
+  timezone,
+  country,
+  organizationName,
+};
 
   return (
     <GlobalSettingsContext.Provider value={value}>
