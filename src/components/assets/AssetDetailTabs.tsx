@@ -46,22 +46,48 @@ export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({ asset, onUpdat
 
   return (
     <div className="space-y-4">
-      <div className="flex border-b border-gray-200">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 -mb-px text-sm font-medium border-b-2 focus:outline-none ${
-              activeTab === tab.id
-                ? 'text-gray-700 border-blue-500'
-                : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div
+        className="flex border-b border-border"
+        role="tablist"
+        aria-label="Asset detail sections"
+      >
+        {tabs.map((tab, idx) => {
+          const active = activeTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              id={`tab-${tab.id}`}
+              role="tab"
+              aria-selected={active}
+              aria-controls={`panel-${tab.id}`}
+              tabIndex={active ? 0 : -1}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  const next = (idx + 1) % tabs.length
+                  setActiveTab(tabs[next].id)
+                } else if (e.key === 'ArrowLeft') {
+                  const prev = (idx - 1 + tabs.length) % tabs.length
+                  setActiveTab(tabs[prev].id)
+                }
+              }}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 -mb-px text-sm font-medium border-b-2 focus:outline-none ${
+                active
+                  ? 'text-foreground border-primary'
+                  : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
+              }`}
+            >
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
-      <div className="mt-4">
+      <div
+        id={`panel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`tab-${activeTab}`}
+        className="mt-4"
+      >
         {renderTabContent()}
       </div>
     </div>

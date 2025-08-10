@@ -255,6 +255,7 @@ export type Database = {
           department_id: string | null
           description: string | null
           id: string
+          id_service_contracts: string | null
           location: string | null
           location_id: string | null
           manufacturer: string | null
@@ -281,6 +282,7 @@ export type Database = {
           department_id?: string | null
           description?: string | null
           id?: string
+          id_service_contracts?: string | null
           location?: string | null
           location_id?: string | null
           manufacturer?: string | null
@@ -307,6 +309,7 @@ export type Database = {
           department_id?: string | null
           description?: string | null
           id?: string
+          id_service_contracts?: string | null
           location?: string | null
           location_id?: string | null
           manufacturer?: string | null
