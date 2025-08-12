@@ -45,7 +45,7 @@ export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({ asset, onUpdat
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full flex-col space-y-4">
       <div
         className="flex border-b border-border"
         role="tablist"
@@ -86,7 +86,7 @@ export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({ asset, onUpdat
         id={`panel-${activeTab}`}
         role="tabpanel"
         aria-labelledby={`tab-${activeTab}`}
-        className="mt-4"
+        className="mt-4 flex-1 min-h-0 overflow-auto"
       >
         {renderTabContent()}
       </div>

@@ -10,6 +10,7 @@ import { AssetFinancialInfo } from './AssetFinancialInfo';
 import { AssetDescriptionSection } from './AssetDescriptionSection';
 import { AssetRecordInfo } from './AssetRecordInfo';
 import { AssetDetailTabs } from './AssetDetailTabs';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'] & {
@@ -54,9 +55,21 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           <AssetDescriptionSection asset={asset} />
           <AssetFinancialInfo asset={asset} />
           
-          <AssetDetailTabs asset={asset} onUpdate={onUpdate} />
-          
-          <AssetRecordInfo asset={asset} />
+          <div className="h-[50vh] min-h-[320px]">
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize={60} minSize={30}>
+                <div className="h-full">
+                  <AssetDetailTabs asset={asset} onUpdate={onUpdate} />
+                </div>
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={40} minSize={20}>
+                <div className="h-full overflow-auto">
+                  <AssetRecordInfo asset={asset} />
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
