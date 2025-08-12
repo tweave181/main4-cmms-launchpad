@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hash, Package, MapPin, Building, Building2 } from 'lucide-react';
 import { useDepartments } from '@/hooks/useDepartments';
+import { useCompanies } from '@/hooks/useCompanies';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'];
@@ -12,8 +13,10 @@ interface AssetBasicInfoProps {
 }
 
 export const AssetBasicInfo: React.FC<AssetBasicInfoProps> = ({ asset }) => {
-  const { departments } = useDepartments();
-  const department = departments.find(d => d.id === asset.department_id);
+const { departments } = useDepartments();
+const department = departments.find(d => d.id === asset.department_id);
+const { data: companies = [] } = useCompanies();
+const manufacturerCompany = companies.find(c => c.id === (asset as any).manufacturer_company_id);
 
   return (
     <Card className="rounded-2xl">
@@ -71,12 +74,12 @@ export const AssetBasicInfo: React.FC<AssetBasicInfoProps> = ({ asset }) => {
           </div>
         )}
 
-        {asset.manufacturer && (
+{(manufacturerCompany || asset.manufacturer) && (
           <div className="flex items-center space-x-2">
             <Building2 className="h-4 w-4 text-gray-500" />
             <div>
               <p className="text-sm font-medium">Manufacturer</p>
-              <p className="text-sm text-gray-600">{asset.manufacturer}</p>
+              <p className="text-sm text-gray-600">{manufacturerCompany?.company_name ?? asset.manufacturer}</p>
             </div>
           </div>
         )}
