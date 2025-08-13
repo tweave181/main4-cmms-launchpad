@@ -76,22 +76,6 @@ export const AddressList: React.FC<AddressListProps> = ({
                     <TableCell>{address.town_or_city || '-'}</TableCell>
                     <TableCell>{address.postcode || '-'}</TableCell>
                     <TableCell>{formatDate(address.created_at)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                      <Button variant="ghost" size="sm" onClick={e => {
-                    e.stopPropagation();
-                    setSelectedAddressId(address.id);
-                  }}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                        <Button variant="ghost" size="sm" onClick={e => {
-                    e.stopPropagation();
-                    setDeletingAddress(address);
-                  }}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
                   </TableRow>)}
             </TableBody>
           </Table>
