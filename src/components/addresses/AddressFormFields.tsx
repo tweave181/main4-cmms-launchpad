@@ -131,121 +131,207 @@ export const AddressFormFields: React.FC<AddressFormFieldsProps> = ({
       <Separator />
 
       {/* Address Information */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold">Address Information</h3>
         </div>
 
-        <FormField
-          control={control}
-          name="address_line_1"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address Line 1 *</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Enter address line 1" 
-                  disabled={disabled}
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {disabled ? (
+          // View mode - display as label: value pairs in a compact layout
+          <div className="space-y-1">
+            <FormField
+              control={control}
+              name="address_line_1"
+              render={({ field }) => (
+                field.value && (
+                  <div className="flex">
+                    <span className="text-sm font-medium text-muted-foreground min-w-[120px]">Address:</span>
+                    <span className="text-sm">{field.value}</span>
+                  </div>
+                )
+              )}
+            />
 
-        <FormField
-          control={control}
-          name="address_line_2"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address Line 2</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Enter address line 2 (optional)" 
-                  disabled={disabled}
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={control}
+              name="address_line_2"
+              render={({ field }) => (
+                field.value && (
+                  <div className="flex">
+                    <span className="text-sm font-medium text-muted-foreground min-w-[120px]"></span>
+                    <span className="text-sm">{field.value}</span>
+                  </div>
+                )
+              )}
+            />
 
-        <FormField
-          control={control}
-          name="address_line_3"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address Line 3</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Enter address line 3 (optional)" 
-                  disabled={disabled}
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={control}
+              name="address_line_3"
+              render={({ field }) => (
+                field.value && (
+                  <div className="flex">
+                    <span className="text-sm font-medium text-muted-foreground min-w-[120px]"></span>
+                    <span className="text-sm">{field.value}</span>
+                  </div>
+                )
+              )}
+            />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={control}
-            name="town_or_city"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Town/City</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter town or city" 
-                    disabled={disabled}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={control}
+              name="town_or_city"
+              render={({ field }) => (
+                field.value && (
+                  <div className="flex">
+                    <span className="text-sm font-medium text-muted-foreground min-w-[120px]">Town/City:</span>
+                    <span className="text-sm">{field.value}</span>
+                  </div>
+                )
+              )}
+            />
 
-          <FormField
-            control={control}
-            name="county_or_state"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>County/State</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter county or state" 
-                    disabled={disabled}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+            <FormField
+              control={control}
+              name="county_or_state"
+              render={({ field }) => (
+                field.value && (
+                  <div className="flex">
+                    <span className="text-sm font-medium text-muted-foreground min-w-[120px]">County/State:</span>
+                    <span className="text-sm">{field.value}</span>
+                  </div>
+                )
+              )}
+            />
 
-        <FormField
-          control={control}
-          name="postcode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Postcode</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Enter postcode" 
-                  disabled={disabled}
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={control}
+              name="postcode"
+              render={({ field }) => (
+                field.value && (
+                  <div className="flex">
+                    <span className="text-sm font-medium text-muted-foreground min-w-[120px]">Postcode:</span>
+                    <span className="text-sm">{field.value}</span>
+                  </div>
+                )
+              )}
+            />
+          </div>
+        ) : (
+          // Edit mode - display as form fields
+          <>
+            <FormField
+              control={control}
+              name="address_line_1"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address Line 1 *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter address line 1" 
+                      disabled={disabled}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="address_line_2"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address Line 2</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter address line 2 (optional)" 
+                      disabled={disabled}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="address_line_3"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address Line 3</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter address line 3 (optional)" 
+                      disabled={disabled}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={control}
+                name="town_or_city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Town/City</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter town or city" 
+                        disabled={disabled}
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={control}
+                name="county_or_state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>County/State</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter county or state" 
+                        disabled={disabled}
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={control}
+              name="postcode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Postcode</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter postcode" 
+                      disabled={disabled}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
       </div>
 
       <Separator />
