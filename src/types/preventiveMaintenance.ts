@@ -5,9 +5,9 @@ export interface PreventiveMaintenanceSchedule {
   name: string;
   description?: string;
   instructions?: string;
-  frequency_type: 'daily' | 'weekly' | 'monthly' | 'custom';
+  frequency_type: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
   frequency_value: number;
-  frequency_unit?: 'days' | 'weeks' | 'months';
+  frequency_unit?: 'days' | 'weeks' | 'months' | 'years';
   next_due_date: string;
   last_completed_date?: string;
   is_active: boolean;
@@ -38,9 +38,9 @@ export interface PMScheduleFormData {
   name: string;
   description?: string;
   instructions?: string;
-  frequency_type: 'daily' | 'weekly' | 'monthly' | 'custom';
+  frequency_type: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
   frequency_value: number;
-  frequency_unit?: 'days' | 'weeks' | 'months';
+  frequency_unit?: 'days' | 'weeks' | 'months' | 'years';
   next_due_date: string;
   asset_ids: string[];
   assigned_to?: string;

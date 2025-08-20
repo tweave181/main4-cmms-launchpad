@@ -12,16 +12,39 @@ export const PMScheduleList: React.FC = () => {
   const navigate = useNavigate();
 
   const getFrequencyText = (schedule: PMScheduleWithAssets) => {
-    if (schedule.frequency_type === 'custom') {
-      return `Every ${schedule.frequency_value} ${schedule.frequency_unit}`;
+    // Handle preset mappings for display
+    const type = schedule.frequency_type;
+    const value = schedule.frequency_value;
+    
+    // Detect presets
+    if (type === 'weekly' && value === 4) return 'Four Weekly';
+    if (type === 'monthly' && value === 6) return 'Six Monthly';
+    if (type === 'yearly' && value === 2) return 'Two Yearly';
+    if (type === 'monthly' && value === 3) return 'Quarterly';
+    
+    // Handle standard frequencies
+    if (value === 1) {
+      switch (type) {
+        case 'daily': return 'Daily';
+        case 'weekly': return 'Weekly';
+        case 'monthly': return 'Monthly';
+        case 'yearly': return 'Yearly';
+        default: return 'Custom';
+      }
     }
     
-    if (schedule.frequency_value === 1) {
-      return schedule.frequency_type.charAt(0).toUpperCase() + schedule.frequency_type.slice(1);
+    // Handle custom frequencies
+    if (type === 'custom') {
+      return `Every ${value} ${schedule.frequency_unit}`;
     }
     
-    return `Every ${schedule.frequency_value} ${schedule.frequency_type === 'daily' ? 'days' : 
-           schedule.frequency_type === 'weekly' ? 'weeks' : 'months'}`;
+    // Handle other multi-value frequencies
+    const unit = type === 'daily' ? 'days' : 
+                type === 'weekly' ? 'weeks' : 
+                type === 'monthly' ? 'months' : 
+                type === 'yearly' ? 'years' : 'units';
+    
+    return `Every ${value} ${unit}`;
   };
 
   const getDaysUntilDue = (dueDate: string) => {

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { PMAssetSelector } from './PMAssetSelector';
 import { PMChecklistEditor } from './PMChecklistEditor';
+import { FrequencyControl, type FrequencyValue } from './FrequencyControl';
 import { useUsers } from '@/hooks/usePreventiveMaintenance';
 import type { PMScheduleFormData } from '@/types/preventiveMaintenance';
 
@@ -17,9 +18,9 @@ const pmScheduleSchema = z.object({
   name: z.string().min(1, 'Schedule name is required'),
   description: z.string().optional(),
   instructions: z.string().optional(),
-  frequency_type: z.enum(['daily', 'weekly', 'monthly', 'custom']),
+  frequency_type: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'custom']),
   frequency_value: z.number().min(1, 'Frequency value must be at least 1'),
-  frequency_unit: z.enum(['days', 'weeks', 'months']).optional(),
+  frequency_unit: z.enum(['days', 'weeks', 'months', 'years']).optional(),
   next_due_date: z.string().min(1, 'Next due date is required'),
   asset_ids: z.array(z.string()).min(1, 'At least one asset must be selected'),
   assigned_to: z.string().optional(),
@@ -63,7 +64,7 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
     },
   });
 
-  const frequencyType = form.watch('frequency_type');
+  const frequencyValue = form.watch(['frequency_type', 'frequency_value', 'frequency_unit']);
 
   const handleSubmit = (data: PMScheduleFormData) => {
     console.log('PM Schedule form data:', data);
@@ -177,76 +178,21 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="frequency_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Frequency Type *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select frequency type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="frequency_value"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Frequency Value *</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min="1"
-                    placeholder="1"
-                    {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {frequencyType === 'custom' && (
-            <FormField
-              control={form.control}
-              name="frequency_unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Frequency Unit *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="days">Days</SelectItem>
-                      <SelectItem value="weeks">Weeks</SelectItem>
-                      <SelectItem value="months">Months</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-        </div>
+        <FrequencyControl
+          value={{
+            frequency_type: form.watch('frequency_type'),
+            frequency_value: form.watch('frequency_value'),
+            frequency_unit: form.watch('frequency_unit'),
+          }}
+          onChange={(value: FrequencyValue) => {
+            form.setValue('frequency_type', value.frequency_type);
+            form.setValue('frequency_value', value.frequency_value);
+            form.setValue('frequency_unit', value.frequency_unit);
+          }}
+          error={form.formState.errors.frequency_type?.message || 
+                 form.formState.errors.frequency_value?.message ||
+                 form.formState.errors.frequency_unit?.message}
+        />
 
         <FormField
           control={form.control}
