@@ -4,12 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import type { PMScheduleWithAssets, PMScheduleChecklistItem } from '@/types/preventiveMaintenance';
 
-export const usePMSchedule = (id: string) => {
+export const usePMSchedule = (id?: string) => {
   const { userProfile } = useAuth();
 
   return useQuery({
     queryKey: ['pm-schedule', id],
     queryFn: async (): Promise<PMScheduleWithAssets> => {
+      if (!id) {
+        throw new Error('Schedule ID is required');
+      }
+      
       console.log('Fetching PM schedule:', id);
       
       const { data, error } = await supabase
