@@ -10,7 +10,7 @@ export const usePMSchedule = (id?: string) => {
   return useQuery({
     queryKey: ['pm-schedule', id],
     queryFn: async (): Promise<PMScheduleWithAssets> => {
-      if (!id) {
+      if (!id || id === 'undefined' || typeof id !== 'string') {
         throw new Error('Schedule ID is required');
       }
       
@@ -81,6 +81,6 @@ export const usePMSchedule = (id?: string) => {
 
       return transformedData;
     },
-    enabled: !!userProfile?.tenant_id && !!id,
+    enabled: !!userProfile?.tenant_id && !!id && id !== 'undefined' && typeof id === 'string',
   });
 };

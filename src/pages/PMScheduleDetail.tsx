@@ -81,13 +81,13 @@ const PMScheduleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isNew = id === 'new';
+  const isNew = id === 'new' || !id;
   
   // Determine initial mode
   const [mode, setMode] = useState<ViewMode>(isNew ? 'create' : 'view');
   
   // API hooks - only fetch when not creating new
-  const { data: schedule, isLoading, error } = usePMSchedule(isNew ? undefined : id!);
+  const { data: schedule, isLoading, error } = usePMSchedule(isNew ? undefined : id);
   
   console.log('PMScheduleDetail - isNew:', isNew, 'id:', id, 'mode:', mode);
   const { data: users = [] } = useUsers();
