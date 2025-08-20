@@ -86,8 +86,10 @@ const PMScheduleDetail: React.FC = () => {
   // Determine initial mode
   const [mode, setMode] = useState<ViewMode>(isNew ? 'create' : 'view');
   
-  // API hooks
+  // API hooks - only fetch when not creating new
   const { data: schedule, isLoading, error } = usePMSchedule(isNew ? undefined : id!);
+  
+  console.log('PMScheduleDetail - isNew:', isNew, 'id:', id, 'mode:', mode);
   const { data: users = [] } = useUsers();
   const deleteMutation = useDeletePMSchedule();
   const createMutation = useCreatePMSchedule();

@@ -32,11 +32,15 @@ export const usePMSchedule = (id?: string) => {
         `)
         .eq('id', id)
         .eq('tenant_id', userProfile?.tenant_id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching PM schedule:', error);
         throw error;
+      }
+
+      if (!data) {
+        throw new Error('Schedule not found');
       }
 
       console.log('PM schedule fetched:', data);
