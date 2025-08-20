@@ -43,6 +43,9 @@ export const useWorkOrders = (filters?: WorkOrderFilters) => {
       if (filters?.assigned_to) {
         query = query.eq('assigned_to', filters.assigned_to);
       }
+      if (filters?.asset_id) {
+        query = query.eq('asset_id', filters.asset_id);
+      }
       if (filters?.search) {
         query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }

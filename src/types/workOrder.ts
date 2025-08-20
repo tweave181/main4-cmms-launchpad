@@ -21,6 +21,10 @@ export interface WorkOrder {
   contractor_company_id?: string;
   created_at: string;
   updated_at: string;
+  // Joined data from queries
+  asset?: { name: string } | null;
+  assigned_user?: { name: string } | null;
+  created_user?: { name: string } | null;
 }
 
 export interface WorkOrderComment {
@@ -54,5 +58,6 @@ export interface WorkOrderFilters {
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   work_type?: 'corrective' | 'preventive' | 'emergency' | 'inspection';
   assigned_to?: string;
+  asset_id?: string;
   search?: string;
 }

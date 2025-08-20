@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AssetServiceContractInfo } from './AssetServiceContractInfo';
 import { AssetWorkOrders } from './AssetWorkOrders';
+import { AssetMaintenanceTab } from './AssetMaintenanceTab';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'] & {
@@ -34,11 +35,7 @@ export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({ asset, onUpdat
       case 'work-orders':
         return <AssetWorkOrders assetId={asset.id} />;
       case 'maintenance':
-        return (
-          <div className="p-4 text-center text-muted-foreground">
-            Maintenance features coming soon
-          </div>
-        );
+        return <AssetMaintenanceTab assetId={asset.id} />;
       default:
         return null;
     }
