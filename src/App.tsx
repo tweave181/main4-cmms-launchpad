@@ -18,6 +18,7 @@ import Index from "./pages/Index";
 import Assets from "./pages/Assets";
 import WorkOrders from "./pages/WorkOrders";
 import Maintenance from "./pages/Maintenance";
+import MaintenanceJobDetail from "./pages/MaintenanceJobDetail";
 import Inventory from "./pages/Inventory";
 import Reports from "./pages/Reports";
 import UserManagement from "./pages/UserManagement";
