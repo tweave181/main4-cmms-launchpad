@@ -63,7 +63,8 @@ function App() {
                              <Route path="/" element={<Index />} />
                              <Route path="/assets" element={<Assets />} />
                              <Route path="/work-orders" element={<WorkOrders />} />
-                             <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/maintenance/:jobId" element={<MaintenanceJobDetail />} />
                  <Route path="/inventory" element={<Inventory />} />
                  <Route path="/inventory/:id" element={<InventoryPartDetail />} />
                  <Route path="/inventory/:id/edit" element={<InventoryPartDetail />} />

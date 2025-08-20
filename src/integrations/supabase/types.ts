@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -986,6 +986,106 @@ export type Database = {
           },
         ]
       }
+      maintenance_jobs: {
+        Row: {
+          asset_id: string | null
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string
+          id: string
+          instructions: string | null
+          name: string
+          pm_schedule_id: string | null
+          priority: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          work_order_id: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          instructions?: string | null
+          name: string
+          pm_schedule_id?: string | null
+          priority?: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          work_order_id?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          instructions?: string | null
+          name?: string
+          pm_schedule_id?: string | null
+          priority?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_maintenance_jobs_tenant"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_jobs_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_jobs_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_jobs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_jobs_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "preventive_maintenance_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_jobs_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       part_asset_associations: {
         Row: {
           asset_id: string
@@ -1725,17 +1825,17 @@ export type Database = {
       }
       create_tenant_and_admin: {
         Args: {
-          tenant_name: string
-          tenant_slug: string
-          user_id: string
-          user_email: string
           first_name?: string
           last_name?: string
+          tenant_name: string
+          tenant_slug: string
+          user_email: string
+          user_id: string
         }
         Returns: string
       }
       ensure_unique_location_code: {
-        Args: { p_tenant_id: string; p_name: string; p_existing_code?: string }
+        Args: { p_existing_code?: string; p_name: string; p_tenant_id: string }
         Returns: string
       }
       fix_missing_profiles: {
@@ -1745,6 +1845,10 @@ export type Database = {
       generate_location_code: {
         Args: { location_name: string }
         Returns: string
+      }
+      generate_maintenance_jobs_from_pm_schedules: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       generate_work_order_number: {
         Args: Record<PropertyKey, never>
@@ -1756,8 +1860,8 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
