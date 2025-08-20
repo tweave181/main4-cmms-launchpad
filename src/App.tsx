@@ -19,6 +19,7 @@ import Assets from "./pages/Assets";
 import WorkOrders from "./pages/WorkOrders";
 import Maintenance from "./pages/Maintenance";
 import MaintenanceJobDetail from "./pages/MaintenanceJobDetail";
+import PMScheduleDetail from "./pages/PMScheduleDetail";
 import Inventory from "./pages/Inventory";
 import Reports from "./pages/Reports";
 import UserManagement from "./pages/UserManagement";
@@ -66,6 +67,7 @@ function App() {
                              <Route path="/work-orders" element={<WorkOrders />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/maintenance/:jobId" element={<MaintenanceJobDetail />} />
+              <Route path="/pm/:id" element={<PMScheduleDetail />} />
                  <Route path="/inventory" element={<Inventory />} />
                  <Route path="/inventory/:id" element={<InventoryPartDetail />} />
                  <Route path="/inventory/:id/edit" element={<InventoryPartDetail />} />
