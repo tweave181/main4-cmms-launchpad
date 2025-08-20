@@ -236,6 +236,9 @@ const PMScheduleDetail: React.FC = () => {
   };
 
   const handleSave = (data: FormData) => {
+    console.log('handleSave called with data:', data);
+    console.log('Current mode:', mode);
+    
     // Transform data to match PMScheduleFormData
     const pmData: PMScheduleFormData = {
       name: data.name,
@@ -257,15 +260,27 @@ const PMScheduleDetail: React.FC = () => {
       })),
     };
 
+    console.log('Transformed pmData:', pmData);
+
     if (mode === 'create') {
+      console.log('About to call createMutation.mutate');
       createMutation.mutate(pmData, {
         onSuccess: (newSchedule) => {
+          console.log('Create success:', newSchedule);
           toast({
             title: "Success",
             description: "Preventive maintenance schedule created successfully",
           });
           navigate(`/pm/${newSchedule.id}`);
           setMode('view');
+        },
+        onError: (error) => {
+          console.error('Create error:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create PM schedule. Please try again.",
+            variant: "destructive"
+          });
         }
       });
     } else {
