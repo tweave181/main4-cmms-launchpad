@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useBlocker } from 'react-router-dom';
+import { useParams, useNavigate, useBeforeUnload } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -117,12 +117,14 @@ const PMScheduleDetail: React.FC = () => {
 
   const { formState: { isDirty } } = form;
 
-  // Unsaved changes blocker
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      (mode === 'edit' || mode === 'create') && 
-      isDirty &&
-      currentLocation.pathname !== nextLocation.pathname
+  // Unsaved changes protection
+  useBeforeUnload(
+    React.useCallback((event) => {
+      if ((mode === 'edit' || mode === 'create') && isDirty) {
+        event.preventDefault();
+        return (event.returnValue = 'You have unsaved changes. Are you sure you want to leave?');
+      }
+    }, [mode, isDirty])
   );
 
   // Load data into form when schedule is available
@@ -341,29 +343,7 @@ const PMScheduleDetail: React.FC = () => {
 
   return (
     <>
-      {/* Unsaved changes dialog */}
-      {blocker.state === "blocked" && (
-        <AlertDialog open>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
-              <AlertDialogDescription>
-                You have unsaved changes. Are you sure you want to leave without saving?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => blocker.reset()}>
-                Stay on Page
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={() => blocker.proceed()}>
-                Leave Without Saving
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6">{/* ... rest of content ... */}
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
