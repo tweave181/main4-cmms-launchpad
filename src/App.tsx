@@ -67,6 +67,7 @@ function App() {
                              <Route path="/work-orders" element={<WorkOrders />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/maintenance/:jobId" element={<MaintenanceJobDetail />} />
+              <Route path="/pm/new" element={<PMScheduleDetail />} />
               <Route path="/pm/:id" element={<PMScheduleDetail />} />
                  <Route path="/inventory" element={<Inventory />} />
                  <Route path="/inventory/:id" element={<InventoryPartDetail />} />
