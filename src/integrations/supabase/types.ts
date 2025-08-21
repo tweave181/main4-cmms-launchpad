@@ -1092,20 +1092,37 @@ export type Database = {
           created_at: string
           id: string
           part_id: string
+          quantity_required: number
         }
         Insert: {
           asset_id: string
           created_at?: string
           id?: string
           part_id: string
+          quantity_required?: number
         }
         Update: {
           asset_id?: string
           created_at?: string
           id?: string
           part_id?: string
+          quantity_required?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_part_asset_associations_asset_id"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_part_asset_associations_part_id"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_parts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "part_asset_associations_asset_id_fkey"
             columns: ["asset_id"]
