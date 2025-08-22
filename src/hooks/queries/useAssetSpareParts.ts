@@ -44,7 +44,7 @@ export const useAssetSpareParts = (assetId: string) => {
         .select(`
           part_id,
           quantity_required,
-          inventory_parts!part_id (
+          inventory_parts!fk_part_asset_associations_part_id (
             name,
             sku,
             unit_of_measure
