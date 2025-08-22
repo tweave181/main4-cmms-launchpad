@@ -147,148 +147,146 @@ const InventoryPartDetail: React.FC = () => {
 
   return (
     <>
-      <div className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card className="rounded-2xl shadow-sm border border-gray-200">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate('/inventory')}
-                      className="p-2"
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
-                      <Package className="h-6 w-6 text-primary" />
-                      <span>{part.name}</span>
-                    </CardTitle>
-                  </div>
-                  <div className="flex gap-2">
-                    {mode === 'view' ? (
-                      <Button variant="outline" onClick={handleEditClick} data-testid="edit-part-btn">
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
-                    ) : (
-                      <>
-                        <Button variant="outline" onClick={handleCancelEdit}>
-                          <X className="h-4 w-4 mr-2" />
-                          Cancel
-                        </Button>
-                        <Button onClick={() => setMode('view')}>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save
-                        </Button>
-                      </>
-                    )}
-                    {isAdmin && mode === 'view' && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setDeleteDialogOpen(true)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
-                    )}
-                  </div>
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="space-y-6">
+          {/* Header */}
+          <Card className="rounded-2xl shadow-sm border border-gray-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/inventory')}
+                    className="p-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
+                    <Package className="h-6 w-6 text-primary" />
+                    <span>{part.name}</span>
+                  </CardTitle>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">SKU: {part.sku}</p>
-                      <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
-                    </div>
-                  </div>
-
-                  {part.description && (
-                    <div>
-                      <h3 className="font-medium mb-2">Description</h3>
-                      <p className="text-sm text-muted-foreground">{part.description}</p>
-                    </div>
-                  )}
-
-                  <Separator />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="font-medium">Stock Information</h3>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Current Stock:</span>
-                          <span className="font-medium">{part.quantity_in_stock}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Reorder Threshold:</span>
-                          <span>{part.reorder_threshold}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Unit of Measure:</span>
-                          <span>{part.unit_of_measure}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="font-medium">Details</h3>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Category:</span>
-                          <span>{part.category || 'Uncategorized'}</span>
-                        </div>
-                        {part.linked_asset_type && (
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Asset Type:</span>
-                            <span>{part.linked_asset_type}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Created:</span>
-                          <span>{format(new Date(part.created_at), 'MMM dd, yyyy')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {part.storage_locations && part.storage_locations.length > 0 && (
+                <div className="flex gap-2">
+                  {mode === 'view' ? (
+                    <Button variant="outline" onClick={handleEditClick} data-testid="edit-part-btn">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  ) : (
                     <>
-                      <Separator />
-                      <div>
-                        <h3 className="font-medium mb-2 flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          Storage Locations
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {part.storage_locations.map((location, index) => (
-                            <Badge key={index} variant="outline">
-                              {location}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
+                      <Button variant="outline" onClick={handleCancelEdit}>
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button onClick={() => setMode('view')}>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save
+                      </Button>
                     </>
                   )}
+                  {isAdmin && mode === 'view' && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setDeleteDialogOpen(true)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">SKU: {part.sku}</p>
+                    <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
+                  </div>
+                </div>
+
+                {part.description && (
+                  <div>
+                    <h3 className="font-medium mb-2">Description</h3>
+                    <p className="text-sm text-muted-foreground">{part.description}</p>
+                  </div>
+                )}
+
+                <Separator />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Stock Information</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Current Stock:</span>
+                        <span className="font-medium">{part.quantity_in_stock}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Reorder Threshold:</span>
+                        <span>{part.reorder_threshold}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Unit of Measure:</span>
+                        <span>{part.unit_of_measure}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Details</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Category:</span>
+                        <span>{part.category || 'Uncategorized'}</span>
+                      </div>
+                      {part.linked_asset_type && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Asset Type:</span>
+                          <span>{part.linked_asset_type}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Created:</span>
+                        <span>{format(new Date(part.created_at), 'MMM dd, yyyy')}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {part.storage_locations && part.storage_locations.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-medium mb-2 flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Storage Locations
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {part.storage_locations.map((location, index) => (
+                          <Badge key={index} variant="outline">
+                            {location}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
           
-          {/* Right column with supplier and linked assets */}
-          <div className="space-y-6">
-            <PartSupplierCard 
-              supplier={part.supplier}
-              isEditing={mode === 'edit'}
-              onSupplierChange={handleSupplierChange}
-            />
-            
-            <PartLinkedAssetsCard partId={part.id} />
-          </div>
+          {/* Supplier Card */}
+          <PartSupplierCard 
+            supplier={part.supplier}
+            isEditing={mode === 'edit'}
+            onSupplierChange={handleSupplierChange}
+          />
+          
+          {/* Linked Assets Card */}
+          <PartLinkedAssetsCard partId={part.id} />
         </div>
       </div>
 
