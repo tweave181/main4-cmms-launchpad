@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Address } from '@/types/address';
 import { MapPin, Calendar, Tag } from 'lucide-react';
 import { AddressTypeBadges } from './AddressTypeBadges';
+import { SuppliedPartsCard } from './SuppliedPartsCard';
 interface AddressDetailModalProps {
   address: Address | null;
   isOpen: boolean;
@@ -116,12 +117,20 @@ export const AddressDetailModal = ({
             </span>
           </div>
 
+          {/* Supplied Parts Section - only show for suppliers */}
+          {address.is_supplier && (
+            <>
+              <Separator />
+              <SuppliedPartsCard supplierId={address.id} />
+            </>
+          )}
+
           {/* Notes Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Notes</h3>
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="text-muted-foreground italic">
-                No additional notes available for this address record.
+                {address.notes || 'No additional notes available for this address record.'}
               </div>
             </div>
           </div>

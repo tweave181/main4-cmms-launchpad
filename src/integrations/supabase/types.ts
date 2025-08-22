@@ -773,6 +773,7 @@ export type Database = {
           reorder_threshold: number
           sku: string
           storage_locations: string[] | null
+          supplier_id: string | null
           tenant_id: string
           unit_of_measure: Database["public"]["Enums"]["part_unit"]
           updated_at: string
@@ -789,6 +790,7 @@ export type Database = {
           reorder_threshold?: number
           sku: string
           storage_locations?: string[] | null
+          supplier_id?: string | null
           tenant_id: string
           unit_of_measure?: Database["public"]["Enums"]["part_unit"]
           updated_at?: string
@@ -805,11 +807,20 @@ export type Database = {
           reorder_threshold?: number
           sku?: string
           storage_locations?: string[] | null
+          supplier_id?: string | null
           tenant_id?: string
           unit_of_measure?: Database["public"]["Enums"]["part_unit"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_inventory_parts_supplier"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_title_audit_log: {
         Row: {
