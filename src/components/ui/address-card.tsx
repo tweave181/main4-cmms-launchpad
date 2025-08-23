@@ -16,7 +16,8 @@ type AddressCardProps = {
 };
 
 export function AddressCard({ companyName, address, className }: AddressCardProps) {
-  const lines = [
+  const addressParts = [
+    companyName,
     address?.line1,
     address?.line2,
     address?.line3,
@@ -26,31 +27,39 @@ export function AddressCard({ companyName, address, className }: AddressCardProp
     address?.country,
   ].filter(Boolean) as string[];
 
-  const fullAddress = [companyName, ...lines].filter(Boolean).join('\n');
+  const fullAddress = addressParts.join(', ');
+  const fullAddressForCopy = [companyName, ...addressParts.slice(1)].filter(Boolean).join('\n');
+
+  function getMapsUrl(query: string) {
+    const encoded = encodeURIComponent(query);
+    const ua = navigator.userAgent || '';
+    const isApple = /iPhone|iPad|Macintosh/.test(ua);
+    // Apple Maps uses the same q param; this works well cross-region
+    return isApple
+      ? `https://maps.apple.com/?q=${encoded}`
+      : `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+  }
+
+  const canMap = !!(address?.line1 || address?.town_city || address?.postcode || address?.country);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(fullAddress);
+      await navigator.clipboard.writeText(fullAddressForCopy);
     } catch (error) {
       console.error('Failed to copy address:', error);
     }
   };
 
-  const handleMapClick = () => {
-    const searchQuery = [
-      address?.postcode,
-      address?.town_city,
-      address?.county_state,
-      address?.country
-    ].filter(Boolean).join(', ');
-    
-    if (searchQuery) {
-      const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`;
-      window.open(mapsUrl, '_blank');
-    }
-  };
-
-  const hasMapData = address?.postcode || address?.country;
+  // Only show non-company address lines in the card body
+  const displayLines = [
+    address?.line1,
+    address?.line2,
+    address?.line3,
+    address?.town_city,
+    address?.county_state,
+    address?.postcode,
+    address?.country,
+  ].filter(Boolean) as string[];
 
   return (
     <div className={`rounded-lg border shadow-sm overflow-hidden ${className ?? ''}`}>
@@ -60,11 +69,11 @@ export function AddressCard({ companyName, address, className }: AddressCardProp
         </div>
       </div>
       <div className="bg-slate-50 px-4 py-3">
-        {lines.length === 0 ? (
+        {displayLines.length === 0 ? (
           <div className="text-slate-500 italic">No address on file</div>
         ) : (
           <ul className="divide-y divide-slate-200">
-            {lines.map((line, idx) => (
+            {displayLines.map((line, idx) => (
               <li key={idx} className="py-2 leading-6 text-slate-800 break-words">
                 {line}
               </li>
@@ -73,23 +82,25 @@ export function AddressCard({ companyName, address, className }: AddressCardProp
         )}
       </div>
       <div className="px-4 py-2 flex items-center justify-end gap-3 text-sm text-slate-500">
-        <button 
-          onClick={handleCopy} 
+        <button
+          onClick={handleCopy}
           className="hover:text-slate-700 flex items-center gap-1"
-          title="Copy address"
+          aria-label="Copy full address to clipboard"
         >
           <Copy className="h-3 w-3" />
           Copy
         </button>
-        {hasMapData && (
-          <button 
-            onClick={handleMapClick} 
+        {canMap && (
+          <a
+            href={getMapsUrl(fullAddress)}
+            target="_blank"
+            rel="noopener noreferrer"
             className="hover:text-slate-700 flex items-center gap-1"
-            title="View on map"
+            aria-label="Open this address in Maps"
           >
             <MapPin className="h-3 w-3" />
-            Map
-          </button>
+            Open in Maps
+          </a>
         )}
       </div>
     </div>
