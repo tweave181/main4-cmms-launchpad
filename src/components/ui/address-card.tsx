@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Copy, MapPin } from 'lucide-react';
 
 type AddressCardProps = {
@@ -17,7 +17,9 @@ type AddressCardProps = {
 };
 
 export function AddressCard({ companyName, address, className }: AddressCardProps) {
-  const addressParts = [
+  const [showMap, setShowMap] = useState(false);
+  
+  const parts = [
     companyName,
     address?.line1,
     address?.line2,
@@ -28,25 +30,13 @@ export function AddressCard({ companyName, address, className }: AddressCardProp
     address?.country,
   ].filter(Boolean) as string[];
 
-  const fullAddress = addressParts.join(', ');
-  const fullAddressForCopy = [companyName, ...addressParts.slice(1)].filter(Boolean).join('\n');
+  const fullAddress = parts.join(', ');
+  const fullAddressForCopy = [companyName, ...parts.slice(1)].filter(Boolean).join('\n');
+  const mapQuery = encodeURIComponent(fullAddress);
+  const mapEmbedSrc = `https://www.google.com/maps?q=${mapQuery}&output=embed`;
+  const mapOpenUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
 
-  function openInMaps(query: string) {
-    if (!query) return;
-    const encoded = encodeURIComponent(query);
-    const ua = navigator.userAgent || '';
-    const isIOS = /iPhone|iPad|iPod/.test(ua);
-
-    // Use native Apple Maps app on iOS, Google Maps everywhere else
-    const url = isIOS
-      ? `maps://?q=${encoded}`
-      : `https://www.google.com/maps/search/?api=1&query=${encoded}`;
-
-    // Direct navigation - more reliable than window.open
-    window.location.assign(url);
-  }
-
-  const canMap = !!(address?.line1 || address?.town_city || address?.postcode || address?.country);
+  const hasMappable = Boolean(address?.line1 || address?.town_city || address?.postcode || address?.country);
 
   const handleCopy = async () => {
     try {
@@ -96,18 +86,47 @@ export function AddressCard({ companyName, address, className }: AddressCardProp
           <Copy className="h-3 w-3" />
           Copy
         </button>
-        {canMap && (
-          <button
-            onClick={() => openInMaps(fullAddress)}
-            className="hover:text-slate-700 flex items-center gap-1"
-            aria-label="Open this address in Maps"
-            data-testid="open-in-maps"
-          >
-            <MapPin className="h-3 w-3" />
-            Open in Maps
-          </button>
+        {hasMappable && (
+          <>
+            <button
+              onClick={() => setShowMap(v => !v)}
+              className="hover:text-slate-700 flex items-center gap-1"
+              aria-expanded={showMap}
+            >
+              <MapPin className="h-3 w-3" />
+              {showMap ? 'Hide map' : 'Show map'}
+            </button>
+            <a
+              href={mapOpenUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-slate-700 flex items-center gap-1"
+            >
+              <MapPin className="h-3 w-3" />
+              Open in Google Maps
+            </a>
+          </>
         )}
       </div>
+      {showMap && hasMappable && (
+        <div className="px-4 pb-4">
+          <div className="rounded-lg overflow-hidden border bg-white">
+            <iframe
+              title="Address map"
+              src={mapEmbedSrc}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="w-full"
+              style={{ height: 300, border: 0 }}
+              onError={(e) => {
+                // Replace iframe with a friendly fallback
+                (e.currentTarget.parentElement as HTMLElement).innerHTML =
+                  '<div class="p-4 text-sm text-slate-600">Map preview unavailable for this address.</div>';
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
