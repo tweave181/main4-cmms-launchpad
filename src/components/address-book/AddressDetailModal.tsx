@@ -6,6 +6,7 @@ import { Address } from '@/types/address';
 import { MapPin, Calendar, Tag } from 'lucide-react';
 import { AddressTypeBadges } from './AddressTypeBadges';
 import { SuppliedPartsCard } from './SuppliedPartsCard';
+import { AddressCard } from '@/components/ui/address-card';
 interface AddressDetailModalProps {
   address: Address | null;
   isOpen: boolean;
@@ -42,14 +43,17 @@ export const AddressDetailModal = ({
               <h3 className="text-lg font-semibold">Address Information</h3>
             </div>
             
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <div className="font-medium">{address.address_line_1}</div>
-              {address.address_line_2 && <div className="text-muted-foreground">{address.address_line_2}</div>}
-              {address.address_line_3 && <div className="text-muted-foreground">{address.address_line_3}</div>}
-              {address.town_or_city && <div className="text-muted-foreground">{address.town_or_city}</div>}
-              {address.county_or_state && <div className="text-muted-foreground">{address.county_or_state}</div>}
-              {address.postcode && <div className="font-medium">{address.postcode}</div>}
-            </div>
+            <AddressCard 
+              companyName={address.company_name}
+              address={{
+                line1: address.address_line_1,
+                line2: address.address_line_2,
+                line3: address.address_line_3,
+                town_city: address.town_or_city,
+                county_state: address.county_or_state,
+                postcode: address.postcode
+              }}
+            />
           </div>
 
           <Separator />
