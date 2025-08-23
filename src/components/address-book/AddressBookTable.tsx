@@ -9,15 +9,17 @@ import { Address } from '@/types/address';
 import { AddressTypeFilters } from './AddressBookFilters';
 interface AddressBookTableProps {
   filters: AddressTypeFilters;
+  search?: string;
 }
 export const AddressBookTable = ({
-  filters
+  filters,
+  search
 }: AddressBookTableProps) => {
   const {
     data: addresses,
     isLoading,
     error
-  } = useAddresses();
+  } = useAddresses(search);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const filteredAddresses = useMemo(() => {
@@ -73,6 +75,7 @@ export const AddressBookTable = ({
           </p> : <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="bg-gray-300">Company</TableHead>
                 <TableHead className="bg-gray-300">Address</TableHead>
                 <TableHead className="bg-gray-300">Town/City</TableHead>
                 <TableHead className="bg-gray-300">Postcode</TableHead>
@@ -81,6 +84,27 @@ export const AddressBookTable = ({
             </TableHeader>
             <TableBody>
               {filteredAddresses.map(address => <TableRow key={address.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleRowClick(address)}>
+                  <TableCell>
+                    <div className="sm:hidden">
+                      <div className="font-medium">{address.company_name || '—'}</div>
+                      <div className="text-sm text-muted-foreground">{address.address_line_1}</div>
+                    </div>
+                    <div className="hidden sm:block">
+                      {address.company_name ? (
+                        <button 
+                          className="font-medium text-primary hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRowClick(address);
+                          }}
+                        >
+                          {address.company_name}
+                        </button>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="font-medium">{address.address_line_1}</div>
