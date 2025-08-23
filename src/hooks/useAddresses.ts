@@ -21,7 +21,7 @@ export const useAddresses = (search?: string) => {
         .order('address_line_1');
 
       if (search && search.trim()) {
-        query = query.or(`address_line_1.ilike.%${search}%,town_or_city.ilike.%${search}%,postcode.ilike.%${search}%`);
+        query = query.or(`company_name.ilike.%${search}%,address_line_1.ilike.%${search}%,town_or_city.ilike.%${search}%,postcode.ilike.%${search}%`);
       }
 
       const { data, error } = await query;

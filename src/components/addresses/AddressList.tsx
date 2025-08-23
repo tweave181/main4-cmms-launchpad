@@ -46,7 +46,7 @@ export const AddressList: React.FC<AddressListProps> = ({
         <div className="flex items-center space-x-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input placeholder="Search addresses by line 1, town, or postcode..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+            <Input placeholder="Search by company, address line 1, town, or postcode…" value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
           </div>
           <Button onClick={onAddAddress} className="rounded-2xl">
             Add Address
@@ -57,6 +57,7 @@ export const AddressList: React.FC<AddressListProps> = ({
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="bg-gray-300">Company</TableHead>
                 <TableHead className="bg-gray-300">Address</TableHead>
                 <TableHead className="bg-gray-300">Town/City</TableHead>
                 <TableHead className="bg-gray-300">Postcode</TableHead>
@@ -65,10 +66,31 @@ export const AddressList: React.FC<AddressListProps> = ({
             </TableHeader>
             <TableBody>
               {addresses.length === 0 ? <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     {search ? 'No addresses found matching your search.' : 'No addresses found. Create your first address to get started.'}
                   </TableCell>
                 </TableRow> : addresses.map(address => <TableRow key={address.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAddressId(address.id)}>
+                    <TableCell>
+                      <div className="sm:hidden">
+                        <div className="font-medium">{address.company_name || '—'}</div>
+                        <div className="text-sm text-muted-foreground">{address.address_line_1}</div>
+                      </div>
+                      <div className="hidden sm:block">
+                        {address.company_name ? (
+                          <button 
+                            className="font-medium text-primary hover:underline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedAddressId(address.id);
+                            }}
+                          >
+                            {address.company_name}
+                          </button>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="font-medium">{address.address_line_1}</div>
                       {address.address_line_2 && <div className="text-sm text-muted-foreground">{address.address_line_2}</div>}
