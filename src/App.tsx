@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/auth";
 import { GlobalSettingsProvider } from "@/contexts/GlobalSettingsContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -74,21 +74,35 @@ function App() {
                  <Route path="/inventory/:id/edit" element={<InventoryPartDetail />} />
                              <Route path="/address-book" element={<AddressBook />} />
                              <Route path="/reports" element={<Reports />} />
-                             <Route path="/users" element={<UserManagement />} />
-                             <Route path="/departments" element={<Departments />} />
-                             <Route path="/departments/:id" element={<DepartmentDetails />} />
-                             <Route path="/job-titles" element={<JobTitles />} />
-                              <Route path="/job-titles/:id" element={<JobTitleDetails />} />
-                               <Route path="/location-levels" element={<LocationLevels />} />
-                               <Route path="/location-levels/:id" element={<LocationLevelDetails />} />
-                               <Route path="/companies" element={<Companies />} />
+                              <Route path="/users" element={<UserManagement />} />
                               <Route path="/addresses" element={<Addresses />} />
-                              <Route path="/locations" element={<Locations />} />
                               <Route path="/admin/service-contracts" element={<ServiceContracts />} />
-                             <Route path="/categories" element={<CategoryManager />} />
-                             <Route path="/asset-prefixes" element={<AssetPrefixManager />} />
-                             <Route path="/system-audit-log" element={<SystemAuditLog />} />
-                             <Route path="/settings" element={<AdminSettings />} />
+                              <Route path="/system-audit-log" element={<SystemAuditLog />} />
+                              <Route path="/settings" element={<AdminSettings />} />
+                              
+                              {/* New Preferences Routes */}
+                              <Route path="/admin/preferences/company" element={<Companies />} />
+                              <Route path="/admin/preferences/departments" element={<Departments />} />
+                              <Route path="/admin/preferences/departments/:id" element={<DepartmentDetails />} />
+                              <Route path="/admin/preferences/job-titles" element={<JobTitles />} />
+                              <Route path="/admin/preferences/job-titles/:id" element={<JobTitleDetails />} />
+                              <Route path="/admin/preferences/location-levels" element={<LocationLevels />} />
+                              <Route path="/admin/preferences/location-levels/:id" element={<LocationLevelDetails />} />
+                              <Route path="/admin/preferences/locations" element={<Locations />} />
+                              <Route path="/admin/preferences/categories" element={<CategoryManager />} />
+                              <Route path="/admin/preferences/asset-prefixes" element={<AssetPrefixManager />} />
+                              
+                              {/* Legacy Route Redirects */}
+                              <Route path="/departments" element={<Navigate to="/admin/preferences/departments" replace />} />
+                              <Route path="/departments/:id" element={<Navigate to="/admin/preferences/departments" replace />} />
+                              <Route path="/job-titles" element={<Navigate to="/admin/preferences/job-titles" replace />} />
+                              <Route path="/job-titles/:id" element={<Navigate to="/admin/preferences/job-titles" replace />} />
+                              <Route path="/location-levels" element={<Navigate to="/admin/preferences/location-levels" replace />} />
+                              <Route path="/location-levels/:id" element={<Navigate to="/admin/preferences/location-levels" replace />} />
+                              <Route path="/companies" element={<Navigate to="/admin/preferences/company" replace />} />
+                              <Route path="/locations" element={<Navigate to="/admin/preferences/locations" replace />} />
+                              <Route path="/categories" element={<Navigate to="/admin/preferences/categories" replace />} />
+                              <Route path="/asset-prefixes" element={<Navigate to="/admin/preferences/asset-prefixes" replace />} />
                              <Route path="*" element={<NotFound />} />
                            </Routes>
                          </AppLayout>

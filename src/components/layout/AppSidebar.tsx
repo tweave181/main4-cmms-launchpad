@@ -1,7 +1,7 @@
 
-import React from 'react';
-import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader } from '@/components/ui/sidebar';
-import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText, BookOpen, FolderOpen } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarGroup, SidebarGroupLabel, SidebarGroupContent } from '@/components/ui/sidebar';
+import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText, BookOpen, FolderOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
@@ -10,6 +10,9 @@ export const AppSidebar = () => {
   const location = useLocation();
   const { isAdmin } = useAuth();
   const { organizationName } = useGlobalSettings();
+  const [preferencesOpen, setPreferencesOpen] = useState(
+    location.pathname.startsWith('/admin/preferences')
+  );
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', href: '/' },
@@ -23,17 +26,20 @@ export const AppSidebar = () => {
 
   const adminItems = [
     { icon: Users, label: 'User Management', href: '/users' },
-    { icon: Building2, label: 'Departments', href: '/departments' },
-    { icon: Briefcase, label: 'Job Titles', href: '/job-titles' },
-    { icon: MapPin, label: 'Location Levels', href: '/location-levels' },
-    { icon: Building2, label: 'Company Details', href: '/companies' },
     { icon: MapPin, label: 'Addresses', href: '/addresses' },
-    { icon: MapPin, label: 'Locations', href: '/locations' },
     { icon: ScrollText, label: 'Service Contracts', href: '/admin/service-contracts' },
-    { icon: FolderOpen, label: 'Categories', href: '/categories' },
-    { icon: Cog, label: 'Asset Prefixes', href: '/asset-prefixes' },
     { icon: FileText, label: 'System Audit Log', href: '/system-audit-log' },
     { icon: Settings, label: 'System Settings', href: '/settings' },
+  ];
+
+  const preferencesItems = [
+    { icon: Building2, label: 'Company Details', href: '/admin/preferences/company' },
+    { icon: Building2, label: 'Departments', href: '/admin/preferences/departments' },
+    { icon: Briefcase, label: 'Job Titles', href: '/admin/preferences/job-titles' },
+    { icon: MapPin, label: 'Location Levels', href: '/admin/preferences/location-levels' },
+    { icon: MapPin, label: 'Locations', href: '/admin/preferences/locations' },
+    { icon: FolderOpen, label: 'Categories', href: '/admin/preferences/categories' },
+    { icon: Cog, label: 'Asset Prefixes', href: '/admin/preferences/asset-prefixes' },
   ];
 
   return (
@@ -75,6 +81,39 @@ export const AppSidebar = () => {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setPreferencesOpen(!preferencesOpen)}
+                  className="flex items-center space-x-3 w-full justify-between"
+                  isActive={location.pathname.startsWith('/admin/preferences')}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Settings className="h-4 w-4" />
+                    <span>Preferences</span>
+                  </div>
+                  {preferencesOpen ? (
+                    <ChevronDown className="h-3 w-3" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3" />
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              {preferencesOpen && (
+                <div className="ml-4">
+                  {preferencesItems.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton asChild isActive={location.pathname === item.href}>
+                        <Link to={item.href} className="flex items-center space-x-3">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </div>
+              )}
             </>
           )}
         </SidebarMenu>
