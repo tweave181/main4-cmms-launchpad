@@ -87,25 +87,14 @@ export function AddressCard({ companyName, address, className }: AddressCardProp
           Copy
         </button>
         {hasMappable && (
-          <>
-            <button
-              onClick={() => setShowMap(v => !v)}
-              className="hover:text-slate-700 flex items-center gap-1"
-              aria-expanded={showMap}
-            >
-              <MapPin className="h-3 w-3" />
-              {showMap ? 'Hide map' : 'Show map'}
-            </button>
-            <a
-              href={mapOpenUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-slate-700 flex items-center gap-1"
-            >
-              <MapPin className="h-3 w-3" />
-              Open in Google Maps
-            </a>
-          </>
+          <button
+            onClick={() => setShowMap(v => !v)}
+            className="hover:text-slate-700 flex items-center gap-1"
+            aria-expanded={showMap}
+          >
+            <MapPin className="h-3 w-3" />
+            {showMap ? 'Hide map' : 'Show map'}
+          </button>
         )}
       </div>
       {showMap && hasMappable && (
