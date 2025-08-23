@@ -30,14 +30,23 @@ export function AddressCard({ companyName, address, className }: AddressCardProp
   const fullAddress = addressParts.join(', ');
   const fullAddressForCopy = [companyName, ...addressParts.slice(1)].filter(Boolean).join('\n');
 
-  function getMapsUrl(query: string) {
+  function openInMaps(query: string) {
+    if (!query) return;
     const encoded = encodeURIComponent(query);
     const ua = navigator.userAgent || '';
-    const isApple = /iPhone|iPad|Macintosh/.test(ua);
-    // Apple Maps uses the same q param; this works well cross-region
-    return isApple
-      ? `https://maps.apple.com/?q=${encoded}`
-      : `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+    const isIOS = /iPhone|iPad|iPod/.test(ua);
+
+    // Use native Apple Maps app on iOS (avoids iframe-blocked web domain)
+    const url = isIOS
+      ? `maps://?q=${encoded}`                                  // opens Apple Maps app
+      : `https://www.google.com/maps/search/?api=1&query=${encoded}`; // web-safe everywhere
+
+    // Force real tab/window, never iframe/preview
+    const win = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!win) {
+      // Popup blocked fallback: top-level navigation
+      window.location.assign(url);
+    }
   }
 
   const canMap = !!(address?.line1 || address?.town_city || address?.postcode || address?.country);
@@ -91,16 +100,15 @@ export function AddressCard({ companyName, address, className }: AddressCardProp
           Copy
         </button>
         {canMap && (
-          <a
-            href={getMapsUrl(fullAddress)}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => openInMaps(fullAddress)}
             className="hover:text-slate-700 flex items-center gap-1"
             aria-label="Open this address in Maps"
+            data-testid="open-in-maps"
           >
             <MapPin className="h-3 w-3" />
             Open in Maps
-          </a>
+          </button>
         )}
       </div>
     </div>
