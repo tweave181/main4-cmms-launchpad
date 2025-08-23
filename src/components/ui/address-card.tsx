@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Copy, MapPin } from 'lucide-react';
 
@@ -36,17 +37,13 @@ export function AddressCard({ companyName, address, className }: AddressCardProp
     const ua = navigator.userAgent || '';
     const isIOS = /iPhone|iPad|iPod/.test(ua);
 
-    // Use native Apple Maps app on iOS (avoids iframe-blocked web domain)
+    // Use native Apple Maps app on iOS, Google Maps everywhere else
     const url = isIOS
-      ? `maps://?q=${encoded}`                                  // opens Apple Maps app
-      : `https://www.google.com/maps/search/?api=1&query=${encoded}`; // web-safe everywhere
+      ? `maps://?q=${encoded}`
+      : `https://www.google.com/maps/search/?api=1&query=${encoded}`;
 
-    // Force real tab/window, never iframe/preview
-    const win = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!win) {
-      // Popup blocked fallback: top-level navigation
-      window.location.assign(url);
-    }
+    // Direct navigation - more reliable than window.open
+    window.location.assign(url);
   }
 
   const canMap = !!(address?.line1 || address?.town_city || address?.postcode || address?.country);
