@@ -157,18 +157,23 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
   };
 
   const handleClose = () => {
+    if (isEditMode && form.formState.isDirty) {
+      if (!confirm('You have unsaved changes. Are you sure you want to close?')) {
+        return;
+      }
+    }
     setIsEditMode(false);
     onClose();
   };
 
-  const getAddressTitle = () => {
-    if (!address) return 'Address Details';
-    
-    if (address.company_name) {
-      return address.company_name;
+  const handleCancel = () => {
+    if (form.formState.isDirty) {
+      if (!confirm('You have unsaved changes. Are you sure you want to cancel?')) {
+        return;
+      }
     }
-    
-    return address.address_line_1 || 'Address Details';
+    form.reset();
+    setIsEditMode(false);
   };
 
   // Don't render if no addressId or if there was an error
@@ -218,11 +223,11 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+          <DialogHeader className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <MapPin className="h-5 w-5 text-primary" />
-                <span>{getAddressTitle()}</span>
+                <span>Address Details</span>
               </div>
               
               {isAdmin && (
@@ -230,7 +235,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
                   {!isEditMode && (
                     <>
                       <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
                         onClick={() => setIsEditMode(true)}
                         className="flex items-center space-x-1"
@@ -242,11 +247,11 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
-                              variant="outline"
+                              variant="destructive"
                               size="sm"
                               onClick={() => setShowDeleteDialog(true)}
                               disabled={addressUsage?.isInUse}
-                              className="flex items-center space-x-1 text-destructive hover:text-destructive disabled:text-muted-foreground"
+                              className="flex items-center space-x-1"
                             >
                               <Trash2 className="h-4 w-4" />
                               <span>Delete</span>
@@ -263,15 +268,30 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
                   )}
                   
                   {isEditMode && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsEditMode(false)}
-                      className="flex items-center space-x-1"
-                    >
-                      <X className="h-4 w-4" />
-                      <span>Cancel</span>
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancel}
+                        className="flex items-center space-x-1"
+                      >
+                        <X className="h-4 w-4" />
+                        <span>Cancel</span>
+                      </Button>
+                      <Button
+                        type="submit"
+                        form="address-form"
+                        variant="default"
+                        size="sm"
+                        disabled={updateAddressMutation.isPending || !form.formState.isValid}
+                        className="flex items-center space-x-1"
+                      >
+                        <Save className="h-4 w-4" />
+                        <span>
+                          {updateAddressMutation.isPending ? 'Saving...' : 'Save Changes'}
+                        </span>
+                      </Button>
+                    </>
                   )}
                 </div>
               )}
@@ -280,7 +300,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
 
           {address && (
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form id="address-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <AddressFormFields 
                   control={form.control} 
                   disabled={!isEditMode || !isAdmin}
@@ -296,28 +316,6 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
                     </span>
                   </div>
                 </div>
-
-                {isEditMode && isAdmin && (
-                  <div className="flex justify-start space-x-2 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsEditMode(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={updateAddressMutation.isPending}
-                      className="flex items-center space-x-1"
-                    >
-                      <Save className="h-4 w-4" />
-                      <span>
-                        {updateAddressMutation.isPending ? 'Saving...' : 'Save Changes'}
-                      </span>
-                    </Button>
-                  </div>
-                )}
               </form>
             </Form>
           )}
