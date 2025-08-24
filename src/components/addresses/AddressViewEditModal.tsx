@@ -2,38 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { MapPin, Edit, Save, X, Trash2 } from 'lucide-react';
 import { AddressFormFields } from './AddressFormFields';
 import { useAddress, useUpdateAddress, useDeleteAddress } from '@/hooks/useAddresses';
 import { useAddressUsage } from '@/hooks/useAddressUsage';
 import { useAuth } from '@/contexts/auth';
 import type { Address, AddressFormData } from '@/types/address';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 const addressSchema = z.object({
   address_line_1: z.string().min(1, 'Address line 1 is required'),
   address_line_2: z.string().optional(),
@@ -51,30 +31,35 @@ const addressSchema = z.object({
   is_supplier: z.boolean().optional(),
   is_manufacturer: z.boolean().optional(),
   is_contractor: z.boolean().optional(),
-  is_other: z.boolean().optional(),
+  is_other: z.boolean().optional()
 });
-
 interface AddressViewEditModalProps {
   addressId: string | null;
   isOpen: boolean;
   onClose: () => void;
 }
-
 export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
   addressId,
   isOpen,
-  onClose,
+  onClose
 }) => {
-  const { isAdmin } = useAuth();
+  const {
+    isAdmin
+  } = useAuth();
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  
+
   // Always call hooks - the hook will handle null/empty IDs gracefully
-  const { data: address, isLoading, error } = useAddress(addressId || '');
-  const { data: addressUsage } = useAddressUsage(addressId || '');
+  const {
+    data: address,
+    isLoading,
+    error
+  } = useAddress(addressId || '');
+  const {
+    data: addressUsage
+  } = useAddressUsage(addressId || '');
   const updateAddressMutation = useUpdateAddress();
   const deleteAddressMutation = useDeleteAddress();
-
   const form = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
@@ -94,8 +79,8 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
       is_supplier: false,
       is_manufacturer: false,
       is_contractor: false,
-      is_other: false,
-    },
+      is_other: false
+    }
   });
 
   // Reset form when address loads
@@ -118,7 +103,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
         is_supplier: address.is_supplier || false,
         is_manufacturer: address.is_manufacturer || false,
         is_contractor: address.is_contractor || false,
-        is_other: address.is_other || false,
+        is_other: address.is_other || false
       });
     }
   }, [address, form]);
@@ -129,24 +114,20 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
       setIsEditMode(false);
     }
   }, [isOpen]);
-
   const onSubmit = async (data: AddressFormData) => {
     if (!address) return;
-    
     try {
       await updateAddressMutation.mutateAsync({
         id: address.id,
-        data,
+        data
       });
       setIsEditMode(false);
     } catch (error) {
       console.error('Error updating address:', error);
     }
   };
-
   const handleDelete = async () => {
     if (!address) return;
-    
     try {
       await deleteAddressMutation.mutateAsync(address.id);
       setShowDeleteDialog(false);
@@ -155,7 +136,6 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
       console.error('Error deleting address:', error);
     }
   };
-
   const handleClose = () => {
     if (isEditMode && form.formState.isDirty) {
       if (!confirm('You have unsaved changes. Are you sure you want to close?')) {
@@ -165,7 +145,6 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
     setIsEditMode(false);
     onClose();
   };
-
   const handleCancel = () => {
     if (form.formState.isDirty) {
       if (!confirm('You have unsaved changes. Are you sure you want to cancel?')) {
@@ -178,11 +157,10 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
 
   // Don't render if no addressId or if there was an error
   if (!addressId) return null;
-  
+
   // Show loading state while address is being fetched
   if (isLoading && !address) {
-    return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
+    return <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
@@ -191,19 +169,15 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
+            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
           </div>
         </DialogContent>
-      </Dialog>
-    );
+      </Dialog>;
   }
-  
+
   // Show error state if failed to load address
   if (error && !address) {
-    return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
+    return <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
@@ -215,96 +189,58 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
             Error loading address: {error.message || 'Unknown error'}
           </div>
         </DialogContent>
-      </Dialog>
-    );
+      </Dialog>;
   }
-
-  return (
-    <>
+  return <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <MapPin className="h-5 w-5 text-primary" />
-                <span>Address Details</span>
+                <span className="text-2xl">Address Details</span>
               </div>
               
-              {isAdmin && (
-                <div className="flex items-center space-x-2">
-                  {!isEditMode && (
-                    <>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => setIsEditMode(true)}
-                        className="flex items-center space-x-1"
-                      >
+              {isAdmin && <div className="flex items-center space-x-2">
+                  {!isEditMode && <>
+                      <Button variant="default" size="sm" onClick={() => setIsEditMode(true)} className="flex items-center space-x-1">
                         <Edit className="h-4 w-4" />
                         <span>Edit</span>
                       </Button>
                        <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => setShowDeleteDialog(true)}
-                              disabled={addressUsage?.isInUse}
-                              className="flex items-center space-x-1"
-                            >
+                            <Button variant="destructive" size="sm" onClick={() => setShowDeleteDialog(true)} disabled={addressUsage?.isInUse} className="flex items-center space-x-1">
                               <Trash2 className="h-4 w-4" />
                               <span>Delete</span>
                             </Button>
                           </TooltipTrigger>
-                          {addressUsage?.isInUse && (
-                            <TooltipContent>
+                          {addressUsage?.isInUse && <TooltipContent>
                               <p>This address is in use and cannot be deleted.</p>
-                            </TooltipContent>
-                          )}
+                            </TooltipContent>}
                         </Tooltip>
                       </TooltipProvider>
-                    </>
-                  )}
+                    </>}
                   
-                  {isEditMode && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCancel}
-                        className="flex items-center space-x-1"
-                      >
+                  {isEditMode && <>
+                      <Button variant="outline" size="sm" onClick={handleCancel} className="flex items-center space-x-1">
                         <X className="h-4 w-4" />
                         <span>Cancel</span>
                       </Button>
-                      <Button
-                        type="submit"
-                        form="address-form"
-                        variant="default"
-                        size="sm"
-                        disabled={updateAddressMutation.isPending || !form.formState.isValid}
-                        className="flex items-center space-x-1"
-                      >
+                      <Button type="submit" form="address-form" variant="default" size="sm" disabled={updateAddressMutation.isPending || !form.formState.isValid} className="flex items-center space-x-1">
                         <Save className="h-4 w-4" />
                         <span>
                           {updateAddressMutation.isPending ? 'Saving...' : 'Save Changes'}
                         </span>
                       </Button>
-                    </>
-                  )}
-                </div>
-              )}
+                    </>}
+                </div>}
             </DialogTitle>
           </DialogHeader>
 
-          {address && (
-            <Form {...form}>
+          {address && <Form {...form}>
               <form id="address-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <AddressFormFields 
-                  control={form.control} 
-                  disabled={!isEditMode || !isAdmin}
-                />
+                <AddressFormFields control={form.control} disabled={!isEditMode || !isAdmin} />
                 
                 {/* Record Information */}
                 <div className="pt-4 border-t">
@@ -317,8 +253,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
                   </div>
                 </div>
               </form>
-            </Form>
-          )}
+            </Form>}
         </DialogContent>
       </Dialog>
 
@@ -329,37 +264,26 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete this address record. This action cannot be undone.
-              {addressUsage?.usageDetails && addressUsage.usageDetails.length > 0 && (
-                <div className="mt-2 text-sm">
+              {addressUsage?.usageDetails && addressUsage.usageDetails.length > 0 && <div className="mt-2 text-sm">
                   <strong>Note:</strong> This address is currently in use by:
                   <ul className="mt-1 list-disc list-inside">
-                    {addressUsage.usageDetails.map((usage, index) => (
-                      <li key={index}>
+                    {addressUsage.usageDetails.map((usage, index) => <li key={index}>
                         {usage.count} {usage.type}{usage.count > 1 ? 's' : ''}
-                        {usage.examples && usage.examples.length > 0 && (
-                          <span className="text-muted-foreground">
+                        {usage.examples && usage.examples.length > 0 && <span className="text-muted-foreground">
                             {' '}({usage.examples.join(', ')}{usage.count > usage.examples.length ? ', ...' : ''})
-                          </span>
-                        )}
-                      </li>
-                    ))}
+                          </span>}
+                      </li>)}
                   </ul>
-                </div>
-              )}
+                </div>}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteAddressMutation.isPending}
-            >
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteAddressMutation.isPending}>
               {deleteAddressMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
-  );
+    </>;
 };
