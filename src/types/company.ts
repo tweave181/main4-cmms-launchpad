@@ -8,8 +8,8 @@ export interface CompanyDetails {
   contact_name?: string;
   email?: string;
   phone?: string;
-  company_address_id?: string;
-  company_address?: Address;
+  company_address_id?: string | null;
+  company_address?: Address | null;
   created_at: string;
   updated_at: string;
   created_by?: string;
@@ -22,7 +22,6 @@ export interface CompanyFormData {
   contact_name?: string;
   email?: string;
   phone?: string;
-  company_address_id?: string;
-  company_address?: AddressFormData;
+  company_address_id?: string | null;
 }
 

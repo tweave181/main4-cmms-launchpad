@@ -25,7 +25,7 @@ const companySchema = z.object({
   contact_name: z.string().optional(),
   email: z.string().email('Enter a valid email').optional().or(z.literal('')),
   phone: z.string().optional(),
-  company_address_id: z.string().uuid('Select a company address'),
+  company_address_id: z.string().uuid().optional().nullable(),
 });
 
 interface CompanyFormProps {
@@ -56,7 +56,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
       contact_name: '',
       email: '',
       phone: '',
-      company_address_id: '',
+      company_address_id: null,
     },
   });
 
@@ -70,7 +70,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         contact_name: company.contact_name || '',
         email: company.email || '',
         phone: company.phone || '',
-        company_address_id: company.company_address_id || '',
+        company_address_id: company.company_address_id || null,
       });
     } else {
       reset({
@@ -78,7 +78,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         contact_name: '',
         email: '',
         phone: '',
-        company_address_id: '',
+        company_address_id: null,
       });
     }
   }, [company, reset]);
@@ -97,7 +97,29 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         queryClient.invalidateQueries({ queryKey: ['companies'] });
       } else {
         await createMutation.mutateAsync(data);
-        toast({ title: "Success", description: "Company created successfully" });
+        
+        if (!data.company_address_id) {
+          // Show toast with option to add address
+          toast({ 
+            title: "Company created successfully!", 
+            description: "Would you like to add an address now?",
+            action: (
+              <Button 
+                size="sm" 
+                onClick={() => {
+                  // Reopen the form in edit mode to add address
+                  // This assumes the parent component can handle this
+                  onSuccess();
+                }}
+              >
+                Add Address
+              </Button>
+            )
+          });
+        } else {
+          toast({ title: "Success", description: "Company created successfully" });
+        }
+        
         queryClient.invalidateQueries({ queryKey: ['companies'] });
       }
       onSuccess();

@@ -99,7 +99,7 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
 
           <div className="space-y-6">
             {/* Address Type Badges */}
-            {company.company_address && (
+            {company.company_address ? (
               <div className="flex flex-wrap gap-2">
                 {company.company_address.is_manufacturer && (
                   <Badge variant="secondary">Manufacturer</Badge>
@@ -116,6 +116,11 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
                 {company.company_address.is_other && (
                   <Badge variant="secondary">Other</Badge>
                 )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="text-sm">—</span>
+                <span className="text-xs">(Address types are set on the address record)</span>
               </div>
             )}
 
@@ -166,16 +171,29 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
             </Card>
 
             {/* Address Information */}
-            {company.company_address && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Address Information</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <CardTitle>Address Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {company.company_address ? (
                   <AddressDisplay address={company.company_address} />
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground">No address assigned</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleEdit}
+                      >
+                        Add Address
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
 
             {/* Record Information */}

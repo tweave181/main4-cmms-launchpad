@@ -53,7 +53,7 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <FormLabel>Company Address *</FormLabel>
+        <FormLabel>Company Address (Optional)</FormLabel>
         <div className="flex items-center space-x-2">
           <span className="text-sm">Create New</span>
           <Switch
@@ -78,13 +78,16 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
               <FormControl>
                 <Select
                   value={field.value || ''}
-                  onValueChange={field.onChange}
+                  onValueChange={(value) => field.onChange(value || null)}
                   disabled={isLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select company address" />
+                    <SelectValue placeholder="Select company address (optional)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">
+                      <span className="text-muted-foreground">No address</span>
+                    </SelectItem>
                     {addresses.map((address) => (
                       <SelectItem key={address.id} value={address.id}>
                         <div className="text-left">
@@ -104,7 +107,7 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
         />
       )}
 
-      {selectedAddress && (
+      {selectedAddress ? (
         <div className="mt-4">
           <AddressCard
             companyName={selectedAddress.company_name}
@@ -117,6 +120,11 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
               postcode: selectedAddress.postcode,
             }}
           />
+        </div>
+      ) : (
+        <div className="mt-4 p-4 border border-dashed rounded-lg text-center text-muted-foreground">
+          <p className="text-sm">No address selected</p>
+          <p className="text-xs">You can add an address later if needed</p>
         </div>
       )}
 
