@@ -62,7 +62,14 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
 
       const { data, error } = await supabase
         .from('company_details')
-        .select('id, company_name, email, phone, address, company_address_id')
+        .select(`
+          id, 
+          company_name, 
+          email, 
+          phone, 
+          company_address_id,
+          company_address:addresses(*)
+        `)
         .eq('tenant_id', userProfile.tenant_id)
         .order('company_name');
 
@@ -283,10 +290,18 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
                       <p className="text-sm text-foreground mt-1">{selectedCompany.phone}</p>
                     </div>
                   )}
-                  {selectedCompany.address && (
+                  {selectedCompany.company_address && (
                     <div>
                       <Label className="text-sm font-medium">Address</Label>
-                      <p className="text-sm text-foreground mt-1">{selectedCompany.address}</p>
+                      <p className="text-sm text-foreground mt-1">
+                        {[
+                          selectedCompany.company_address.address_line_1,
+                          selectedCompany.company_address.address_line_2,
+                          selectedCompany.company_address.town_or_city,
+                          selectedCompany.company_address.county_or_state,
+                          selectedCompany.company_address.postcode
+                        ].filter(Boolean).join(', ')}
+                      </p>
                     </div>
                   )}
                 </div>

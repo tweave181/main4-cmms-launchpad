@@ -31,7 +31,7 @@ interface ServiceContract {
     company_name: string;
     email: string | null;
     phone: string | null;
-    address: string | null;
+    company_address_id: string | null;
   } | null;
 }
 const ServiceContracts: React.FC = () => {
@@ -66,7 +66,7 @@ const ServiceContracts: React.FC = () => {
             company_name,
             email,
             phone,
-            address
+            company_address_id
           )
         `).eq('tenant_id', userProfile.tenant_id).order('end_date', {
         ascending: true
@@ -310,7 +310,11 @@ const ServiceContracts: React.FC = () => {
 
       <ServiceContractModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-      <ContractDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} contract={contractForDetail} />
+      <ContractDetailModal 
+        isOpen={isDetailModalOpen} 
+        onClose={() => setIsDetailModalOpen(false)} 
+        contract={contractForDetail} 
+      />
     </div>;
 };
 export default ServiceContracts;

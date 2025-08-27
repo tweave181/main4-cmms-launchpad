@@ -26,7 +26,7 @@ interface ServiceContract {
     company_name: string;
     email: string | null;
     phone: string | null;
-    address: string | null;
+    company_address_id: string | null;
   } | null;
 }
 interface ContractLine {
@@ -196,7 +196,6 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                       {contract.company_details.email && <div>Email: {contract.company_details.email}</div>}
                       {contract.company_details.phone && <div>Phone: {contract.company_details.phone}</div>}
-                      {contract.company_details.address && <div className="md:col-span-2">Address: {contract.company_details.address}</div>}
                     </div>
                   </div>
                 </>}
