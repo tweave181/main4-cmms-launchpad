@@ -24,7 +24,6 @@ export interface CompanyFormData {
   contact_name?: string;
   email?: string;
   phone?: string;
-  address?: string;
   company_address_id?: string;
   company_address?: AddressFormData;
   type: string[];

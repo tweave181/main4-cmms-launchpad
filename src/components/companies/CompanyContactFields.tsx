@@ -2,7 +2,6 @@
 import React from 'react';
 import { Control } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   FormControl,
   FormField,
@@ -62,26 +61,6 @@ export const CompanyContactFields: React.FC<CompanyContactFieldsProps> = ({
           </FormItem>
         )}
       />
-
-      <div className="md:col-span-2">
-        <FormField
-          control={control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Enter company address"
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
     </div>
   );
 };

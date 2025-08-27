@@ -80,7 +80,6 @@ export const useCreateCompany = () => {
         contact_name: data.contact_name,
         email: data.email,
         phone: data.phone,
-        address: data.address,
         company_address_id: addressId,
         type: data.type,
         tenant_id: userProfile.tenant_id,
@@ -159,7 +158,6 @@ export const useUpdateCompany = () => {
         contact_name: data.contact_name,
         email: data.email,
         phone: data.phone,
-        address: data.address,
         company_address_id: addressId,
         type: data.type,
       };
