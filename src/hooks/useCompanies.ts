@@ -25,8 +25,21 @@ export const useCompanies = (type?: string) => {
         .eq('tenant_id', userProfile.tenant_id)
         .order('company_name');
 
+      // If filtering by type, join with addresses and filter by address types
       if (type) {
-        query = query.contains('type', [type]);
+        // Map company types to address boolean fields
+        const typeMapping: Record<string, string> = {
+          'manufacturer': 'is_manufacturer',
+          'contractor': 'is_contractor', 
+          'vendor': 'is_supplier',
+          'supplier': 'is_supplier',
+          'service_provider': 'is_contractor'
+        };
+        
+        const addressField = typeMapping[type];
+        if (addressField) {
+          query = query.eq(`company_address.${addressField}`, true);
+        }
       }
 
       const { data, error } = await query;
@@ -81,7 +94,6 @@ export const useCreateCompany = () => {
         email: data.email,
         phone: data.phone,
         company_address_id: addressId,
-        type: data.type,
         tenant_id: userProfile.tenant_id,
         created_by: userProfile.id,
       };
@@ -159,7 +171,6 @@ export const useUpdateCompany = () => {
         email: data.email,
         phone: data.phone,
         company_address_id: addressId,
-        type: data.type,
       };
 
       const { data: result, error } = await supabase

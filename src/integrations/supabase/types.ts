@@ -434,7 +434,6 @@ export type Database = {
       }
       company_details: {
         Row: {
-          address: string | null
           company_address_id: string | null
           company_name: string
           contact_name: string | null
@@ -444,11 +443,9 @@ export type Database = {
           id: string
           phone: string | null
           tenant_id: string
-          type: string[]
           updated_at: string
         }
         Insert: {
-          address?: string | null
           company_address_id?: string | null
           company_name: string
           contact_name?: string | null
@@ -458,11 +455,9 @@ export type Database = {
           id?: string
           phone?: string | null
           tenant_id: string
-          type?: string[]
           updated_at?: string
         }
         Update: {
-          address?: string | null
           company_address_id?: string | null
           company_name?: string
           contact_name?: string | null
@@ -472,7 +467,6 @@ export type Database = {
           id?: string
           phone?: string | null
           tenant_id?: string
-          type?: string[]
           updated_at?: string
         }
         Relationships: [

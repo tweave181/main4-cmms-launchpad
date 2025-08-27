@@ -68,20 +68,38 @@ export const CompanyList: React.FC<CompanyListProps> = ({
               </div>
             )}
             
-            {company.address && (
+            {company.company_address && (
               <div className="flex items-start text-sm text-gray-600">
                 <MapPin className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                <span className="line-clamp-2">{company.address}</span>
+                <span className="line-clamp-2">
+                  {[
+                    company.company_address.address_line_1,
+                    company.company_address.town_or_city,
+                    company.company_address.postcode
+                  ].filter(Boolean).join(', ')}
+                </span>
               </div>
             )}
             
-            <div className="flex flex-wrap gap-1">
-              {company.type.map((type) => (
-                <Badge key={type} variant="secondary" className="text-xs">
-                  {type.replace('_', ' ')}
-                </Badge>
-              ))}
-            </div>
+            {company.company_address && (
+              <div className="flex flex-wrap gap-1">
+                {company.company_address.is_manufacturer && (
+                  <Badge variant="secondary" className="text-xs">Manufacturer</Badge>
+                )}
+                {company.company_address.is_supplier && (
+                  <Badge variant="secondary" className="text-xs">Supplier</Badge>
+                )}
+                {company.company_address.is_contractor && (
+                  <Badge variant="secondary" className="text-xs">Contractor</Badge>
+                )}
+                {company.company_address.is_contact && (
+                  <Badge variant="secondary" className="text-xs">Contact</Badge>
+                )}
+                {company.company_address.is_other && (
+                  <Badge variant="secondary" className="text-xs">Other</Badge>
+                )}
+              </div>
+            )}
             
             <div className="flex justify-end pt-2">
               <Button

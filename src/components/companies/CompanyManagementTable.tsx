@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Search, Plus, FileText } from 'lucide-react';
 import { useCompanies } from '@/hooks/useCompanies';
-import { COMPANY_TYPES } from '@/types/company';
+
 import { CompanyDetailModal } from './CompanyDetailModal';
 import type { CompanyDetails } from '@/types/company';
 interface CompanyManagementTableProps {
@@ -31,8 +31,19 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
   // Filter companies based on search and type filter
   const filteredCompanies = companies.filter(company => {
     const matchesSearch = company.company_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || company.type.includes(typeFilter);
-    return matchesSearch && matchesType;
+    
+    if (typeFilter === 'all') return matchesSearch;
+    
+    // Check if company has address and the specified type
+    const hasType = company.company_address && (
+      (typeFilter === 'manufacturer' && company.company_address.is_manufacturer) ||
+      (typeFilter === 'supplier' && company.company_address.is_supplier) ||
+      (typeFilter === 'contractor' && company.company_address.is_contractor) ||
+      (typeFilter === 'contact' && company.company_address.is_contact) ||
+      (typeFilter === 'other' && company.company_address.is_other)
+    );
+    
+    return matchesSearch && hasType;
   });
 
   // Paginate results
@@ -69,9 +80,11 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              {COMPANY_TYPES.map(type => <SelectItem key={type} value={type}>
-                  {type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </SelectItem>)}
+              <SelectItem value="manufacturer">Manufacturer</SelectItem>
+              <SelectItem value="supplier">Supplier</SelectItem>
+              <SelectItem value="contractor">Contractor</SelectItem>
+              <SelectItem value="contact">Contact</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
 
@@ -118,9 +131,25 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {company.type.map(type => <Badge key={type} variant="secondary" className="text-xs">
-                          {type.replace('_', ' ')}
-                        </Badge>)}
+                      {company.company_address && (
+                        <>
+                          {company.company_address.is_manufacturer && (
+                            <Badge variant="secondary" className="text-xs">Manufacturer</Badge>
+                          )}
+                          {company.company_address.is_supplier && (
+                            <Badge variant="secondary" className="text-xs">Supplier</Badge>
+                          )}
+                          {company.company_address.is_contractor && (
+                            <Badge variant="secondary" className="text-xs">Contractor</Badge>
+                          )}
+                          {company.company_address.is_contact && (
+                            <Badge variant="secondary" className="text-xs">Contact</Badge>
+                          )}
+                          {company.company_address.is_other && (
+                            <Badge variant="secondary" className="text-xs">Other</Badge>
+                          )}
+                        </>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>{company.contact_name || '-'}</TableCell>

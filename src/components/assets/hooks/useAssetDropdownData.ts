@@ -77,8 +77,15 @@ export const useAssetDropdownData = () => {
       try {
         const { data, error } = await supabase
           .from('company_details')
-          .select('id, company_name, type')
-          .contains('type', ['manufacturer'])
+          .select(`
+            id,
+            company_name,
+            company_address:addresses!inner(
+              is_manufacturer
+            )
+          `)
+          .eq('tenant_id', userProfile.tenant_id)
+          .eq('company_address.is_manufacturer', true)
           .order('company_name');
 
         if (error) throw error;

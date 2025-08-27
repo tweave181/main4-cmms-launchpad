@@ -98,14 +98,26 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
           </DialogHeader>
 
           <div className="space-y-6">
-            {/* Company Type Badges */}
-            <div className="flex flex-wrap gap-2">
-              {company.type.map((type) => (
-                <Badge key={type} variant="secondary">
-                  {type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </Badge>
-              ))}
-            </div>
+            {/* Address Type Badges */}
+            {company.company_address && (
+              <div className="flex flex-wrap gap-2">
+                {company.company_address.is_manufacturer && (
+                  <Badge variant="secondary">Manufacturer</Badge>
+                )}
+                {company.company_address.is_supplier && (
+                  <Badge variant="secondary">Supplier</Badge>
+                )}
+                {company.company_address.is_contractor && (
+                  <Badge variant="secondary">Contractor</Badge>
+                )}
+                {company.company_address.is_contact && (
+                  <Badge variant="secondary">Contact</Badge>
+                )}
+                {company.company_address.is_other && (
+                  <Badge variant="secondary">Other</Badge>
+                )}
+              </div>
+            )}
 
             {/* Contact Information */}
             <Card>
@@ -154,17 +166,13 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
             </Card>
 
             {/* Address Information */}
-            {(company.company_address || company.address) && (
+            {company.company_address && (
               <Card>
                 <CardHeader>
                   <CardTitle>Address Information</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {company.company_address ? (
-                    <AddressDisplay address={company.company_address} />
-                  ) : (
-                    <p className="text-sm text-gray-600">{company.address}</p>
-                  )}
+                  <AddressDisplay address={company.company_address} />
                 </CardContent>
               </Card>
             )}

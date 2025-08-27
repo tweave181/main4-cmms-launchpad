@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { CompanyBasicFields } from './CompanyBasicFields';
 import { CompanyContactFields } from './CompanyContactFields';
-import { CompanyTypeFields } from './CompanyTypeFields';
 import { CompanyAddressFields } from './CompanyAddressFields';
 import { useCreateCompany, useUpdateCompany } from '@/hooks/useCompanies';
 import type { CompanyDetails, CompanyFormData } from '@/types/company';
@@ -33,7 +32,6 @@ const companySchema = z.object({
     county_or_state: z.string().optional(),
     postcode: z.string().optional(),
   }).optional(),
-  type: z.array(z.string()).min(1, 'At least one company type is required'),
 });
 
 interface CompanyFormProps {
@@ -77,7 +75,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         county_or_state: '',
         postcode: '',
       },
-      type: company?.type || [],
     },
   });
 
@@ -99,7 +96,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
           county_or_state: company.company_address.county_or_state || '',
           postcode: company.company_address.postcode || '',
         } : undefined,
-        type: company.type || [],
       });
     }
   }, [company, form]);
@@ -161,7 +157,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
               <CompanyBasicFields control={form.control} />
               <CompanyContactFields control={form.control} />
               <CompanyAddressFields control={form.control} />
-              <CompanyTypeFields control={form.control} />
             </form>
           </Form>
         </DialogContent>
