@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -16,22 +17,15 @@ import { CompanyBasicFields } from './CompanyBasicFields';
 import { CompanyContactFields } from './CompanyContactFields';
 import { CompanyAddressFields } from './CompanyAddressFields';
 import { useCreateCompany, useUpdateCompany } from '@/hooks/useCompanies';
+import { useToast } from '@/hooks/use-toast';
 import type { CompanyDetails, CompanyFormData } from '@/types/company';
 
 const companySchema = z.object({
-  company_name: z.string().min(2, 'Company name must be at least 2 characters').max(120, 'Company name must be less than 120 characters'),
+  company_name: z.string().trim().min(2, 'Company name is required'),
   contact_name: z.string().optional(),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  email: z.string().email('Enter a valid email').optional().or(z.literal('')),
   phone: z.string().optional(),
-  company_address_id: z.string().min(1, 'Company address is required'),
-  company_address: z.object({
-    address_line_1: z.string().min(1, 'Address line 1 is required'),
-    address_line_2: z.string().optional(),
-    address_line_3: z.string().optional(),
-    town_or_city: z.string().optional(),
-    county_or_state: z.string().optional(),
-    postcode: z.string().optional(),
-  }).optional(),
+  company_address_id: z.string().uuid('Select a company address'),
 });
 
 interface CompanyFormProps {
@@ -50,69 +44,78 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
   const isEditing = !!company;
   const createMutation = useCreateCompany();
   const updateMutation = useUpdateCompany();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [showUnsavedChanges, setShowUnsavedChanges] = useState(false);
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
+    mode: 'onChange',
     defaultValues: {
-      company_name: company?.company_name || '',
-      contact_name: company?.contact_name || '',
-      email: company?.email || '',
-      phone: company?.phone || '',
-      company_address_id: company?.company_address_id || '',
-      company_address: company?.company_address ? {
-        address_line_1: company.company_address.address_line_1 || '',
-        address_line_2: company.company_address.address_line_2 || '',
-        address_line_3: company.company_address.address_line_3 || '',
-        town_or_city: company.company_address.town_or_city || '',
-        county_or_state: company.company_address.county_or_state || '',
-        postcode: company.company_address.postcode || '',
-      } : {
-        address_line_1: '',
-        address_line_2: '',
-        address_line_3: '',
-        town_or_city: '',
-        county_or_state: '',
-        postcode: '',
-      },
+      company_name: '',
+      contact_name: '',
+      email: '',
+      phone: '',
+      company_address_id: '',
     },
   });
 
-  const { isDirty } = form.formState;
+  const { handleSubmit, formState, reset } = form;
+  const { isDirty, isSubmitting } = formState;
 
   useEffect(() => {
     if (company) {
-      form.reset({
+      reset({
         company_name: company.company_name || '',
         contact_name: company.contact_name || '',
         email: company.email || '',
         phone: company.phone || '',
         company_address_id: company.company_address_id || '',
-        company_address: company.company_address ? {
-          address_line_1: company.company_address.address_line_1 || '',
-          address_line_2: company.company_address.address_line_2 || '',
-          address_line_3: company.company_address.address_line_3 || '',
-          town_or_city: company.company_address.town_or_city || '',
-          county_or_state: company.company_address.county_or_state || '',
-          postcode: company.company_address.postcode || '',
-        } : undefined,
+      });
+    } else {
+      reset({
+        company_name: '',
+        contact_name: '',
+        email: '',
+        phone: '',
+        company_address_id: '',
       });
     }
-  }, [company, form]);
+  }, [company, reset]);
 
   const onSubmit = async (data: CompanyFormData) => {
     try {
-      if (isEditing) {
-        await updateMutation.mutateAsync({
-          id: company!.id,
+      if (isEditing && company) {
+        const result = await updateMutation.mutateAsync({
+          id: company.id,
           data,
         });
+        toast({ title: "Success", description: "Company updated successfully" });
+        
+        // Refresh the data
+        queryClient.setQueryData(['company', company.id], result);
+        queryClient.invalidateQueries({ queryKey: ['companies'] });
       } else {
         await createMutation.mutateAsync(data);
+        toast({ title: "Success", description: "Company created successfully" });
+        queryClient.invalidateQueries({ queryKey: ['companies'] });
       }
       onSuccess();
     } catch (error) {
       console.error('Form submission error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to save company. Please try again.",
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const onInvalid = (errors: any) => {
+    const firstErrorField = Object.keys(errors)[0];
+    const element = document.querySelector(`[name="${firstErrorField}"]`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
@@ -126,7 +129,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
   const handleConfirmClose = () => {
     setShowUnsavedChanges(false);
-    form.reset();
+    reset();
     onClose();
   };
 
@@ -145,15 +148,15 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
               <Button 
                 type="submit" 
                 form="company-form"
-                disabled={createMutation.isPending || updateMutation.isPending || !form.formState.isValid}
+                disabled={isSubmitting}
               >
-                {isEditing ? 'Update Company' : 'Create Company'}
+                {isSubmitting ? 'Saving...' : (isEditing ? 'Update Company' : 'Create Company')}
               </Button>
             </div>
           </DialogHeader>
 
           <Form {...form}>
-            <form id="company-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form id="company-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
               <CompanyBasicFields control={form.control} />
               <CompanyContactFields control={form.control} />
               <CompanyAddressFields control={form.control} />

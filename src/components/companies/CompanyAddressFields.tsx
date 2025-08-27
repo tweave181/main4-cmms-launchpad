@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Control, useWatch } from 'react-hook-form';
+import { Control, useWatch, useController } from 'react-hook-form';
 import {
   FormField,
   FormItem,
@@ -31,6 +31,11 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
   const [showAddressModal, setShowAddressModal] = useState(false);
   const { data: addresses = [], isLoading } = useAddresses();
   
+  const { field: addressIdField } = useController({
+    control,
+    name: 'company_address_id'
+  });
+  
   const selectedAddressId = useWatch({
     control,
     name: 'company_address_id'
@@ -38,11 +43,11 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
 
   const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
 
-  const handleNewAddressSuccess = () => {
-    // When a new address is created, close the modal and switch back to existing
+  const handleNewAddressSuccess = (newAddress: any) => {
+    // Set the new address ID in the form and close the modal
+    addressIdField.onChange(newAddress.id);
     setShowAddressModal(false);
     setUseExisting(true);
-    // The address list will be refreshed automatically due to React Query
   };
 
   return (
@@ -121,6 +126,7 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
           setShowAddressModal(false);
           setUseExisting(true);
         }}
+        onSuccess={handleNewAddressSuccess}
       />
     </div>
   );

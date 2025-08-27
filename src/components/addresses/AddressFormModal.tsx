@@ -43,6 +43,7 @@ interface AddressFormModalProps {
   address?: Address | null;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (address: Address) => void;
 }
 
 interface DuplicateInfo {
@@ -54,6 +55,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
   address,
   isOpen,
   onClose,
+  onSuccess,
 }) => {
   const isEditing = !!address;
   const createAddressMutation = useCreateAddress();
@@ -138,13 +140,15 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
   const onSubmit = async (data: AddressFormData) => {
     try {
       if (isEditing && address) {
-        await updateAddressMutation.mutateAsync({
+        const updatedAddress = await updateAddressMutation.mutateAsync({
           id: address.id,
           data,
         });
+        onSuccess?.(updatedAddress);
         onClose();
       } else {
-        await createAddressMutation.mutateAsync(data);
+        const newAddress = await createAddressMutation.mutateAsync(data);
+        onSuccess?.(newAddress);
         onClose();
       }
     } catch (error: any) {
@@ -162,7 +166,8 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
   const handleOverrideDuplicate = async () => {
     const data = form.getValues();
     try {
-      await createAddressMutation.mutateAsync({ ...data, ignoreDuplicates: true });
+      const newAddress = await createAddressMutation.mutateAsync({ ...data, ignoreDuplicates: true });
+      onSuccess?.(newAddress);
       onClose();
     } catch (error) {
       console.error('Error overriding duplicate:', error);
@@ -170,7 +175,8 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
   };
 
   const handleUseDuplicate = () => {
-    // Close modal and optionally notify parent about the existing address
+    // Use the existing duplicate address
+    onSuccess?.(duplicateInfo!.duplicate);
     onClose();
   };
 
