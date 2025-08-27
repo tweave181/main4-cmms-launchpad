@@ -1,22 +1,12 @@
-
 import React from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, CheckCircle, AlertTriangle, Archive } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
-
 type AssetTagPrefix = Database['public']['Tables']['asset_tag_prefixes']['Row'];
-
 interface AssetPrefixWithCount extends AssetTagPrefix {
   asset_count: number;
   is_at_capacity: boolean;
@@ -27,17 +17,15 @@ interface AssetPrefixWithCount extends AssetTagPrefix {
     description?: string;
   };
 }
-
 interface AssetPrefixListProps {
   prefixes: AssetPrefixWithCount[];
   onEditPrefix: (prefix: AssetPrefixWithCount) => void;
   onDeletePrefix: (id: string) => Promise<void>;
 }
-
 export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
   prefixes,
   onEditPrefix,
-  onDeletePrefix,
+  onDeletePrefix
 }) => {
   const handleEdit = (prefix: AssetPrefixWithCount) => {
     console.log('Edit button clicked for prefix:', prefix);
@@ -48,39 +36,36 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
       toast({
         title: 'Error',
         description: 'Failed to open edit form. Please try again.',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   };
-
   const handleDelete = async (prefix: AssetPrefixWithCount) => {
     if (prefix.asset_count > 0) {
       toast({
         title: 'Cannot Delete Prefix',
         description: `This prefix is currently used by ${prefix.asset_count} asset(s). Please reassign or remove these assets first.`,
-        variant: 'destructive',
+        variant: 'destructive'
       });
       return;
     }
-
     if (window.confirm(`Are you sure you want to delete the prefix "${prefix.prefix_letter}${parseInt(prefix.number_code)}"?`)) {
       try {
         await onDeletePrefix(prefix.id);
         toast({
           title: 'Success',
-          description: 'Asset tag prefix deleted successfully',
+          description: 'Asset tag prefix deleted successfully'
         });
       } catch (error) {
         console.error('Error deleting prefix:', error);
         toast({
           title: 'Error',
           description: 'Failed to delete asset tag prefix. Please try again.',
-          variant: 'destructive',
+          variant: 'destructive'
         });
       }
     }
   };
-
   const getStatusIcon = (prefix: AssetPrefixWithCount) => {
     if (prefix.is_archived) {
       return <Archive className="h-4 w-4 text-gray-500" />;
@@ -90,7 +75,6 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
     }
     return <CheckCircle className="h-4 w-4 text-green-500" />;
   };
-
   const getStatusText = (prefix: AssetPrefixWithCount) => {
     if (prefix.is_archived) {
       return 'Archived';
@@ -100,7 +84,6 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
     }
     return 'Active';
   };
-
   const getRowClassName = (prefix: AssetPrefixWithCount) => {
     if (prefix.is_archived) {
       return 'bg-gray-50 text-gray-500';
@@ -110,37 +93,31 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
     }
     return '';
   };
-
   if (prefixes.length === 0) {
-    return (
-      <Alert>
+    return <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
           No asset tag prefixes have been created yet. Click "Add Prefix" to create your first prefix.
         </AlertDescription>
-      </Alert>
-    );
+      </Alert>;
   }
-
-  return (
-    <div className="rounded-md border">
+  return <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Status</TableHead>
-            <TableHead>Prefix</TableHead>
-            <TableHead>Code</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Assets Using</TableHead>
-            <TableHead>Capacity</TableHead>
-            <TableHead>Example Tag</TableHead>
+            <TableHead className="bg-gray-300">Status</TableHead>
+            <TableHead className="bg-gray-300">Prefix</TableHead>
+            <TableHead className="bg-gray-300">Code</TableHead>
+            <TableHead className="bg-gray-300">Category</TableHead>
+            <TableHead className="bg-gray-300">Description</TableHead>
+            <TableHead className="bg-gray-300">Assets Using</TableHead>
+            <TableHead className="bg-gray-300">Capacity</TableHead>
+            <TableHead className="bg-gray-300">Example Tag</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {prefixes.map((prefix) => (
-            <TableRow key={prefix.id} className={getRowClassName(prefix)}>
+          {prefixes.map(prefix => <TableRow key={prefix.id} className={getRowClassName(prefix)}>
               <TableCell>
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(prefix)}
@@ -154,11 +131,7 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
                 {parseInt(prefix.number_code)}
               </TableCell>
               <TableCell>
-                {prefix.category ? (
-                  <span className="font-medium">{prefix.category.name}</span>
-                ) : (
-                  <span className="text-muted-foreground">No category</span>
-                )}
+                {prefix.category ? <span className="font-medium">{prefix.category.name}</span> : <span className="text-muted-foreground">No category</span>}
               </TableCell>
               <TableCell>
                 {prefix.category?.description || prefix.description || 'No description'}
@@ -178,42 +151,25 @@ export const AssetPrefixList: React.FC<AssetPrefixListProps> = ({
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(prefix)}
-                    disabled={prefix.is_archived}
-                    title={prefix.is_archived ? 'Cannot edit archived prefix' : 'Edit prefix'}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(prefix)} disabled={prefix.is_archived} title={prefix.is_archived ? 'Cannot edit archived prefix' : 'Edit prefix'}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(prefix)}
-                    className="text-red-600 hover:text-red-700"
-                    disabled={prefix.asset_count > 0}
-                    title={prefix.asset_count > 0 ? 'Cannot delete prefix in use' : 'Delete prefix'}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleDelete(prefix)} className="text-red-600 hover:text-red-700" disabled={prefix.asset_count > 0} title={prefix.asset_count > 0 ? 'Cannot delete prefix in use' : 'Delete prefix'}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </TableCell>
-            </TableRow>
-          ))}
+            </TableRow>)}
         </TableBody>
       </Table>
       
-      {prefixes.some(p => p.is_at_capacity) && (
-        <div className="p-4 bg-yellow-50 border-t border-yellow-200">
+      {prefixes.some(p => p.is_at_capacity) && <div className="p-4 bg-yellow-50 border-t border-yellow-200">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
             <span className="text-sm text-yellow-800">
               Some prefixes are at capacity (999 assets). Consider creating new prefixes for additional assets.
             </span>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
