@@ -16,16 +16,27 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { CompanyBasicFields } from './CompanyBasicFields';
 import { CompanyContactFields } from './CompanyContactFields';
 import { CompanyAddressFields } from './CompanyAddressFields';
+import { CompanyFormErrorBoundary } from './CompanyFormErrorBoundary';
 import { useCreateCompany, useUpdateCompany } from '@/hooks/useCompanies';
 import { useToast } from '@/hooks/use-toast';
 import type { CompanyDetails, CompanyFormData } from '@/types/company';
+
+// Development error handling
+if (process.env.NODE_ENV !== 'production') {
+  window.addEventListener('unhandledrejection', e => {
+    console.error('Promise rejection:', e.reason);
+  });
+}
 
 const companySchema = z.object({
   company_name: z.string().trim().min(2, 'Company name is required'),
   contact_name: z.string().optional(),
   email: z.string().email('Enter a valid email').optional().or(z.literal('')),
   phone: z.string().optional(),
-  company_address_id: z.string().uuid().optional().nullable(),
+  company_address_id: z
+    .union([z.string().uuid(), z.null(), z.literal(''), z.undefined()])
+    .optional()
+    .transform(v => (!v || v === '') ? null : v),
 });
 
 interface CompanyFormProps {
@@ -85,10 +96,16 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
   const onSubmit = async (data: CompanyFormData) => {
     try {
+      // Ensure address_id is properly null instead of empty string
+      const payload = { 
+        ...data, 
+        company_address_id: data.company_address_id || null 
+      };
+      
       if (isEditing && company) {
         const result = await updateMutation.mutateAsync({
           id: company.id,
-          data,
+          data: payload,
         });
         toast({ title: "Success", description: "Company updated successfully" });
         
@@ -96,9 +113,9 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         queryClient.setQueryData(['company', company.id], result);
         queryClient.invalidateQueries({ queryKey: ['companies'] });
       } else {
-        await createMutation.mutateAsync(data);
+        await createMutation.mutateAsync(payload);
         
-        if (!data.company_address_id) {
+        if (!payload.company_address_id) {
           // Show toast with option to add address
           toast({ 
             title: "Company created successfully!", 
@@ -125,9 +142,10 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
       onSuccess();
     } catch (error) {
       console.error('Form submission error:', error);
+      const errorMessage = error?.message || 'Failed to save company. Please try again.';
       toast({ 
         title: "Error", 
-        description: "Failed to save company. Please try again.",
+        description: errorMessage,
         variant: "destructive" 
       });
     }
@@ -177,13 +195,15 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
             </div>
           </DialogHeader>
 
-          <Form {...form}>
-            <form id="company-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
-              <CompanyBasicFields control={form.control} />
-              <CompanyContactFields control={form.control} />
-              <CompanyAddressFields control={form.control} />
-            </form>
-          </Form>
+          <CompanyFormErrorBoundary>
+            <Form {...form}>
+              <form id="company-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
+                <CompanyBasicFields control={form.control} />
+                <CompanyContactFields control={form.control} />
+                <CompanyAddressFields control={form.control} />
+              </form>
+            </Form>
+          </CompanyFormErrorBoundary>
         </DialogContent>
       </Dialog>
 

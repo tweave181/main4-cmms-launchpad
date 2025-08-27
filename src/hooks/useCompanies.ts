@@ -99,11 +99,7 @@ export const useCreateCompany = () => {
     },
     onError: (error: any) => {
       console.error('Create company error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create company",
-        variant: "destructive",
-      });
+      // Don't show toast here since CompanyForm handles it
     },
   });
 };
@@ -152,11 +148,7 @@ export const useUpdateCompany = () => {
     },
     onError: (error: any) => {
       console.error('Update company error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update company",
-        variant: "destructive",
-      });
+      // Don't show toast here since CompanyForm handles it
     },
   });
 };

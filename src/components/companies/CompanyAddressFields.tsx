@@ -77,15 +77,15 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
             <FormItem>
               <FormControl>
                 <Select
-                  value={field.value || ''}
-                  onValueChange={(value) => field.onChange(value || null)}
+                  value={field.value || 'no-address'}
+                  onValueChange={(value) => field.onChange(value === 'no-address' ? null : value)}
                   disabled={isLoading}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select company address (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">
+                    <SelectItem value="no-address">
                       <span className="text-muted-foreground">No address</span>
                     </SelectItem>
                     {addresses.map((address) => (
