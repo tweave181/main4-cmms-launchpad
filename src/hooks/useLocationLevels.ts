@@ -14,29 +14,65 @@ export const useLocationLevels = (filters?: LocationLevelFilters) => {
         throw new Error("No tenant ID found");
       }
 
-      let query = supabase
-        .from("location_levels")
-        .select("*")
-        .eq("tenant_id", userProfile.tenant_id);
+      let query;
+      
+      if (filters?.includeUsage) {
+        // Query with usage counts using RPC or manual aggregation
+        const { data, error } = await supabase
+          .from("location_levels")
+          .select(`
+            *,
+            locations(count)
+          `)
+          .eq("tenant_id", userProfile.tenant_id);
+          
+        if (error) {
+          console.error("Error fetching location levels with usage:", error);
+          throw error;
+        }
 
-      if (filters?.search) {
-        query = query.ilike("name", `%${filters.search}%`);
+        // Transform the data to include usage_count
+        const transformedData = await Promise.all(
+          (data || []).map(async (level) => {
+            const { count } = await supabase
+              .from("locations")
+              .select("*", { count: "exact", head: true })
+              .eq("location_level_id", level.id);
+            
+            return {
+              ...level,
+              usage_count: count || 0
+            };
+          })
+        );
+
+        return transformedData as LocationLevel[];
+      } else {
+        // Regular query without usage counts
+        query = supabase
+          .from("location_levels")
+          .select("*")
+          .eq("tenant_id", userProfile.tenant_id);
+
+        if (filters?.search) {
+          query = query.ilike("name", `%${filters.search}%`);
+        }
+
+        if (filters?.is_active !== undefined) {
+          query = query.eq("is_active", filters.is_active);
+        }
+
+        query = query.order("name");
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error("Error fetching location levels:", error);
+          throw error;
+        }
+
+        return data as LocationLevel[];
       }
-
-      if (filters?.is_active !== undefined) {
-        query = query.eq("is_active", filters.is_active);
-      }
-
-      query = query.order("name");
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error fetching location levels:", error);
-        throw error;
-      }
-
-      return data as LocationLevel[];
     },
     enabled: !!userProfile?.tenant_id,
   });
@@ -125,10 +161,22 @@ export const useDeleteLocationLevel = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Soft delete by setting is_active to false
+      // First check if the level is in use
+      const { data: locations, error: checkError } = await supabase
+        .from("locations")
+        .select("id")
+        .eq("location_level_id", id);
+
+      if (checkError) throw checkError;
+
+      if (locations && locations.length > 0) {
+        throw new Error(`LEVEL_IN_USE:${locations.length}`);
+      }
+
+      // If not in use, perform hard delete
       const { error } = await supabase
         .from("location_levels")
-        .update({ is_active: false })
+        .delete()
         .eq("id", id);
 
       if (error) throw error;
@@ -137,16 +185,26 @@ export const useDeleteLocationLevel = () => {
       queryClient.invalidateQueries({ queryKey: ["location-levels"] });
       toast({
         title: "Success",
-        description: "Location level deactivated successfully",
+        description: "Location level deleted successfully",
       });
     },
     onError: (error) => {
-      console.error("Error deactivating location level:", error);
-      toast({
-        title: "Error",
-        description: "Failed to deactivate location level",
-        variant: "destructive",
-      });
+      console.error("Error deleting location level:", error);
+      
+      if (error.message.startsWith("LEVEL_IN_USE:")) {
+        const usageCount = error.message.split(":")[1];
+        toast({
+          title: "Cannot Delete",
+          description: `This level is used by ${usageCount} locations. Deactivate it instead.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete location level",
+          variant: "destructive",
+        });
+      }
     },
   });
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,8 +23,8 @@ import { useCreateLocationLevel, useUpdateLocationLevel } from '@/hooks/useLocat
 import type { LocationLevel, LocationLevelFormData } from '@/types/location';
 
 const locationLevelSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
-  code: z.string().max(10, 'Code too long').optional(),
+  name: z.string().trim().min(1, 'Name is required').max(100, 'Name too long'),
+  code: z.string().trim().max(10, 'Code too long').optional().or(z.literal('')),
   is_active: z.boolean().optional(),
 });
 
@@ -45,17 +45,29 @@ export const LocationLevelForm: React.FC<LocationLevelFormProps> = ({
   const form = useForm<LocationLevelFormData>({
     resolver: zodResolver(locationLevelSchema),
     defaultValues: {
-      name: locationLevel?.name || '',
-      code: locationLevel?.code || '',
-      is_active: locationLevel?.is_active ?? true,
+      name: '',
+      code: '',
+      is_active: true,
     },
   });
+
+  // Reset form when locationLevel changes or dialog opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: locationLevel?.name || '',
+        code: locationLevel?.code || '',
+        is_active: locationLevel?.is_active ?? true,
+      });
+    }
+  }, [isOpen, locationLevel, form]);
 
   const onSubmit = async (data: LocationLevelFormData) => {
     try {
       const cleanedData = {
         ...data,
-        code: data.code === '' ? undefined : data.code,
+        name: data.name.trim(),
+        code: data.code && data.code.trim() ? data.code.trim().toUpperCase() : undefined,
       };
 
       if (locationLevel) {
@@ -63,8 +75,7 @@ export const LocationLevelForm: React.FC<LocationLevelFormProps> = ({
       } else {
         await createLocationLevel.mutateAsync(cleanedData);
       }
-      onClose();
-      form.reset();
+      handleClose();
     } catch (error) {
       // Error handling is done in the hooks
     }
@@ -72,7 +83,16 @@ export const LocationLevelForm: React.FC<LocationLevelFormProps> = ({
 
   const handleClose = () => {
     onClose();
-    form.reset();
+    form.reset({
+      name: '',
+      code: '',
+      is_active: true,
+    });
+  };
+
+  const handleCodeBlur = (field: any) => {
+    const value = field.value?.trim().toUpperCase() || '';
+    field.onChange(value);
   };
 
   return (
@@ -105,18 +125,18 @@ export const LocationLevelForm: React.FC<LocationLevelFormProps> = ({
               name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Code (Optional)</FormLabel>
+                  <FormLabel>Code</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="e.g. BLD, FLR, RM"
                       {...field}
-                      style={{ textTransform: 'uppercase' }}
                       onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      onBlur={() => handleCodeBlur(field)}
                     />
                   </FormControl>
                   <FormMessage />
                   <p className="text-xs text-muted-foreground">
-                    Short code for identification
+                    Short code for identification (auto-uppercase)
                   </p>
                 </FormItem>
               )}
