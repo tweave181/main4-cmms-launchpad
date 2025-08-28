@@ -1,10 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,43 +7,33 @@ import { Edit2, Trash2, Building2, Mail, Phone, Calendar } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { CompanyForm } from './CompanyForm';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useDeleteCompany } from '@/hooks/useCompanies';
 import { AddressDisplay } from '@/components/addresses/AddressDisplay';
 import type { CompanyDetails } from '@/types/company';
-
 interface CompanyDetailModalProps {
   company: CompanyDetails;
   isOpen: boolean;
   onClose: () => void;
 }
-
 export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
   company,
   isOpen,
-  onClose,
+  onClose
 }) => {
-  const { userProfile } = useAuth();
-  const { formatDate } = useGlobalSettings();
+  const {
+    userProfile
+  } = useAuth();
+  const {
+    formatDate
+  } = useGlobalSettings();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const deleteCompany = useDeleteCompany();
-
   const isAdmin = userProfile?.role === 'admin';
-
   const handleEdit = () => {
     setIsEditOpen(true);
   };
-
   const handleDelete = async () => {
     try {
       await deleteCompany.mutateAsync(company.id);
@@ -58,13 +43,10 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
       // Error handling is done in the mutation
     }
   };
-
   const handleEditSuccess = () => {
     setIsEditOpen(false);
   };
-
-  return (
-    <>
+  return <>
       <Dialog open={isOpen && !isEditOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -83,46 +65,26 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
                   <Edit2 className="h-4 w-4 mr-2" />
                   Edit Company
                 </Button>
-                {isAdmin && (
-                  <Button 
-                    onClick={() => setShowDeleteDialog(true)} 
-                    variant="destructive"
-                    size="sm"
-                  >
+                {isAdmin && <Button onClick={() => setShowDeleteDialog(true)} variant="destructive" size="sm">
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </div>
           </DialogHeader>
 
           <div className="space-y-6">
             {/* Address Type Badges */}
-            {company.company_address ? (
-              <div className="flex flex-wrap gap-2">
-                {company.company_address.is_manufacturer && (
-                  <Badge variant="secondary">Manufacturer</Badge>
-                )}
-                {company.company_address.is_supplier && (
-                  <Badge variant="secondary">Supplier</Badge>
-                )}
-                {company.company_address.is_contractor && (
-                  <Badge variant="secondary">Contractor</Badge>
-                )}
-                {company.company_address.is_contact && (
-                  <Badge variant="secondary">Contact</Badge>
-                )}
-                {company.company_address.is_other && (
-                  <Badge variant="secondary">Other</Badge>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-muted-foreground">
+            {company.company_address ? <div className="flex flex-wrap gap-2">
+                {company.company_address.is_manufacturer && <Badge variant="secondary">Manufacturer</Badge>}
+                {company.company_address.is_supplier && <Badge variant="secondary">Supplier</Badge>}
+                {company.company_address.is_contractor && <Badge variant="secondary">Contractor</Badge>}
+                {company.company_address.is_contact && <Badge variant="secondary">Contact</Badge>}
+                {company.company_address.is_other && <Badge variant="secondary">Other</Badge>}
+              </div> : <div className="flex items-center gap-2 text-muted-foreground">
                 <span className="text-sm">—</span>
-                <span className="text-xs">(Address types are set on the address record)</span>
-              </div>
-            )}
+                <span className="text-xs text-lime-700">(Address types are set on the address record)</span>
+              </div>}
 
             {/* Contact Information */}
             <Card>
@@ -144,27 +106,19 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
                 <div>
                   <p className="text-sm font-medium">Email</p>
                   <p className="text-sm text-gray-600">
-                    {company.email ? (
-                      <div className="flex items-center space-x-1">
+                    {company.email ? <div className="flex items-center space-x-1">
                         <Mail className="h-3 w-3 text-muted-foreground" />
                         <span>{company.email}</span>
-                      </div>
-                    ) : (
-                      '-'
-                    )}
+                      </div> : '-'}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Phone</p>
                   <p className="text-sm text-gray-600">
-                    {company.phone ? (
-                      <div className="flex items-center space-x-1">
+                    {company.phone ? <div className="flex items-center space-x-1">
                         <Phone className="h-3 w-3 text-muted-foreground" />
                         <span>{company.phone}</span>
-                      </div>
-                    ) : (
-                      '-'
-                    )}
+                      </div> : '-'}
                   </p>
                 </div>
               </CardContent>
@@ -176,22 +130,14 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
                 <CardTitle>Address Information</CardTitle>
               </CardHeader>
               <CardContent>
-                {company.company_address ? (
-                  <AddressDisplay address={company.company_address} />
-                ) : (
-                  <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
+                {company.company_address ? <AddressDisplay address={company.company_address} /> : <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
                     <div className="space-y-2">
                       <p className="text-muted-foreground">No address assigned</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleEdit}
-                      >
+                      <Button variant="outline" size="sm" onClick={handleEdit}>
                         Add Address
                       </Button>
                     </div>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
 
@@ -208,12 +154,7 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      <CompanyForm
-        isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        company={company}
-        onSuccess={handleEditSuccess}
-      />
+      <CompanyForm isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} company={company} onSuccess={handleEditSuccess} />
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
@@ -225,16 +166,11 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteCompany.isPending}
-            >
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteCompany.isPending}>
               {deleteCompany.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
-  );
+    </>;
 };
