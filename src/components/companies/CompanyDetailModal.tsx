@@ -121,8 +121,35 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
                       </div> : '-'}
                   </p>
                 </div>
+                <div>
+                  <p className="text-sm font-medium">Website</p>
+                  <p className="text-sm text-gray-600">
+                    {company.company_website ? (
+                      <a 
+                        href={company.company_website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {company.company_website}
+                      </a>
+                    ) : '-'}
+                  </p>
+                </div>
               </CardContent>
             </Card>
+
+            {/* Description */}
+            {company.company_description && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Company Description</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{company.company_description}</p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Address Information */}
             <Card>

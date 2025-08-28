@@ -435,7 +435,9 @@ export type Database = {
       company_details: {
         Row: {
           company_address_id: string | null
+          company_description: string | null
           company_name: string
+          company_website: string | null
           contact_name: string | null
           created_at: string
           created_by: string | null
@@ -447,7 +449,9 @@ export type Database = {
         }
         Insert: {
           company_address_id?: string | null
+          company_description?: string | null
           company_name: string
+          company_website?: string | null
           contact_name?: string | null
           created_at?: string
           created_by?: string | null
@@ -459,7 +463,9 @@ export type Database = {
         }
         Update: {
           company_address_id?: string | null
+          company_description?: string | null
           company_name?: string
+          company_website?: string | null
           contact_name?: string | null
           created_at?: string
           created_by?: string | null

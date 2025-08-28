@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { CompanyBasicFields } from './CompanyBasicFields';
 import { CompanyContactFields } from './CompanyContactFields';
+import { CompanyWebsiteDescriptionFields } from './CompanyWebsiteDescriptionFields';
 import { CompanyAddressFields } from './CompanyAddressFields';
 import { CompanyFormErrorBoundary } from './CompanyFormErrorBoundary';
 import { useCreateCompany, useUpdateCompany } from '@/hooks/useCompanies';
@@ -37,6 +38,8 @@ const companySchema = z.object({
     .union([z.string().uuid(), z.null(), z.literal(''), z.undefined()])
     .optional()
     .transform(v => (!v || v === '') ? null : v),
+  company_website: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+  company_description: z.string().max(4000, 'Description must be 4000 characters or less').optional().or(z.literal('')),
 });
 
 interface CompanyFormProps {
@@ -68,6 +71,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
       email: '',
       phone: '',
       company_address_id: null,
+      company_website: '',
+      company_description: '',
     },
   });
 
@@ -82,6 +87,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         email: company.email || '',
         phone: company.phone || '',
         company_address_id: company.company_address_id || null,
+        company_website: company.company_website || '',
+        company_description: company.company_description || '',
       });
     } else {
       reset({
@@ -90,6 +97,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         email: '',
         phone: '',
         company_address_id: null,
+        company_website: '',
+        company_description: '',
       });
     }
   }, [company, reset]);
@@ -201,6 +210,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
               <form id="company-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
                 <CompanyBasicFields control={form.control} companyId={company?.id} />
                 <CompanyContactFields control={form.control} />
+                <CompanyWebsiteDescriptionFields control={form.control} />
                 <CompanyAddressFields control={form.control} />
               </form>
             </Form>

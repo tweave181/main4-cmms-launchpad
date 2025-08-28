@@ -70,6 +70,8 @@ export const useCreateCompany = () => {
         email: data.email,
         phone: data.phone,
         company_address_id: data.company_address_id,
+        company_website: data.company_website,
+        company_description: data.company_description,
         tenant_id: userProfile.tenant_id,
         created_by: userProfile.id,
       };
@@ -120,6 +122,8 @@ export const useUpdateCompany = () => {
         email: data.email,
         phone: data.phone,
         company_address_id: data.company_address_id,
+        company_website: data.company_website,
+        company_description: data.company_description,
       };
 
       const { data: result, error } = await supabase
