@@ -78,8 +78,8 @@ export const LocationList: React.FC = () => {
           {/* Search and Filters */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input placeholder="Search locations..." className="pl-10" onChange={e => handleSearchChange(e.target.value)} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input placeholder="Search by name, code, or parent..." className="pl-10" onChange={e => handleSearchChange(e.target.value)} />
             </div>
             
             <Select onValueChange={handleParentLocationChange}>
@@ -112,18 +112,19 @@ export const LocationList: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="bg-gray-300">Location Name</TableHead>
-                  <TableHead className="bg-gray-300">Level</TableHead>
-                  <TableHead className="bg-gray-300">Parent Site/Location</TableHead>
-                  <TableHead className="bg-gray-300">Created Date</TableHead>
+                  <TableHead className="bg-muted/50">Location Name</TableHead>
+                  <TableHead className="bg-muted/50">Code</TableHead>
+                  <TableHead className="bg-muted/50">Level</TableHead>
+                  <TableHead className="bg-muted/50 hidden sm:table-cell">Parent Site/Location</TableHead>
+                  <TableHead className="bg-muted/50 hidden md:table-cell">Created Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {locations.length === 0 ? <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
+                    <TableCell colSpan={5} className="text-center py-8">
                       <div className="flex flex-col items-center space-y-2">
-                        <MapPin className="h-8 w-8 text-gray-400" />
-                        <p className="text-gray-500">No locations found</p>
+                        <MapPin className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-muted-foreground">No locations found</p>
                         {isAdmin && <Button variant="outline" onClick={handleCreateClick}>
                             <Plus className="h-4 w-4 mr-2" />
                             Add First Location
@@ -132,22 +133,22 @@ export const LocationList: React.FC = () => {
                     </TableCell>
                   </TableRow> : locations.map(location => <TableRow key={location.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleLocationClick(location)}>
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {location.name}
-                          <Badge variant="secondary" className="font-mono text-xs">
-                            {location.location_code}
-                          </Badge>
-                        </div>
+                        {location.name}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="font-mono text-xs">
+                          {location.location_code}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
                           {location.location_level_data?.name || location.location_level || 'Building'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-gray-600">
+                      <TableCell className="hidden sm:table-cell text-muted-foreground">
                         {location.parent_location?.name || '-'}
                       </TableCell>
-                      <TableCell className="text-gray-600">
+                      <TableCell className="hidden md:table-cell text-muted-foreground">
                         {formatDate(location.created_at)}
                       </TableCell>
                     </TableRow>)}
