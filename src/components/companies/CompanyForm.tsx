@@ -96,9 +96,10 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
   const onSubmit = async (data: CompanyFormData) => {
     try {
-      // Ensure address_id is properly null instead of empty string
+      // Trim company name and ensure address_id is properly null instead of empty string
       const payload = { 
         ...data, 
+        company_name: data.company_name.trim(),
         company_address_id: data.company_address_id || null 
       };
       
@@ -198,7 +199,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
           <CompanyFormErrorBoundary>
             <Form {...form}>
               <form id="company-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
-                <CompanyBasicFields control={form.control} />
+                <CompanyBasicFields control={form.control} companyId={company?.id} />
                 <CompanyContactFields control={form.control} />
                 <CompanyAddressFields control={form.control} />
               </form>
