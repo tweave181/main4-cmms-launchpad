@@ -19,7 +19,7 @@ export const useCompanies = (type?: string) => {
         .from('company_details')
         .select(`
           *,
-          company_address:addresses(*)
+          company_address:addresses!company_details_company_address_id_fkey(*)
         `)
         .eq('tenant_id', userProfile.tenant_id)
         .order('company_name');
@@ -81,7 +81,7 @@ export const useCreateCompany = () => {
         .insert(companyData)
         .select(`
           *,
-          company_address:addresses(*)
+          company_address:addresses!company_details_company_address_id_fkey(*)
         `)
         .single();
 
@@ -132,7 +132,7 @@ export const useUpdateCompany = () => {
         .eq('id', id)
         .select(`
           *,
-          company_address:addresses(*)
+          company_address:addresses!company_details_company_address_id_fkey(*)
         `)
         .single();
 
