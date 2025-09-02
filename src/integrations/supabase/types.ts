@@ -141,6 +141,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "addresses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_details"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "addresses_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
