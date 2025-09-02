@@ -109,6 +109,7 @@ export const useCreateAddress = () => {
       const finalData = {
         ...addressData,
         tenant_id: userProfile.tenant_id,
+        company_id: addressData.company_id || null, // Handle company_id
         // Ensure boolean fields have default values
         is_contact: addressData.is_contact || false,
         is_supplier: addressData.is_supplier || false,
@@ -156,9 +157,15 @@ export const useUpdateAddress = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<AddressFormData> }) => {
+      // Include company_id in the update data
+      const updateData = {
+        ...data,
+        company_id: data.company_id !== undefined ? data.company_id : undefined,
+      };
+
       const { data: result, error } = await supabase
         .from('addresses')
-        .update(data)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();

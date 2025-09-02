@@ -1,5 +1,5 @@
-import React from 'react';
-import { Control } from 'react-hook-form';
+import React, { useState } from 'react';
+import { Control, useController, useWatch } from 'react-hook-form';
 import {
   FormField,
   FormItem,
@@ -12,7 +12,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Building2, MapPin, User, Phone, Mail, Globe, Tag, FileText } from 'lucide-react';
+import { CompanySelector } from './CompanySelector';
 import type { AddressFormData } from '@/types/address';
+import type { CompanyDetails } from '@/types/company';
 
 interface AddressFormFieldsProps {
   control: Control<AddressFormData>;
@@ -23,6 +25,29 @@ export const AddressFormFields: React.FC<AddressFormFieldsProps> = ({
   control, 
   disabled = false 
 }) => {
+  const { field: contactField } = useController({ control, name: 'contact_name' });
+  const { field: phoneField } = useController({ control, name: 'phone' });
+  const { field: emailField } = useController({ control, name: 'email' });
+  const { field: websiteField } = useController({ control, name: 'website' });
+
+  const handleCompanySelect = (company: CompanyDetails | null) => {
+    if (company) {
+      // Auto-populate site details from company data, but only if fields are empty
+      if (!contactField.value && company.contact_name) {
+        contactField.onChange(company.contact_name);
+      }
+      if (!phoneField.value && company.phone) {
+        phoneField.onChange(company.phone);
+      }
+      if (!emailField.value && company.email) {
+        emailField.onChange(company.email);
+      }
+      if (!websiteField.value && company.company_website) {
+        websiteField.onChange(company.company_website);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Company Information */}
@@ -32,100 +57,11 @@ export const AddressFormFields: React.FC<AddressFormFieldsProps> = ({
           <h3 className="text-lg font-semibold">Company Information</h3>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={control}
-            name="company_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Company Name</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter company name" 
-                    disabled={disabled}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="contact_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contact Name</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter contact person name" 
-                    disabled={disabled}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
-            control={control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter phone number" 
-                    disabled={disabled}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="email"
-                    placeholder="Enter email address" 
-                    disabled={disabled}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="website"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Website</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter website URL" 
-                    disabled={disabled}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <CompanySelector
+          control={control}
+          disabled={disabled}
+          onCompanySelect={handleCompanySelect}
+        />
       </div>
 
       <Separator />
@@ -332,6 +268,91 @@ export const AddressFormFields: React.FC<AddressFormFieldsProps> = ({
             />
           </>
         )}
+
+        {/* Site Details Subsection */}
+        <div className="mt-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <h4 className="text-md font-medium">Site Details</h4>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="contact_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Main Contact</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter main contact name" 
+                      disabled={disabled}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Main Phone No.</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter main phone number" 
+                      disabled={disabled}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Info Email</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="email"
+                      placeholder="Enter info email address" 
+                      disabled={disabled}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="website"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Company Website</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter company website URL" 
+                      disabled={disabled}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
       </div>
 
       <Separator />

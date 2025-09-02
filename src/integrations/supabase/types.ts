@@ -71,6 +71,7 @@ export type Database = {
           address_line_1: string
           address_line_2: string | null
           address_line_3: string | null
+          company_id: string | null
           company_name: string | null
           contact_name: string | null
           county_or_state: string | null
@@ -94,6 +95,7 @@ export type Database = {
           address_line_1: string
           address_line_2?: string | null
           address_line_3?: string | null
+          company_id?: string | null
           company_name?: string | null
           contact_name?: string | null
           county_or_state?: string | null
@@ -117,6 +119,7 @@ export type Database = {
           address_line_1?: string
           address_line_2?: string | null
           address_line_3?: string | null
+          company_id?: string | null
           company_name?: string | null
           contact_name?: string | null
           county_or_state?: string | null
@@ -142,6 +145,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_addresses_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_details"
             referencedColumns: ["id"]
           },
         ]
