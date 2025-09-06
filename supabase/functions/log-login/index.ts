@@ -13,44 +13,73 @@ serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
+    // Get authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(JSON.stringify({ error: 'Unauthorized - No auth header' }), { 
+        status: 401, 
+        headers: { "Content-Type": "application/json", ...corsHeaders } 
+      });
+    }
+
+    // Create client with anon key and auth header for user operations
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
-        headers: { Authorization: req.headers.get('Authorization') || '' },
+        headers: { Authorization: authHeader },
       },
     });
 
+    // Get user from JWT token
     const { data: { user }, error: userErr } = await supabase.auth.getUser();
     if (userErr || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      console.error('Failed to get user:', userErr);
+      return new Response(JSON.stringify({ error: 'Unauthorized - Invalid token' }), { 
+        status: 401, 
+        headers: { "Content-Type": "application/json", ...corsHeaders } 
+      });
     }
+
+    console.log('User authenticated:', user.id);
 
     const body = await req.json().catch(() => ({}));
     const userAgent = body.userAgent || req.headers.get('user-agent') || null;
     const ip = body.ip || req.headers.get('x-forwarded-for') || null;
 
-    // Update last_login
-    const { error: updateErr } = await supabase
+    // Create service role client for database operations
+    const serviceSupabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Update last_login using service role
+    const { error: updateErr } = await serviceSupabase
       .from('users')
       .update({ last_login: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq('id', user.id);
 
     if (updateErr) {
       console.error('Failed updating last_login', updateErr);
+    } else {
+      console.log('Updated last_login for user:', user.id);
     }
 
-    // Fetch tenant_id
-    const { data: profile, error: profErr } = await supabase
+    // Fetch tenant_id using service role
+    const { data: profile, error: profErr } = await serviceSupabase
       .from('users')
       .select('tenant_id')
       .eq('id', user.id)
       .maybeSingle();
 
-    const tenant_id = profile?.tenant_id || null;
+    if (profErr) {
+      console.error('Failed fetching user profile:', profErr);
+    }
 
-    // Insert audit log row
-    const { error: auditErr } = await supabase
+    const tenant_id = profile?.tenant_id || null;
+    console.log('User tenant_id:', tenant_id);
+
+    // Insert audit log row using service role
+    const { error: auditErr } = await serviceSupabase
       .from('audit_logs')
       .insert({
         user_id: user.id,
@@ -64,6 +93,8 @@ serve(async (req: Request) => {
 
     if (auditErr) {
       console.error('Failed inserting audit log (login)', auditErr);
+    } else {
+      console.log('Inserted audit log for user login:', user.id);
     }
 
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
