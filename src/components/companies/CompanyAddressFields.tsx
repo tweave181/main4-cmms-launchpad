@@ -91,7 +91,7 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
                     {addresses.map((address) => (
                       <SelectItem key={address.id} value={address.id}>
                         <div className="text-left">
-                          <div className="font-medium">{address.company_name || address.address_line_1}</div>
+                          <div className="font-medium">{address.contact_name || address.address_line_1}</div>
                           <div className="text-sm text-muted-foreground">
                             {[address.address_line_1, address.town_or_city, address.postcode].filter(Boolean).join(', ')}
                           </div>
@@ -110,7 +110,6 @@ export const CompanyAddressFields: React.FC<CompanyAddressFieldsProps> = ({ cont
       {selectedAddress ? (
         <div className="mt-4">
           <AddressCard
-            companyName={selectedAddress.company_name}
             address={{
               line1: selectedAddress.address_line_1,
               line2: selectedAddress.address_line_2,

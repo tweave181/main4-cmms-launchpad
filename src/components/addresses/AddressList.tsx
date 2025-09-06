@@ -57,7 +57,7 @@ export const AddressList: React.FC<AddressListProps> = ({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-gray-300">Company</TableHead>
+                <TableHead className="bg-gray-300">Contact</TableHead>
                 <TableHead className="bg-gray-300">Address</TableHead>
                 <TableHead className="bg-gray-300">Town/City</TableHead>
                 <TableHead className="bg-gray-300">Postcode</TableHead>
@@ -72,23 +72,11 @@ export const AddressList: React.FC<AddressListProps> = ({
                 </TableRow> : addresses.map(address => <TableRow key={address.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAddressId(address.id)}>
                     <TableCell>
                       <div className="sm:hidden">
-                        <div className="font-medium">{address.company_name || '—'}</div>
+                        <div className="font-medium">{address.contact_name || '—'}</div>
                         <div className="text-sm text-muted-foreground">{address.address_line_1}</div>
                       </div>
                       <div className="hidden sm:block">
-                        {address.company_name ? (
-                          <button 
-                            className="font-medium text-primary hover:underline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedAddressId(address.id);
-                            }}
-                          >
-                            {address.company_name}
-                          </button>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
+                        <span className="text-muted-foreground">—</span>
                       </div>
                     </TableCell>
                     <TableCell>

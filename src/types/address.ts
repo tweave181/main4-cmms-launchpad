@@ -8,7 +8,6 @@ export interface Address {
   county_or_state?: string;
   postcode?: string;
   company_id?: string | null;
-  company_name?: string;
   contact_name?: string;
   phone?: string;
   email?: string;
@@ -31,7 +30,6 @@ export interface AddressFormData {
   county_or_state?: string;
   postcode?: string;
   company_id?: string | null;
-  company_name?: string;
   contact_name?: string;
   phone?: string;
   email?: string;

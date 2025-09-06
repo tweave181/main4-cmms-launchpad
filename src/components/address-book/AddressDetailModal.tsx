@@ -44,7 +44,6 @@ export const AddressDetailModal = ({
             </div>
             
             <AddressCard 
-              companyName={address.company_name}
               address={{
                 line1: address.address_line_1,
                 line2: address.address_line_2,
@@ -62,12 +61,6 @@ export const AddressDetailModal = ({
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Contact Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Company Name</label>
-                <div className={address.company_name ? "" : "text-muted-foreground italic"}>
-                  {address.company_name || 'Not available in current data'}
-                </div>
-              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Primary Contact</label>
                 <div className={address.contact_name ? "" : "text-muted-foreground italic"}>

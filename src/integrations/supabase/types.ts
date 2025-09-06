@@ -72,7 +72,6 @@ export type Database = {
           address_line_2: string | null
           address_line_3: string | null
           company_id: string | null
-          company_name: string | null
           contact_name: string | null
           county_or_state: string | null
           created_at: string
@@ -96,7 +95,6 @@ export type Database = {
           address_line_2?: string | null
           address_line_3?: string | null
           company_id?: string | null
-          company_name?: string | null
           contact_name?: string | null
           county_or_state?: string | null
           created_at?: string
@@ -120,7 +118,6 @@ export type Database = {
           address_line_2?: string | null
           address_line_3?: string | null
           company_id?: string | null
-          company_name?: string | null
           contact_name?: string | null
           county_or_state?: string | null
           created_at?: string

@@ -75,7 +75,7 @@ export const AddressBookTable = ({
           </p> : <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-gray-300">Company</TableHead>
+                <TableHead className="bg-gray-300">Contact</TableHead>
                 <TableHead className="bg-gray-300">Address</TableHead>
                 <TableHead className="bg-gray-300">Town/City</TableHead>
                 <TableHead className="bg-gray-300">Postcode</TableHead>
@@ -86,23 +86,11 @@ export const AddressBookTable = ({
               {filteredAddresses.map(address => <TableRow key={address.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleRowClick(address)}>
                   <TableCell>
                     <div className="sm:hidden">
-                      <div className="font-medium">{address.company_name || '—'}</div>
+                      <div className="font-medium">{address.contact_name || '—'}</div>
                       <div className="text-sm text-muted-foreground">{address.address_line_1}</div>
                     </div>
                     <div className="hidden sm:block">
-                      {address.company_name ? (
-                        <button 
-                          className="font-medium text-primary hover:underline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRowClick(address);
-                          }}
-                        >
-                          {address.company_name}
-                        </button>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
+                      <span className="text-muted-foreground">—</span>
                     </div>
                   </TableCell>
                   <TableCell>

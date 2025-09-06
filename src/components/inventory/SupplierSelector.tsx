@@ -22,7 +22,6 @@ export const SupplierSelector: React.FC<SupplierSelectorProps> = ({
   const filteredSuppliers = addresses?.filter(address => {
     const isSupplier = address.is_supplier;
     const matchesSearch = searchTerm === '' || 
-      address.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       address.contact_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       address.address_line_1.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -67,13 +66,8 @@ export const SupplierSelector: React.FC<SupplierSelectorProps> = ({
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                   <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">
-                      {supplier.company_name || 'Unknown Company'}
+                      {supplier.contact_name || 'Contact Name Not Set'}
                     </div>
-                    {supplier.contact_name && (
-                      <div className="text-xs text-muted-foreground truncate">
-                        {supplier.contact_name}
-                      </div>
-                    )}
                     <div className="text-xs text-muted-foreground truncate">
                       {supplier.address_line_1}
                     </div>
