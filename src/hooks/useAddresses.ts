@@ -18,7 +18,7 @@ export const useAddresses = (search?: string) => {
         .from('addresses')
         .select(`
           *,
-          company_details!left(
+          company_details!addresses_company_id_fkey(
             id,
             company_name
           )
@@ -248,7 +248,7 @@ export const useAddress = (id: string) => {
         .from('addresses')
         .select(`
           *,
-          company_details!left(
+          company_details!addresses_company_id_fkey(
             id,
             company_name
           )
