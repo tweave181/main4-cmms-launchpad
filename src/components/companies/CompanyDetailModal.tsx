@@ -9,7 +9,7 @@ import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { CompanyForm } from './CompanyForm';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useDeleteCompany } from '@/hooks/useCompanies';
-import { AddressDisplay } from '@/components/addresses/AddressDisplay';
+import { CompanyAddressList } from './CompanyAddressList';
 import type { CompanyDetails } from '@/types/company';
 interface CompanyDetailModalProps {
   company: CompanyDetails;
@@ -145,21 +145,7 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
             )}
 
             {/* Address Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Address Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
-                  <div className="space-y-2">
-                    <p className="text-muted-foreground">No address assigned</p>
-                    <Button variant="outline" size="sm" onClick={handleEdit}>
-                      Add Address
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <CompanyAddressList company={company} onAddAddress={handleEdit} />
 
 
             {/* Record Information */}
