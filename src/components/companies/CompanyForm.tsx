@@ -16,7 +16,6 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { CompanyBasicFields } from './CompanyBasicFields';
 import { CompanyContactFields } from './CompanyContactFields';
 import { CompanyWebsiteDescriptionFields } from './CompanyWebsiteDescriptionFields';
-import { CompanyAddressFields } from './CompanyAddressFields';
 import { CompanyFormErrorBoundary } from './CompanyFormErrorBoundary';
 import { useCreateCompany, useUpdateCompany } from '@/hooks/useCompanies';
 import { useToast } from '@/hooks/use-toast';
@@ -34,10 +33,6 @@ const companySchema = z.object({
   contact_name: z.string().optional(),
   email: z.string().email('Enter a valid email').optional().or(z.literal('')),
   phone: z.string().optional(),
-  company_address_id: z
-    .union([z.string().uuid(), z.null(), z.literal(''), z.undefined()])
-    .optional()
-    .transform(v => (!v || v === '') ? null : v),
   company_website: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   company_description: z.string().max(4000, 'Description must be 4000 characters or less').optional().or(z.literal('')),
 });
@@ -70,7 +65,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
       contact_name: '',
       email: '',
       phone: '',
-      company_address_id: null,
       company_website: '',
       company_description: '',
     },
@@ -86,7 +80,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         contact_name: company.contact_name || '',
         email: company.email || '',
         phone: company.phone || '',
-        company_address_id: company.company_address_id || null,
         company_website: company.company_website || '',
         company_description: company.company_description || '',
       });
@@ -96,7 +89,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         contact_name: '',
         email: '',
         phone: '',
-        company_address_id: null,
         company_website: '',
         company_description: '',
       });
@@ -105,11 +97,10 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
   const onSubmit = async (data: CompanyFormData) => {
     try {
-      // Trim company name and ensure address_id is properly null instead of empty string
+      // Trim company name
       const payload = { 
         ...data, 
-        company_name: data.company_name.trim(),
-        company_address_id: data.company_address_id || null 
+        company_name: data.company_name.trim()
       };
       
       if (isEditing && company) {
@@ -124,28 +115,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         queryClient.invalidateQueries({ queryKey: ['companies'] });
       } else {
         await createMutation.mutateAsync(payload);
-        
-        if (!payload.company_address_id) {
-          // Show toast with option to add address
-          toast({ 
-            title: "Company created successfully!", 
-            description: "Would you like to add an address now?",
-            action: (
-              <Button 
-                size="sm" 
-                onClick={() => {
-                  // Reopen the form in edit mode to add address
-                  // This assumes the parent component can handle this
-                  onSuccess();
-                }}
-              >
-                Add Address
-              </Button>
-            )
-          });
-        } else {
-          toast({ title: "Success", description: "Company created successfully" });
-        }
+        toast({ title: "Success", description: "Company created successfully" });
         
         queryClient.invalidateQueries({ queryKey: ['companies'] });
       }
@@ -211,7 +181,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                 <CompanyBasicFields control={form.control} companyId={company?.id} />
                 <CompanyContactFields control={form.control} />
                 <CompanyWebsiteDescriptionFields control={form.control} />
-                <CompanyAddressFields control={form.control} />
               </form>
             </Form>
           </CompanyFormErrorBoundary>

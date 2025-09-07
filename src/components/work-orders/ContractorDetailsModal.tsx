@@ -150,19 +150,9 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
         <div className="space-y-4">
           <div>
             <h3 className="font-semibold text-lg mb-2">{contractor.company_name}</h3>
-            {contractor.company_address?.is_supplier || contractor.company_address?.is_contractor ? (
-              <div className="flex flex-wrap gap-1 mb-3">
-                {contractor.company_address.is_supplier && (
-                  <Badge variant="secondary" className="text-xs">supplier</Badge>
-                )}
-                {contractor.company_address.is_contractor && (
-                  <Badge variant="secondary" className="text-xs">contractor</Badge>
-                )}
-                {contractor.company_address.is_manufacturer && (
-                  <Badge variant="secondary" className="text-xs">manufacturer</Badge>
-                )}
-              </div>
-            ) : null}
+            <div className="flex flex-wrap gap-1 mb-3">
+              <Badge variant="secondary" className="text-xs">No address types available</Badge>
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -197,20 +187,12 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
               </div>
             )}
 
-            {contractor.company_address && (
-              <div className="flex items-start gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <span className="leading-relaxed">
-                  {[
-                    contractor.company_address.address_line_1,
-                    contractor.company_address.address_line_2,
-                    contractor.company_address.town_or_city,
-                    contractor.company_address.county_or_state,
-                    contractor.company_address.postcode
-                  ].filter(Boolean).join(', ')}
-                </span>
-              </div>
-            )}
+            <div className="flex items-start gap-2 text-sm">
+              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <span className="leading-relaxed">
+                No address information available
+              </span>
+            </div>
           </div>
 
           {/* Quick Contact Actions */}

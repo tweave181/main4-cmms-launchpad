@@ -34,16 +34,9 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
     
     if (typeFilter === 'all') return matchesSearch;
     
-    // Check if company has address and the specified type
-    const hasType = company.company_address && (
-      (typeFilter === 'manufacturer' && company.company_address.is_manufacturer) ||
-      (typeFilter === 'supplier' && company.company_address.is_supplier) ||
-      (typeFilter === 'contractor' && company.company_address.is_contractor) ||
-      (typeFilter === 'contact' && company.company_address.is_contact) ||
-      (typeFilter === 'other' && company.company_address.is_other)
-    );
-    
-    return matchesSearch && hasType;
+    // Since companies no longer have address relationships, 
+    // we can't filter by address types
+    return false;
   });
 
   // Paginate results
@@ -130,26 +123,8 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
                     {company.company_name}
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {company.company_address && (
-                        <>
-                          {company.company_address.is_manufacturer && (
-                            <Badge variant="secondary" className="text-xs">Manufacturer</Badge>
-                          )}
-                          {company.company_address.is_supplier && (
-                            <Badge variant="secondary" className="text-xs">Supplier</Badge>
-                          )}
-                          {company.company_address.is_contractor && (
-                            <Badge variant="secondary" className="text-xs">Contractor</Badge>
-                          )}
-                          {company.company_address.is_contact && (
-                            <Badge variant="secondary" className="text-xs">Contact</Badge>
-                          )}
-                          {company.company_address.is_other && (
-                            <Badge variant="secondary" className="text-xs">Other</Badge>
-                          )}
-                        </>
-                      )}
+                    <div className="text-sm text-muted-foreground">
+                      No address types available
                     </div>
                   </TableCell>
                   <TableCell>{company.contact_name || '-'}</TableCell>

@@ -31,7 +31,6 @@ interface ServiceContract {
     company_name: string;
     email: string | null;
     phone: string | null;
-    company_address_id: string | null;
   } | null;
 }
 const ServiceContracts: React.FC = () => {
@@ -65,8 +64,7 @@ const ServiceContracts: React.FC = () => {
             id,
             company_name,
             email,
-            phone,
-            company_address_id
+            phone
           )
         `).eq('tenant_id', userProfile.tenant_id).order('end_date', {
         ascending: true

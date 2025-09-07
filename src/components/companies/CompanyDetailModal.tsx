@@ -75,16 +75,9 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
 
           <div className="space-y-6">
             {/* Address Type Badges */}
-            {company.company_address ? <div className="flex flex-wrap gap-2">
-                {company.company_address.is_manufacturer && <Badge variant="secondary">Manufacturer</Badge>}
-                {company.company_address.is_supplier && <Badge variant="secondary">Supplier</Badge>}
-                {company.company_address.is_contractor && <Badge variant="secondary">Contractor</Badge>}
-                {company.company_address.is_contact && <Badge variant="secondary">Contact</Badge>}
-                {company.company_address.is_other && <Badge variant="secondary">Other</Badge>}
-              </div> : <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-sm">—</span>
-                <span className="text-xs text-lime-700">(Address types are set on the address record)</span>
-              </div>}
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="text-sm">No address types available</span>
+            </div>
 
             {/* Contact Information */}
             <Card>
@@ -157,14 +150,14 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
                 <CardTitle>Address Information</CardTitle>
               </CardHeader>
               <CardContent>
-                {company.company_address ? <AddressDisplay address={company.company_address} /> : <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
-                    <div className="space-y-2">
-                      <p className="text-muted-foreground">No address assigned</p>
-                      <Button variant="outline" size="sm" onClick={handleEdit}>
-                        Add Address
-                      </Button>
-                    </div>
-                  </div>}
+                <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground">No address assigned</p>
+                    <Button variant="outline" size="sm" onClick={handleEdit}>
+                      Add Address
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 

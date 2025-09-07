@@ -16,7 +16,6 @@ export const useAddressUsage = (addressId: string) => {
       const { data: companyUsage, error: companyError } = await supabase
         .from('company_details')
         .select('id, company_name')
-        .eq('company_address_id', addressId)
         .eq('tenant_id', userProfile.tenant_id);
 
       if (companyError) {

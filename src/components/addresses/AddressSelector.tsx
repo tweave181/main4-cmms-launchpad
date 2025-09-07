@@ -25,7 +25,6 @@ import type { Address } from '@/types/address';
 interface AddressSelectorProps {
   control: Control<any>;
   addressFieldName?: string;
-  addressIdFieldName?: string;
   label?: string;
   placeholder?: string;
 }
@@ -33,7 +32,6 @@ interface AddressSelectorProps {
 export const AddressSelector: React.FC<AddressSelectorProps> = ({
   control,
   addressFieldName = 'address',
-  addressIdFieldName = 'company_address_id',
   label = 'Address',
   placeholder = 'Select address',
 }) => {
@@ -57,7 +55,7 @@ export const AddressSelector: React.FC<AddressSelectorProps> = ({
       {useExisting ? (
         <FormField
           control={control}
-          name={addressIdFieldName}
+          name="id"
           render={({ field }) => (
             <FormItem>
               <FormControl>

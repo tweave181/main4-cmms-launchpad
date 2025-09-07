@@ -448,7 +448,6 @@ export type Database = {
       }
       company_details: {
         Row: {
-          company_address_id: string | null
           company_description: string | null
           company_name: string
           company_website: string | null
@@ -462,7 +461,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          company_address_id?: string | null
           company_description?: string | null
           company_name: string
           company_website?: string | null
@@ -476,7 +474,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          company_address_id?: string | null
           company_description?: string | null
           company_name?: string
           company_website?: string | null
@@ -490,13 +487,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "company_details_company_address_id_fkey"
-            columns: ["company_address_id"]
-            isOneToOne: false
-            referencedRelation: "addresses"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "company_details_created_by_fkey"
             columns: ["created_by"]

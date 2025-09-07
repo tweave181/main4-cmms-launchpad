@@ -26,7 +26,6 @@ interface ServiceContract {
     company_name: string;
     email: string | null;
     phone: string | null;
-    company_address_id: string | null;
   } | null;
 }
 interface ContractLine {

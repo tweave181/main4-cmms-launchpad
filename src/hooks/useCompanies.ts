@@ -18,8 +18,7 @@ export const useCompanies = (type?: string) => {
       let query = supabase
         .from('company_details')
         .select(`
-          *,
-          company_address:addresses!company_details_company_address_id_fkey(*)
+          *
         `)
         .eq('tenant_id', userProfile.tenant_id)
         .order('company_name');
@@ -69,7 +68,6 @@ export const useCreateCompany = () => {
         contact_name: data.contact_name,
         email: data.email,
         phone: data.phone,
-        company_address_id: data.company_address_id,
         company_website: data.company_website,
         company_description: data.company_description,
         tenant_id: userProfile.tenant_id,
@@ -80,8 +78,7 @@ export const useCreateCompany = () => {
         .from('company_details')
         .insert(companyData)
         .select(`
-          *,
-          company_address:addresses!company_details_company_address_id_fkey(*)
+          *
         `)
         .single();
 
@@ -121,7 +118,6 @@ export const useUpdateCompany = () => {
         contact_name: data.contact_name,
         email: data.email,
         phone: data.phone,
-        company_address_id: data.company_address_id,
         company_website: data.company_website,
         company_description: data.company_description,
       };
@@ -131,8 +127,7 @@ export const useUpdateCompany = () => {
         .update(updateData)
         .eq('id', id)
         .select(`
-          *,
-          company_address:addresses!company_details_company_address_id_fkey(*)
+          *
         `)
         .single();
 

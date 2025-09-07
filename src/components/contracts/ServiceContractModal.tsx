@@ -66,9 +66,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
           id, 
           company_name, 
           email, 
-          phone, 
-          company_address_id,
-          company_address:addresses(*)
+          phone
         `)
         .eq('tenant_id', userProfile.tenant_id)
         .order('company_name');
@@ -290,20 +288,12 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
                       <p className="text-sm text-foreground mt-1">{selectedCompany.phone}</p>
                     </div>
                   )}
-                  {selectedCompany.company_address && (
-                    <div>
-                      <Label className="text-sm font-medium">Address</Label>
-                      <p className="text-sm text-foreground mt-1">
-                        {[
-                          selectedCompany.company_address.address_line_1,
-                          selectedCompany.company_address.address_line_2,
-                          selectedCompany.company_address.town_or_city,
-                          selectedCompany.company_address.county_or_state,
-                          selectedCompany.company_address.postcode
-                        ].filter(Boolean).join(', ')}
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <Label className="text-sm font-medium">Address</Label>
+                    <p className="text-sm text-foreground mt-1">
+                      No address information available
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
