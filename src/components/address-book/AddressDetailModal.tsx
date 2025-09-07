@@ -57,6 +57,20 @@ export const AddressDetailModal = ({
 
           <Separator />
 
+          {/* Company Information Section */}
+          {address.company_details && (
+            <>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Company Information</h3>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">Company Name</label>
+                  <div className="font-medium">{address.company_details.company_name}</div>
+                </div>
+              </div>
+              <Separator />
+            </>
+          )}
+
           {/* Contact Information Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Contact Information</h3>
