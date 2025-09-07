@@ -145,7 +145,7 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
             )}
 
             {/* Address Information */}
-            <CompanyAddressList company={company} onAddAddress={handleEdit} />
+            <CompanyAddressList company={company} />
 
 
             {/* Record Information */}
