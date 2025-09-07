@@ -20,6 +20,10 @@ export interface Address {
   is_other?: boolean;
   created_at: string;
   updated_at: string;
+  company?: {
+    id: string;
+    company_name: string;
+  } | null;
 }
 
 export interface AddressFormData {

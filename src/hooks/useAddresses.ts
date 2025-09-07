@@ -16,12 +16,18 @@ export const useAddresses = (search?: string) => {
 
       let query = supabase
         .from('addresses')
-        .select('*')
+        .select(`
+          *,
+          company:company_details(
+            id,
+            company_name
+          )
+        `)
         .eq('tenant_id', userProfile.tenant_id)
         .order('address_line_1');
 
       if (search && search.trim()) {
-        query = query.or(`company_name.ilike.%${search}%,address_line_1.ilike.%${search}%,town_or_city.ilike.%${search}%,postcode.ilike.%${search}%`);
+        query = query.or(`company.company_name.ilike.%${search}%,address_line_1.ilike.%${search}%,town_or_city.ilike.%${search}%,postcode.ilike.%${search}%`);
       }
 
       const { data, error } = await query;
@@ -31,7 +37,7 @@ export const useAddresses = (search?: string) => {
         throw error;
       }
 
-      return data as Address[];
+      return data as unknown as (Address & { company?: { id: string; company_name: string } | null })[];
     },
     enabled: !!userProfile?.tenant_id,
   });
@@ -240,7 +246,13 @@ export const useAddress = (id: string) => {
 
       const { data, error } = await supabase
         .from('addresses')
-        .select('*')
+        .select(`
+          *,
+          company:company_details(
+            id,
+            company_name
+          )
+        `)
         .eq('id', id)
         .eq('tenant_id', userProfile.tenant_id)
         .single();
@@ -250,7 +262,7 @@ export const useAddress = (id: string) => {
         throw error;
       }
 
-      return data as Address;
+      return data as unknown as Address & { company?: { id: string; company_name: string } | null };
     },
     enabled: !!userProfile?.tenant_id && !!id,
   });

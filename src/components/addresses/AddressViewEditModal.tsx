@@ -21,6 +21,7 @@ const addressSchema = z.object({
   town_or_city: z.string().optional(),
   county_or_state: z.string().optional(),
   postcode: z.string().optional(),
+  company_id: z.string().nullable().optional(),
   contact_name: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -68,6 +69,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
       town_or_city: '',
       county_or_state: '',
       postcode: '',
+      company_id: null,
       contact_name: '',
       phone: '',
       email: '',
@@ -91,6 +93,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
         town_or_city: address.town_or_city || '',
         county_or_state: address.county_or_state || '',
         postcode: address.postcode || '',
+        company_id: address.company_id || null,
         contact_name: address.contact_name || '',
         phone: address.phone || '',
         email: address.email || '',
@@ -237,7 +240,7 @@ export const AddressViewEditModal: React.FC<AddressViewEditModalProps> = ({
 
           {address && <Form {...form}>
               <form id="address-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <AddressFormFields control={form.control} disabled={!isEditMode || !isAdmin} />
+                <AddressFormFields control={form.control} disabled={!isEditMode || !isAdmin} address={address} />
                 
                 {/* Record Information */}
                 <div className="pt-4 border-t">

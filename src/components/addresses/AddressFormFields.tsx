@@ -13,17 +13,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Building2, MapPin, User, Phone, Mail, Globe, Tag, FileText } from 'lucide-react';
 import { CompanySelector } from './CompanySelector';
-import type { AddressFormData } from '@/types/address';
+import type { Address, AddressFormData } from '@/types/address';
 import type { CompanyDetails } from '@/types/company';
 
 interface AddressFormFieldsProps {
   control: Control<AddressFormData>;
   disabled?: boolean;
+  address?: Address | null;
 }
 
 export const AddressFormFields: React.FC<AddressFormFieldsProps> = ({ 
   control, 
-  disabled = false 
+  disabled = false,
+  address = null
 }) => {
   const { field: contactField } = useController({ control, name: 'contact_name' });
   const { field: phoneField } = useController({ control, name: 'phone' });
@@ -57,11 +59,20 @@ export const AddressFormFields: React.FC<AddressFormFieldsProps> = ({
           <h3 className="text-lg font-semibold">Company Information</h3>
         </div>
         
-        <CompanySelector
-          control={control}
-          disabled={disabled}
-          onCompanySelect={handleCompanySelect}
-        />
+        {disabled ? (
+          address?.company?.company_name && (
+            <div className="flex">
+              <span className="text-sm font-medium text-muted-foreground min-w-[120px]">Company:</span>
+              <span className="text-sm">{address.company.company_name}</span>
+            </div>
+          )
+        ) : (
+          <CompanySelector
+            control={control}
+            disabled={disabled}
+            onCompanySelect={handleCompanySelect}
+          />
+        )}
       </div>
 
       <Separator />
