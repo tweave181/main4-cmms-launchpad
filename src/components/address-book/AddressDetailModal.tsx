@@ -32,7 +32,10 @@ export const AddressDetailModal = ({
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          
+          <DialogTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            {address.company_details?.company_name ? address.company_details.company_name : 'Address Information'}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
