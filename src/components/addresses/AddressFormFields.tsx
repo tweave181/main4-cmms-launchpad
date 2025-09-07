@@ -60,10 +60,10 @@ export const AddressFormFields: React.FC<AddressFormFieldsProps> = ({
         </div>
         
         {disabled ? (
-          address?.company?.company_name && (
+          address?.company_details?.company_name && (
             <div className="flex">
               <span className="text-sm font-medium text-muted-foreground min-w-[120px]">Company:</span>
-              <span className="text-sm">{address.company.company_name}</span>
+              <span className="text-sm">{address.company_details.company_name}</span>
             </div>
           )
         ) : (

@@ -18,7 +18,7 @@ export const useAddresses = (search?: string) => {
         .from('addresses')
         .select(`
           *,
-          company:company_details(
+          company_details!left(
             id,
             company_name
           )
@@ -27,7 +27,7 @@ export const useAddresses = (search?: string) => {
         .order('address_line_1');
 
       if (search && search.trim()) {
-        query = query.or(`company.company_name.ilike.%${search}%,address_line_1.ilike.%${search}%,town_or_city.ilike.%${search}%,postcode.ilike.%${search}%`);
+        query = query.or(`company_details.company_name.ilike.%${search}%,address_line_1.ilike.%${search}%,town_or_city.ilike.%${search}%,postcode.ilike.%${search}%`);
       }
 
       const { data, error } = await query;
@@ -37,7 +37,7 @@ export const useAddresses = (search?: string) => {
         throw error;
       }
 
-      return data as unknown as (Address & { company?: { id: string; company_name: string } | null })[];
+      return data as unknown as (Address & { company_details?: { id: string; company_name: string } | null })[];
     },
     enabled: !!userProfile?.tenant_id,
   });
@@ -248,7 +248,7 @@ export const useAddress = (id: string) => {
         .from('addresses')
         .select(`
           *,
-          company:company_details(
+          company_details!left(
             id,
             company_name
           )
@@ -262,7 +262,7 @@ export const useAddress = (id: string) => {
         throw error;
       }
 
-      return data as unknown as Address & { company?: { id: string; company_name: string } | null };
+      return data as unknown as Address & { company_details?: { id: string; company_name: string } | null };
     },
     enabled: !!userProfile?.tenant_id && !!id,
   });

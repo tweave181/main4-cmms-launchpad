@@ -86,7 +86,7 @@ export const AddressBookTable = ({
             <TableBody>
               {filteredAddresses.map(address => <TableRow key={address.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleRowClick(address)}>
                   <TableCell>
-                    <div className="font-medium">{address.company?.company_name || '—'}</div>
+                    <div className="font-medium">{address.company_details?.company_name || '—'}</div>
                   </TableCell>
                   <TableCell>
                     <div className="font-medium">{address.contact_name || '—'}</div>

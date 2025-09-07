@@ -72,7 +72,7 @@ export const AddressList: React.FC<AddressListProps> = ({
                   </TableCell>
                 </TableRow> : addresses.map(address => <TableRow key={address.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAddressId(address.id)}>
                     <TableCell>
-                      <div className="font-medium">{address.company?.company_name || '—'}</div>
+                      <div className="font-medium">{address.company_details?.company_name || '—'}</div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{address.contact_name || '—'}</div>
