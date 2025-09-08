@@ -43,6 +43,20 @@ export const useAuthOperations = () => {
         }
         throw error;
       }
+
+      // Log the successful login and update last_login
+      try {
+        await supabase.functions.invoke('log-login', {
+          body: {
+            userAgent: navigator.userAgent,
+            ip: null // IP will be determined by the edge function
+          }
+        });
+        console.log('Login logged successfully');
+      } catch (logError) {
+        console.warn('Failed to log login:', logError);
+        // Don't throw here - login was successful even if logging failed
+      }
     } catch (error: any) {
       throw new Error(error.message || 'Failed to sign in');
     }
