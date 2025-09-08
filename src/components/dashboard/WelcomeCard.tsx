@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Building2, User, Shield } from 'lucide-react';
+import { Building2, User, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 
 export const WelcomeCard: React.FC = () => {
@@ -91,6 +91,14 @@ export const WelcomeCard: React.FC = () => {
                 <p className="text-sm text-muted-foreground">
                   {isAdmin ? "Administrator" : "Standard User"}
                 </p>
+                {userProfile?.last_login && (
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground">
+                      Last login: {new Date(userProfile.last_login).toLocaleString()}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

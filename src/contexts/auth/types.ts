@@ -9,6 +9,7 @@ export interface UserProfile {
   role: 'admin' | 'manager' | 'technician' | 'contractor';
   created_at: string;
   updated_at: string;
+  last_login: string | null;
 }
 
 export interface Tenant {
