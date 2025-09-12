@@ -1,154 +1,218 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Address } from '@/types/address';
-import { MapPin, Calendar, Tag } from 'lucide-react';
+import { MapPin, Building, Phone, Mail, Globe, FileText, Calendar } from 'lucide-react';
 import { AddressTypeBadges } from './AddressTypeBadges';
 import { SuppliedPartsCard } from './SuppliedPartsCard';
-import { AddressCard } from '@/components/ui/address-card';
+import { ContactsList } from '@/components/address-contacts/ContactsList';
+import { ReusableTabs, TabItem } from '@/components/ui/reusable-tabs';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
+import type { Address } from '@/types/address';
+
 interface AddressDetailModalProps {
   address: Address | null;
   isOpen: boolean;
   onClose: () => void;
 }
-export const AddressDetailModal = ({
+
+export const AddressDetailModal: React.FC<AddressDetailModalProps> = ({
   address,
   isOpen,
-  onClose
-}: AddressDetailModalProps) => {
+  onClose,
+}) => {
+  const { formatDate } = useGlobalSettings();
+  const [activeTab, setActiveTab] = useState('details');
+
+  const getFullAddress = (addr: Address) => {
+    const parts = [
+      addr.address_line_1,
+      addr.address_line_2,
+      addr.address_line_3,
+      addr.town_or_city,
+      addr.county_or_state,
+      addr.postcode,
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
+
   if (!address) return null;
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-  const getFullAddress = () => {
-    const addressParts = [address.address_line_1, address.address_line_2, address.address_line_3, address.town_or_city, address.county_or_state, address.postcode].filter(Boolean);
-    return addressParts.join(', ');
-  };
-  return <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+
+  const detailsContent = (
+    <div className="space-y-6">
+      {/* Address Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Building className="w-4 h-4" />
+            <span>Address Information</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{getFullAddress(address)}</p>
+            <AddressTypeBadges address={address} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Company Information */}
+      {address.company_details && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Building className="w-4 h-4" />
+              <span>Company Information</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-medium">{address.company_details.company_name}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Contact Information */}
+      {(address.contact_name || address.phone || address.email || address.website) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Phone className="w-4 h-4" />
+              <span>Contact Information</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {address.contact_name && (
+              <div>
+                <p className="text-sm text-muted-foreground">Contact Name</p>
+                <p className="text-sm font-medium">{address.contact_name}</p>
+              </div>
+            )}
+            {address.phone && (
+              <div className="flex items-center space-x-2">
+                <Phone className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm">{address.phone}</span>
+              </div>
+            )}
+            {address.email && (
+              <div className="flex items-center space-x-2">
+                <Mail className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm">{address.email}</span>
+              </div>
+            )}
+            {address.website && (
+              <div className="flex items-center space-x-2">
+                <Globe className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm">{address.website}</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Type Classification */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Badge className="w-4 h-4" />
+            <span>Type Classification</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AddressTypeBadges address={address} />
+        </CardContent>
+      </Card>
+
+      {/* Record Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Calendar className="w-4 h-4" />
+            <span>Record Information</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Created</p>
+              <p>{formatDate(address.created_at)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Last Updated</p>
+              <p>{formatDate(address.updated_at)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Supplied Parts */}
+      {address.is_supplier && (
+        <SuppliedPartsCard supplierId={address.id} />
+      )}
+
+      {/* Notes */}
+      {address.notes && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="w-4 h-4" />
+              <span>Notes</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm whitespace-pre-wrap">{address.notes}</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+
+  const tabs: TabItem[] = [
+    {
+      value: 'details',
+      label: 'Details',
+      icon: Building,
+      content: detailsContent,
+    },
+    {
+      value: 'contacts',
+      label: 'Contacts',
+      icon: Phone,
+      content: <ContactsList addressId={address.id} />,
+    },
+    {
+      value: 'contracts',
+      label: 'Service Contracts',
+      icon: FileText,
+      content: (
+        <div className="text-center py-8 text-muted-foreground">
+          <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p>No service contracts linked yet.</p>
+          <p className="text-sm mt-2">Service contract functionality will be available soon.</p>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            {address.company_details?.company_name ? address.company_details.company_name : 'Address Information'}
+          <DialogTitle className="flex items-center space-x-2">
+            <MapPin className="w-5 h-5 text-primary" />
+            <span>Address Details</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Address Information Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Address Information</h3>
-            </div>
-            
-            <AddressCard 
-              address={{
-                line1: address.address_line_1,
-                line2: address.address_line_2,
-                line3: address.address_line_3,
-                town_city: address.town_or_city,
-                county_state: address.county_or_state,
-                postcode: address.postcode
-              }}
-            />
-          </div>
-
-          <Separator />
-
-          {/* Company Information Section */}
-          {address.company_details && (
-            <>
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Company Information</h3>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground">Company Name</label>
-                  <div className="font-medium">{address.company_details.company_name}</div>
-                </div>
-              </div>
-              <Separator />
-            </>
-          )}
-
-          {/* Contact Information Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Contact Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Primary Contact</label>
-                <div className={address.contact_name ? "" : "text-muted-foreground italic"}>
-                  {address.contact_name || 'Not available in current data'}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
-                <div className={address.phone ? "" : "text-muted-foreground italic"}>
-                  {address.phone || 'Not available in current data'}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <div className={address.email ? "" : "text-muted-foreground italic"}>
-                  {address.email || 'Not available in current data'}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Website</label>
-                <div className={address.website ? "" : "text-muted-foreground italic"}>
-                  {address.website || 'Not available in current data'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Classification Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Tag className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Type Classification</h3>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Company Types</label>
-              <AddressTypeBadges address={address} />
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Record Information */}
-          <div className="text-sm text-muted-foreground">
-            <span className="inline-flex flex-wrap items-center gap-x-6 gap-y-2">
-              <span>Record Information</span>
-              <span>Created At: {formatDate(address.created_at)}</span>
-              <span>Last Updated: {formatDate(address.updated_at)}</span>
-            </span>
-          </div>
-
-          {/* Supplied Parts Section - only show for suppliers */}
-          {address.is_supplier && (
-            <>
-              <Separator />
-              <SuppliedPartsCard supplierId={address.id} />
-            </>
-          )}
-
-          {/* Notes Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Notes</h3>
-            <div className="bg-muted/50 rounded-lg p-4">
-              <div className="text-muted-foreground italic">
-                {address.notes || 'No additional notes available for this address record.'}
-              </div>
-            </div>
-          </div>
+        <div className="flex-1 overflow-hidden">
+          <ReusableTabs
+            tabs={tabs}
+            defaultValue="details"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          />
         </div>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };

@@ -66,6 +66,65 @@ export type Database = {
           },
         ]
       }
+      address_contacts: {
+        Row: {
+          address_id: string
+          created_at: string
+          department: string | null
+          email: string | null
+          extension: string | null
+          general_notes: string | null
+          id: string
+          job_title: string | null
+          mobile: string | null
+          name: string
+          telephone: string | null
+          tenant_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_id: string
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          extension?: string | null
+          general_notes?: string | null
+          id?: string
+          job_title?: string | null
+          mobile?: string | null
+          name: string
+          telephone?: string | null
+          tenant_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_id?: string
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          extension?: string | null
+          general_notes?: string | null
+          id?: string
+          job_title?: string | null
+          mobile?: string | null
+          name?: string
+          telephone?: string | null
+          tenant_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_address_contacts_address_id"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       addresses: {
         Row: {
           address_line_1: string
