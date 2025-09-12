@@ -11,9 +11,13 @@ import { AddressViewEditModal } from './AddressViewEditModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 interface AddressListProps {
   onAddAddress: () => void;
+  onSelectAddress?: (address: Address) => void;
+  selectedAddress?: Address | null;
 }
 export const AddressList: React.FC<AddressListProps> = ({
-  onAddAddress
+  onAddAddress,
+  onSelectAddress,
+  selectedAddress
 }) => {
   const {
     formatDate
@@ -70,7 +74,17 @@ export const AddressList: React.FC<AddressListProps> = ({
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     {search ? 'No addresses found matching your search.' : 'No addresses found. Create your first address to get started.'}
                   </TableCell>
-                </TableRow> : addresses.map(address => <TableRow key={address.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAddressId(address.id)}>
+                </TableRow> : addresses.map(address => <TableRow 
+                  key={address.id} 
+                  className={`cursor-pointer hover:bg-muted/50 ${selectedAddress?.id === address.id ? 'bg-muted' : ''}`}
+                  onClick={() => {
+                    if (onSelectAddress) {
+                      onSelectAddress(address);
+                    } else {
+                      setSelectedAddressId(address.id);
+                    }
+                  }}
+                >
                     <TableCell>
                       <div className="font-medium">{address.company_details?.company_name || '—'}</div>
                     </TableCell>
@@ -90,8 +104,14 @@ export const AddressList: React.FC<AddressListProps> = ({
         </div>
       </div>
 
-      {/* Unified View/Edit Modal */}
-      <AddressViewEditModal addressId={selectedAddressId} isOpen={!!selectedAddressId} onClose={() => setSelectedAddressId(null)} />
+      {/* Unified View/Edit Modal - Only show when not in selection mode */}
+      {!onSelectAddress && (
+        <AddressViewEditModal 
+          addressId={selectedAddressId} 
+          isOpen={!!selectedAddressId} 
+          onClose={() => setSelectedAddressId(null)} 
+        />
+      )}
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deletingAddress} onOpenChange={() => setDeletingAddress(null)}>
