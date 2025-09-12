@@ -25,7 +25,7 @@ const AddressBook = () => {
         <CardHeader className="pb-4">
           <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
             <MapPin className="h-6 w-6 text-primary" />
-            <span>Address Book</span>
+            <span>Address Book List</span>
           </CardTitle>
           <p className="text-muted-foreground mt-2">
             View all contact information and company details.
