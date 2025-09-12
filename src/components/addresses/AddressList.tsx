@@ -1,44 +1,29 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Edit, Trash2 } from 'lucide-react';
-import { useAddresses, useDeleteAddress } from '@/hooks/useAddresses';
+import { Search } from 'lucide-react';
+import { useAddresses } from '@/hooks/useAddresses';
 import type { Address } from '@/types/address';
-import { AddressViewEditModal } from './AddressViewEditModal';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 interface AddressListProps {
   onAddAddress: () => void;
-  onSelectAddress?: (address: Address) => void;
-  selectedAddress?: Address | null;
 }
 export const AddressList: React.FC<AddressListProps> = ({
-  onAddAddress,
-  onSelectAddress,
-  selectedAddress
+  onAddAddress
 }) => {
+  const navigate = useNavigate();
   const {
     formatDate
   } = useGlobalSettings();
   const [search, setSearch] = useState('');
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [deletingAddress, setDeletingAddress] = useState<Address | null>(null);
   const {
     data: addresses = [],
     isLoading
   } = useAddresses(search);
-  const deleteAddressMutation = useDeleteAddress();
-  const formatAddressPreview = (address: Address) => {
-    const parts = [address.address_line_1, address.town_or_city, address.postcode].filter(Boolean);
-    return parts.join(', ');
-  };
-  const handleDelete = async () => {
-    if (deletingAddress) {
-      await deleteAddressMutation.mutateAsync(deletingAddress.id);
-      setDeletingAddress(null);
-    }
+  const handleRowClick = (address: Address) => {
+    navigate(`/addresses/${address.id}`);
   };
   if (isLoading) {
     return <div className="flex items-center justify-center h-64">
@@ -70,20 +55,14 @@ export const AddressList: React.FC<AddressListProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {addresses.length === 0 ? <TableRow>
+                {addresses.length === 0 ? <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     {search ? 'No addresses found matching your search.' : 'No addresses found. Create your first address to get started.'}
                   </TableCell>
                 </TableRow> : addresses.map(address => <TableRow 
                   key={address.id} 
-                  className={`cursor-pointer hover:bg-muted/50 ${selectedAddress?.id === address.id ? 'bg-muted' : ''}`}
-                  onClick={() => {
-                    if (onSelectAddress) {
-                      onSelectAddress(address);
-                    } else {
-                      setSelectedAddressId(address.id);
-                    }
-                  }}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleRowClick(address)}
                 >
                     <TableCell>
                       <div className="font-medium">{address.company_details?.company_name || '—'}</div>
@@ -103,35 +82,5 @@ export const AddressList: React.FC<AddressListProps> = ({
           </Table>
         </div>
       </div>
-
-      {/* Unified View/Edit Modal - Only show when not in selection mode */}
-      {!onSelectAddress && (
-        <AddressViewEditModal 
-          addressId={selectedAddressId} 
-          isOpen={!!selectedAddressId} 
-          onClose={() => setSelectedAddressId(null)} 
-        />
-      )}
-
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deletingAddress} onOpenChange={() => setDeletingAddress(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Address</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this address? This action cannot be undone.
-              {deletingAddress && <div className="mt-2 text-sm bg-muted p-2 rounded">
-                  {formatAddressPreview(deletingAddress)}
-                </div>}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>;
 };

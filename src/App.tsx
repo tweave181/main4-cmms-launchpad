@@ -29,6 +29,7 @@ import JobTitles from "./pages/JobTitles";
 import JobTitleDetails from "./pages/JobTitleDetails";
 import Companies from "./pages/Companies";
 import Addresses from "./pages/Addresses";
+import AddressDetail from "./pages/AddressDetail";
 import Locations from "./pages/Locations";
 import LocationLevels from "./pages/LocationLevels";
 import LocationLevelDetails from "./pages/LocationLevelDetails";
@@ -72,10 +73,12 @@ function App() {
                  <Route path="/inventory" element={<Inventory />} />
                  <Route path="/inventory/:id" element={<InventoryPartDetail />} />
                  <Route path="/inventory/:id/edit" element={<InventoryPartDetail />} />
-                             <Route path="/address-book" element={<AddressBook />} />
-                             <Route path="/reports" element={<Reports />} />
-                              <Route path="/users" element={<UserManagement />} />
-                              <Route path="/addresses" element={<Addresses />} />
+                              <Route path="/address-book" element={<AddressBook />} />
+                              <Route path="/address-book/:id" element={<AddressDetail />} />
+                              <Route path="/reports" element={<Reports />} />
+                               <Route path="/users" element={<UserManagement />} />
+                               <Route path="/addresses" element={<Addresses />} />
+                               <Route path="/addresses/:id" element={<AddressDetail />} />
                               <Route path="/admin/service-contracts" element={<ServiceContracts />} />
                               <Route path="/system-audit-log" element={<SystemAuditLog />} />
                               <Route path="/settings" element={<AdminSettings />} />

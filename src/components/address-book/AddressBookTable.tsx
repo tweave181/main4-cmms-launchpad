@@ -1,31 +1,26 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAddresses } from '@/hooks/useAddresses';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddressTypeBadges } from './AddressTypeBadges';
-import { AddressDetailModal } from './AddressDetailModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Address } from '@/types/address';
 import { AddressTypeFilters } from './AddressBookFilters';
 interface AddressBookTableProps {
   filters: AddressTypeFilters;
   search?: string;
-  onSelectAddress?: (address: Address) => void;
-  selectedAddress?: Address | null;
 }
 export const AddressBookTable = ({
   filters,
-  search,
-  onSelectAddress,
-  selectedAddress
+  search
 }: AddressBookTableProps) => {
+  const navigate = useNavigate();
   const {
     data: addresses,
     isLoading,
     error
   } = useAddresses(search);
-  const [localSelectedAddress, setLocalSelectedAddress] = useState<Address | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const filteredAddresses = useMemo(() => {
     if (!addresses) return [];
     const hasActiveFilters = Object.values(filters).some(value => value);
@@ -40,16 +35,7 @@ export const AddressBookTable = ({
     });
   }, [addresses, filters]);
   const handleRowClick = (address: Address) => {
-    if (onSelectAddress) {
-      onSelectAddress(address);
-    } else {
-      setLocalSelectedAddress(address);
-      setIsModalOpen(true);
-    }
-  };
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setLocalSelectedAddress(null);
+    navigate(`/address-book/${address.id}`);
   };
   if (isLoading) {
     return <Card>
@@ -90,7 +76,7 @@ export const AddressBookTable = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAddresses.map(address => <TableRow key={address.id} className={`cursor-pointer hover:bg-muted/50 transition-colors ${selectedAddress?.id === address.id ? 'bg-muted' : ''}`} onClick={() => handleRowClick(address)}>
+              {filteredAddresses.map(address => <TableRow key={address.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleRowClick(address)}>
                   <TableCell>
                     <div className="font-medium">{address.company_details?.company_name || '—'}</div>
                   </TableCell>
@@ -112,9 +98,6 @@ export const AddressBookTable = ({
                 </TableRow>)}
             </TableBody>
           </Table>}
-        
-        {/* Modal only shows when not in selection mode */}
-        {!onSelectAddress && <AddressDetailModal address={localSelectedAddress} isOpen={isModalOpen} onClose={handleCloseModal} />}
       </CardContent>
     </Card>;
 };
