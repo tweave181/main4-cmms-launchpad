@@ -75,6 +75,7 @@ export type Database = {
           extension: string | null
           general_notes: string | null
           id: string
+          is_primary: boolean
           job_title: string | null
           mobile: string | null
           name: string
@@ -91,6 +92,7 @@ export type Database = {
           extension?: string | null
           general_notes?: string | null
           id?: string
+          is_primary?: boolean
           job_title?: string | null
           mobile?: string | null
           name: string
@@ -107,6 +109,7 @@ export type Database = {
           extension?: string | null
           general_notes?: string | null
           id?: string
+          is_primary?: boolean
           job_title?: string | null
           mobile?: string | null
           name?: string

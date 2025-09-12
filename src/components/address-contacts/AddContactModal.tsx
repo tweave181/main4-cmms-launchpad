@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateAddressContact, useUpdateAddressContact } from '@/hooks/useAddressContacts';
@@ -22,6 +23,7 @@ const contactSchema = z.object({
   mobile: z.string().optional(),
   email: z.string().email('Invalid email format').optional().or(z.literal('')),
   general_notes: z.string().optional(),
+  is_primary: z.boolean().optional(),
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
@@ -59,6 +61,7 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({
       mobile: '',
       email: '',
       general_notes: '',
+      is_primary: false,
     },
   });
 
@@ -74,6 +77,7 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({
         mobile: contact?.mobile || '',
         email: contact?.email || '',
         general_notes: contact?.general_notes || '',
+        is_primary: contact?.is_primary || false,
       } as ContactFormData;
       form.reset(formData);
     }
@@ -262,6 +266,29 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({
                     <Textarea {...field} rows={3} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="is_primary"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Primary Contact
+                    </FormLabel>
+                    <p className="text-xs text-muted-foreground">
+                      Mark this as the primary contact for this address
+                    </p>
+                  </div>
                 </FormItem>
               )}
             />

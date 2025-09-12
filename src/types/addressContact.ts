@@ -10,6 +10,7 @@ export interface AddressContact {
   mobile?: string;
   email?: string;
   general_notes?: string;
+  is_primary: boolean;
   tenant_id: string;
   created_at: string;
   updated_at: string;
@@ -25,4 +26,5 @@ export interface AddressContactFormData {
   mobile?: string;
   email?: string;
   general_notes?: string;
+  is_primary?: boolean;
 }
