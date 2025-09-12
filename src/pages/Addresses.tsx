@@ -35,7 +35,7 @@ const Addresses: React.FC = () => {
         <CardHeader className="pb-4">
           <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
             <MapPin className="h-6 w-6 text-primary" />
-            <span>Address Management</span>
+            <span>Address Management List</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
