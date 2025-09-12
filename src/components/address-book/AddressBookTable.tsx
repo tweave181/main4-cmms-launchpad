@@ -74,9 +74,7 @@ export const AddressBookTable = ({
       </Card>;
   }
   return <Card>
-      <CardHeader>
-        <CardTitle>Address Book</CardTitle>
-      </CardHeader>
+      
       <CardContent>
         {!filteredAddresses || filteredAddresses.length === 0 ? <p className="text-muted-foreground text-center py-8">
             {!addresses || addresses.length === 0 ? "No addresses found in the directory." : "No addresses match the selected filters."}
@@ -92,11 +90,7 @@ export const AddressBookTable = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAddresses.map(address => <TableRow 
-                key={address.id} 
-                className={`cursor-pointer hover:bg-muted/50 transition-colors ${selectedAddress?.id === address.id ? 'bg-muted' : ''}`}
-                onClick={() => handleRowClick(address)}
-              >
+              {filteredAddresses.map(address => <TableRow key={address.id} className={`cursor-pointer hover:bg-muted/50 transition-colors ${selectedAddress?.id === address.id ? 'bg-muted' : ''}`} onClick={() => handleRowClick(address)}>
                   <TableCell>
                     <div className="font-medium">{address.company_details?.company_name || '—'}</div>
                   </TableCell>
@@ -120,13 +114,7 @@ export const AddressBookTable = ({
           </Table>}
         
         {/* Modal only shows when not in selection mode */}
-        {!onSelectAddress && (
-          <AddressDetailModal 
-            address={localSelectedAddress} 
-            isOpen={isModalOpen} 
-            onClose={handleCloseModal} 
-          />
-        )}
+        {!onSelectAddress && <AddressDetailModal address={localSelectedAddress} isOpen={isModalOpen} onClose={handleCloseModal} />}
       </CardContent>
     </Card>;
 };
