@@ -4,12 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { Plus, FileText, Calendar, DollarSign, Building2, Mail, Settings, Eye } from 'lucide-react';
+import { Plus, FileText, Calendar, DollarSign, Building2, Mail } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
-import { ContractDetailModal } from '@/components/contracts/ContractDetailModal';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -41,10 +40,8 @@ const ServiceContracts: React.FC = () => {
     formatDate,
     formatCurrency
   } = useGlobalSettings();
-  const [selectedContract, setSelectedContract] = useState<ServiceContract | null>(null);
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [contractForDetail, setContractForDetail] = useState<ServiceContract | null>(null);
   const {
     data: contracts = [],
     isLoading,
@@ -94,9 +91,8 @@ const ServiceContracts: React.FC = () => {
     const diffTime = expiryDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
-  const handleViewDetails = (contract: ServiceContract) => {
-    setContractForDetail(contract);
-    setIsDetailModalOpen(true);
+  const handleContractClick = (contractId: string) => {
+    navigate(`/admin/service-contracts/${contractId}`);
   };
   if (isLoading) {
     return <div className="p-6">
@@ -236,20 +232,19 @@ const ServiceContracts: React.FC = () => {
                   <TableHead className="bg-gray-300">Start Date</TableHead>
                   <TableHead className="bg-gray-300">End Date</TableHead>
                   <TableHead className="bg-gray-300">Days Until Expiry</TableHead>
-                  <TableHead className="bg-gray-300">Cost</TableHead>
                   <TableHead className="bg-gray-300">Reminders</TableHead>
-                  <TableHead className="bg-gray-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {contracts.map(contract => {
               const daysUntilExpiry = getDaysUntilExpiry(contract.end_date);
-              return <TableRow key={contract.id}>
+              return <TableRow 
+                      key={contract.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleContractClick(contract.id)}
+                    >
                       <TableCell>
-                        <div>
-                          <div className="font-medium">{contract.contract_title}</div>
-                          {contract.description}
-                        </div>
+                        <div className="font-medium">{contract.contract_title}</div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
@@ -275,25 +270,12 @@ const ServiceContracts: React.FC = () => {
                           {daysUntilExpiry > 0 ? `${daysUntilExpiry} days` : 'Expired'}
                         </div>
                       </TableCell>
-                       <TableCell>
-                         {contract.contract_cost ? formatCurrency(contract.contract_cost) : 'N/A'}
-                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           {contract.email_reminder_enabled ? <Mail className="h-4 w-4 text-green-600" /> : <Mail className="h-4 w-4 text-muted-foreground" />}
                           {contract.reminder_days_before && <span className="text-sm text-muted-foreground">
                               {contract.reminder_days_before}d
                             </span>}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleViewDetails(contract)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Settings className="h-4 w-4" />
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>;
@@ -304,8 +286,6 @@ const ServiceContracts: React.FC = () => {
       </Card>
 
       <ServiceContractModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
-      <ContractDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} contract={contractForDetail} />
     </div>;
 };
 export default ServiceContracts;

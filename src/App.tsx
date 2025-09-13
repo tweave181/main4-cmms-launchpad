@@ -36,6 +36,7 @@ import LocationLevelDetails from "./pages/LocationLevelDetails";
 import InventoryPartDetail from "./pages/InventoryPartDetail";
 import AddressBook from "./pages/AddressBook";
 import ServiceContracts from "./pages/ServiceContracts";
+import ServiceContractDetail from "./pages/ServiceContractDetail";
 import AssetPrefixManager from "./pages/AssetPrefixManager";
 import CategoryManager from "./pages/CategoryManager";
 import SystemAuditLog from "./pages/SystemAuditLog";
@@ -79,8 +80,9 @@ function App() {
                                <Route path="/users" element={<UserManagement />} />
                                <Route path="/addresses" element={<Addresses />} />
                                <Route path="/addresses/:id" element={<AddressDetail />} />
-                              <Route path="/admin/service-contracts" element={<ServiceContracts />} />
-                              <Route path="/system-audit-log" element={<SystemAuditLog />} />
+                               <Route path="/admin/service-contracts" element={<ServiceContracts />} />
+                               <Route path="/admin/service-contracts/:id" element={<ServiceContractDetail />} />
+                               <Route path="/system-audit-log" element={<SystemAuditLog />} />
                               <Route path="/settings" element={<AdminSettings />} />
                               
                               {/* New Preferences Routes */}
