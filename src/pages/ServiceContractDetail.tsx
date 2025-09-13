@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { ArrowLeft, Building2, Calendar, DollarSign, Mail, FileText, Edit } from 'lucide-react';
+import { ArrowLeft, Building2, Calendar, DollarSign, Mail, FileText, Edit, Package, AlertCircle } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
@@ -28,6 +29,28 @@ interface ServiceContract {
     company_name: string;
     email: string | null;
     phone: string | null;
+  } | null;
+}
+
+interface ContractLine {
+  id: string;
+  line_description: string;
+  frequency: string | null;
+  sla: string | null;
+  cost_per_line: number | null;
+}
+
+interface LinkedAsset {
+  id: string;
+  asset_tag: string | null;
+  name: string;
+  category: string | null;
+  location: {
+    name: string;
+    location_code: string;
+  } | null;
+  department: {
+    name: string;
   } | null;
 }
 
@@ -63,6 +86,45 @@ const ServiceContractDetail: React.FC = () => {
     },
     enabled: !!id && !!userProfile?.tenant_id,
   });
+
+  const { data: contractLines = [], isLoading: isLoadingLines } = useQuery({
+    queryKey: ['contract-lines', contract?.id],
+    queryFn: async () => {
+      if (!contract?.id) return [];
+      const { data, error } = await supabase
+        .from('contract_lines')
+        .select('*')
+        .eq('contract_id', contract.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data as ContractLine[];
+    },
+    enabled: !!contract?.id,
+  });
+
+  const { data: linkedAssets = [], isLoading: isLoadingAssets } = useQuery({
+    queryKey: ['contract-assets', contract?.id],
+    queryFn: async () => {
+      if (!contract?.id) return [];
+      const { data, error } = await supabase
+        .from('assets')
+        .select(`
+          id,
+          asset_tag,
+          name,
+          category,
+          location:locations(name, location_code),
+          department:departments(name)
+        `)
+        .eq('service_contract_id', contract.id)
+        .order('asset_tag', { ascending: true });
+      if (error) throw error;
+      return data as LinkedAsset[];
+    },
+    enabled: !!contract?.id,
+  });
+
+  const isLoadingCoverage = isLoadingLines || isLoadingAssets;
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -294,6 +356,117 @@ const ServiceContractDetail: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Items covered by this Contract */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Items covered by this Contract</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoadingCoverage ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-muted-foreground">Loading...</div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Contract Lines Section */}
+              {contractLines.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3">Contract Line Items</h4>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Line Description</TableHead>
+                        <TableHead>Frequency</TableHead>
+                        <TableHead>SLA</TableHead>
+                        <TableHead className="text-right">Cost per Line</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {contractLines.map((line) => (
+                        <TableRow key={line.id}>
+                          <TableCell className="font-medium">
+                            {line.line_description}
+                          </TableCell>
+                          <TableCell>
+                            {line.frequency || 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            {line.sla || 'N/A'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {line.cost_per_line ? formatCurrency(line.cost_per_line) : 'N/A'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {/* Linked Assets Section */}
+              <div>
+                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Assets Covered by This Contract
+                </h4>
+                {linkedAssets.length === 0 ? (
+                  <div className="text-center py-6 border border-dashed rounded-lg">
+                    <Package className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-muted-foreground text-sm">
+                      No assets are currently linked to this contract.
+                    </p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Asset Tag</TableHead>
+                        <TableHead>Asset Name</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Department</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {linkedAssets.map((asset) => (
+                        <TableRow
+                          key={asset.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => {
+                            window.open(`/assets?asset=${asset.id}`, '_blank');
+                          }}
+                        >
+                          <TableCell className="font-medium">
+                            {asset.asset_tag || 'N/A'}
+                          </TableCell>
+                          <TableCell>{asset.name}</TableCell>
+                          <TableCell>
+                            {asset.location ? `${asset.location.name} (${asset.location.location_code})` : 'N/A'}
+                          </TableCell>
+                          <TableCell>{asset.category || 'N/A'}</TableCell>
+                          <TableCell>{asset.department?.name || 'N/A'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+
+              {/* Show message if no line items and no assets */}
+              {contractLines.length === 0 && linkedAssets.length === 0 && (
+                <div className="text-center py-8">
+                  <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No coverage items found</h3>
+                  <p className="text-muted-foreground">
+                    No line items or assets are currently associated with this contract.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
