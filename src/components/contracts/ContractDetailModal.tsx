@@ -27,6 +27,15 @@ interface ServiceContract {
     email: string | null;
     phone: string | null;
   } | null;
+  address?: {
+    id: string;
+    address_line_1: string;
+    address_line_2: string | null;
+    address_line_3: string | null;
+    town_or_city: string | null;
+    county_or_state: string | null;
+    postcode: string | null;
+  } | null;
 }
 interface ContractLine {
   id: string;
@@ -188,13 +197,29 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
                   </div>
                 </>}
 
-              {contract.company_details && <>
+                {contract.company_details && <>
                   <Separator />
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Vendor Contact Information</label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                       {contract.company_details.email && <div>Email: {contract.company_details.email}</div>}
                       {contract.company_details.phone && <div>Phone: {contract.company_details.phone}</div>}
+                    </div>
+                  </div>
+                </>}
+
+                {contract.address && <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Service Address</label>
+                    <div className="text-sm">
+                      <div>{contract.address.address_line_1}</div>
+                      {contract.address.address_line_2 && <div>{contract.address.address_line_2}</div>}
+                      <div>
+                        {[contract.address.town_or_city, contract.address.county_or_state, contract.address.postcode]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </div>
                     </div>
                   </div>
                 </>}

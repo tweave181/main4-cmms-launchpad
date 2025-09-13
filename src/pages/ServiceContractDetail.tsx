@@ -30,6 +30,15 @@ interface ServiceContract {
     email: string | null;
     phone: string | null;
   } | null;
+  address?: {
+    id: string;
+    address_line_1: string;
+    address_line_2: string | null;
+    address_line_3: string | null;
+    town_or_city: string | null;
+    county_or_state: string | null;
+    postcode: string | null;
+  } | null;
 }
 
 interface ContractLine {
@@ -75,6 +84,15 @@ const ServiceContractDetail: React.FC = () => {
             company_name,
             email,
             phone
+          ),
+          address:address_id (
+            id,
+            address_line_1,
+            address_line_2,
+            address_line_3,
+            town_or_city,
+            county_or_state,
+            postcode
           )
         `)
         .eq('id', id)
@@ -300,6 +318,22 @@ const ServiceContractDetail: React.FC = () => {
                     <p className="font-medium">{contract.company_details.phone}</p>
                   </div>
                 )}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Service Address</label>
+                  {contract.address ? (
+                    <div className="font-medium">
+                      <div>{contract.address.address_line_1}</div>
+                      {contract.address.address_line_2 && <div>{contract.address.address_line_2}</div>}
+                      <div>
+                        {[contract.address.town_or_city, contract.address.county_or_state, contract.address.postcode]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="font-medium text-muted-foreground">No specific service address</p>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -1455,6 +1455,7 @@ export type Database = {
       }
       service_contracts: {
         Row: {
+          address_id: string | null
           contract_cost: number | null
           contract_title: string
           created_at: string
@@ -1472,6 +1473,7 @@ export type Database = {
           visit_count: number | null
         }
         Insert: {
+          address_id?: string | null
           contract_cost?: number | null
           contract_title: string
           created_at?: string
@@ -1489,6 +1491,7 @@ export type Database = {
           visit_count?: number | null
         }
         Update: {
+          address_id?: string | null
           contract_cost?: number | null
           contract_title?: string
           created_at?: string
@@ -1506,6 +1509,13 @@ export type Database = {
           visit_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "service_contracts_address_id_fkey"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "service_contracts_vendor_company_id_fkey"
             columns: ["vendor_company_id"]

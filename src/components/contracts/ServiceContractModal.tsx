@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 const contractSchema = z.object({
   contract_title: z.string().min(1, 'Contract title is required'),
   vendor_company_id: z.string().min(1, 'Vendor company is required'),
+  address_id: z.string().optional(),
   description: z.string().optional(),
   start_date: z.date({ required_error: 'Start date is required' }),
   end_date: z.date({ required_error: 'End date is required' }),
@@ -55,6 +56,32 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+    reset
+  } = useForm<ContractFormData>({
+    resolver: zodResolver(contractSchema),
+    defaultValues: {
+      status: 'Active',
+      email_reminder_enabled: true,
+      contract_cost: undefined,
+      reminder_days_before: 30,
+      visit_count: undefined,
+      vendor_company_id: ''
+    }
+  });
+
+  // Watch form fields
+  const startDate = watch('start_date');
+  const endDate = watch('end_date');
+  const emailReminderEnabled = watch('email_reminder_enabled');
+  const selectedVendorId = watch('vendor_company_id');
+  const selectedAddressId = watch('address_id');
+
   const { data: companies = [], isLoading: companiesLoading } = useQuery({
     queryKey: ['companies', userProfile?.tenant_id],
     queryFn: async () => {
@@ -77,31 +104,26 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
     enabled: !!userProfile?.tenant_id,
   });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-    reset
-  } = useForm<ContractFormData>({
-    resolver: zodResolver(contractSchema),
-    defaultValues: {
-      status: 'Active',
-      email_reminder_enabled: true,
-      contract_cost: undefined,
-      reminder_days_before: 30,
-      visit_count: undefined,
-      vendor_company_id: ''
-    }
+  const { data: companyAddresses = [], isLoading: addressesLoading } = useQuery({
+    queryKey: ['company-addresses', selectedVendorId],
+    queryFn: async () => {
+      if (!selectedVendorId || !userProfile?.tenant_id) return [];
+
+      const { data, error } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('tenant_id', userProfile.tenant_id)
+        .eq('company_id', selectedVendorId)
+        .order('address_line_1');
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedVendorId && !!userProfile?.tenant_id,
   });
 
-  const startDate = watch('start_date');
-  const endDate = watch('end_date');
-  const emailReminderEnabled = watch('email_reminder_enabled');
-  const selectedVendorId = watch('vendor_company_id');
-
   const selectedCompany = companies.find(c => c.id === selectedVendorId);
+  const selectedAddress = companyAddresses.find(a => a.id === selectedAddressId);
 
   const [companySearchOpen, setCompanySearchOpen] = React.useState(false);
 
@@ -120,6 +142,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
         contract_title: data.contract_title,
         vendor_name: selectedCompany.company_name,
         vendor_company_id: data.vendor_company_id,
+        address_id: data.address_id || null,
         description: data.description || null,
         start_date: data.start_date.toISOString().split('T')[0],
         end_date: data.end_date.toISOString().split('T')[0],
@@ -241,6 +264,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
                             value={company.company_name}
                             onSelect={() => {
                               setValue('vendor_company_id', company.id);
+                              setValue('address_id', undefined); // Clear address when vendor changes
                               setCompanySearchOpen(false);
                             }}
                           >
@@ -262,6 +286,35 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
                 <p className="text-sm text-destructive">{errors.vendor_company_id.message}</p>
               )}
             </div>
+            
+            {/* Address Selection */}
+            {selectedVendorId && (
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="address_id">Service Address</Label>
+                <Select
+                  value={selectedAddressId || ''}
+                  onValueChange={(value) => setValue('address_id', value || undefined)}
+                  disabled={addressesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select service address (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No specific address</SelectItem>
+                    {companyAddresses.map((address) => (
+                      <SelectItem key={address.id} value={address.id}>
+                        <div className="text-left">
+                          <div className="font-medium">{address.address_line_1}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {[address.town_or_city, address.postcode].filter(Boolean).join(', ')}
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {/* Company Preview Card */}
@@ -289,10 +342,22 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
                     </div>
                   )}
                   <div>
-                    <Label className="text-sm font-medium">Address</Label>
-                    <p className="text-sm text-foreground mt-1">
-                      No address information available
-                    </p>
+                    <Label className="text-sm font-medium">Service Address</Label>
+                    {selectedAddress ? (
+                      <div className="text-sm text-foreground mt-1">
+                        <div>{selectedAddress.address_line_1}</div>
+                        {selectedAddress.address_line_2 && <div>{selectedAddress.address_line_2}</div>}
+                        <div>
+                          {[selectedAddress.town_or_city, selectedAddress.county_or_state, selectedAddress.postcode]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        No specific service address selected
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>

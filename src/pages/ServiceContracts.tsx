@@ -31,6 +31,15 @@ interface ServiceContract {
     email: string | null;
     phone: string | null;
   } | null;
+  address?: {
+    id: string;
+    address_line_1: string;
+    address_line_2: string | null;
+    address_line_3: string | null;
+    town_or_city: string | null;
+    county_or_state: string | null;
+    postcode: string | null;
+  } | null;
 }
 const ServiceContracts: React.FC = () => {
   const {
@@ -62,6 +71,15 @@ const ServiceContracts: React.FC = () => {
             company_name,
             email,
             phone
+          ),
+          address:address_id (
+            id,
+            address_line_1,
+            address_line_2,
+            address_line_3,
+            town_or_city,
+            county_or_state,
+            postcode
           )
         `).eq('tenant_id', userProfile.tenant_id).order('end_date', {
         ascending: true
