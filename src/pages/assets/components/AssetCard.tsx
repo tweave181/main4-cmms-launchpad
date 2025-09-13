@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Edit2, Trash2 } from 'lucide-react';
+import { Eye, Edit2, Trash2, Copy } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type Asset = Database['public']['Tables']['assets']['Row'];
@@ -13,6 +13,7 @@ interface AssetCardProps {
   onView: (asset: Asset) => void;
   onEdit: (asset: Asset) => void;
   onDelete: (assetId: string) => void;
+  onDuplicate: (asset: Asset) => void;
 }
 
 export const AssetCard: React.FC<AssetCardProps> = ({
@@ -20,6 +21,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   onView,
   onEdit,
   onDelete,
+  onDuplicate,
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -67,6 +69,14 @@ export const AssetCard: React.FC<AssetCardProps> = ({
               className="p-1 h-8 w-8"
             >
               <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onDuplicate(asset)}
+              className="p-1 h-8 w-8"
+            >
+              <Copy className="h-4 w-4" />
             </Button>
             <Button
               size="sm"

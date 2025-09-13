@@ -3,7 +3,7 @@ import React from 'react';
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Copy } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -13,12 +13,14 @@ interface AssetDetailHeaderProps {
   asset: Asset;
   onEdit: () => void;
   onDelete?: () => void;
+  onDuplicate?: () => void;
 }
 
 export const AssetDetailHeader: React.FC<AssetDetailHeaderProps> = ({
   asset,
   onEdit,
   onDelete,
+  onDuplicate,
 }) => {
   const { isAdmin } = useAuth();
   const getStatusColor = (status: string) => {
@@ -53,6 +55,12 @@ export const AssetDetailHeader: React.FC<AssetDetailHeaderProps> = ({
               <Edit2 className="w-4 h-4 mr-2" />
               Edit Asset
             </Button>
+            {onDuplicate && (
+              <Button onClick={onDuplicate} variant="outline" className="rounded-2xl">
+                <Copy className="w-4 h-4 mr-2" />
+                Duplicate Record
+              </Button>
+            )}
             {isAdmin && onDelete && (
               <Button onClick={onDelete} variant="destructive" className="rounded-2xl">
                 <Trash2 className="w-4 h-4 mr-2" />

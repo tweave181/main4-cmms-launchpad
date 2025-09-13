@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Tag, Plus } from 'lucide-react';
 import { AssetForm } from '@/components/assets/AssetForm';
 import { AssetDetail } from '@/components/assets/AssetDetail';
+import { DuplicateAssetDialog } from '@/components/assets/DuplicateAssetDialog';
+import { useAssetDuplication } from '@/hooks/useAssetDuplication';
 import { AssetSearchAndFilters } from './assets/components/AssetSearchAndFilters';
 import { AssetTable } from '@/components/assets/AssetTable';
 import { AssetEmptyState } from './assets/components/AssetEmptyState';
@@ -18,6 +20,8 @@ const Assets: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
+  const [duplicatingAsset, setDuplicatingAsset] = useState<Asset | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   
   const {
@@ -27,6 +31,8 @@ const Assets: React.FC = () => {
     refetch,
     deleteAsset
   } = useOfflineAssets();
+
+  const { duplicateAsset, isLoading: isDuplicating } = useAssetDuplication();
 
   // Handle URL parameter to auto-open specific asset
   useEffect(() => {
@@ -57,6 +63,22 @@ const Assets: React.FC = () => {
   const handleViewAsset = (asset: Asset) => {
     setSelectedAsset(asset);
     setIsDetailOpen(true);
+  };
+
+  const handleDuplicateAsset = (asset: Asset) => {
+    setDuplicatingAsset(asset);
+    setIsDuplicateDialogOpen(true);
+  };
+
+  const handleConfirmDuplicate = async (keepServiceContract: boolean) => {
+    if (!duplicatingAsset) return;
+
+    const newAsset = await duplicateAsset(duplicatingAsset, keepServiceContract);
+    if (newAsset) {
+      setIsDuplicateDialogOpen(false);
+      setDuplicatingAsset(null);
+      refetch();
+    }
   };
   const handleQRScanned = (code: string) => {
     // Search for asset by QR code
@@ -97,7 +119,7 @@ const Assets: React.FC = () => {
             <MobileActionButtons onQRScanned={handleQRScanned} showCamera={false} showVoice={false} showQR={true} />
           </div>
 
-          {filteredAssets.length === 0 ? <AssetEmptyState searchTerm={searchTerm} onCreateAsset={handleCreateAsset} /> : <AssetTable assets={filteredAssets} onViewAsset={handleViewAsset} onEditAsset={handleEditAsset} onDeleteAsset={deleteAsset} />}
+          {filteredAssets.length === 0 ? <AssetEmptyState searchTerm={searchTerm} onCreateAsset={handleCreateAsset} /> : <AssetTable assets={filteredAssets} onViewAsset={handleViewAsset} onEditAsset={handleEditAsset} onDeleteAsset={deleteAsset} onDuplicateAsset={handleDuplicateAsset} />}
         </CardContent>
       </Card>
 
@@ -120,7 +142,23 @@ const Assets: React.FC = () => {
       setIsDetailOpen(false);
       setSelectedAsset(null);
       deleteAsset(selectedAsset.id);
+    }} onDuplicate={() => {
+      setIsDetailOpen(false);
+      handleDuplicateAsset(selectedAsset);
     }} />}
+
+      {isDuplicateDialogOpen && duplicatingAsset && (
+        <DuplicateAssetDialog
+          asset={duplicatingAsset}
+          isOpen={isDuplicateDialogOpen}
+          onClose={() => {
+            setIsDuplicateDialogOpen(false);
+            setDuplicatingAsset(null);
+          }}
+          onConfirm={handleConfirmDuplicate}
+          isLoading={isDuplicating}
+        />
+      )}
     </div>;
 };
 export default Assets;

@@ -10,6 +10,7 @@ interface AssetListProps {
   onViewAsset: (asset: Asset) => void;
   onEditAsset: (asset: Asset) => void;
   onDeleteAsset: (assetId: string) => void;
+  onDuplicateAsset: (asset: Asset) => void;
 }
 
 export const AssetList: React.FC<AssetListProps> = ({
@@ -17,6 +18,7 @@ export const AssetList: React.FC<AssetListProps> = ({
   onViewAsset,
   onEditAsset,
   onDeleteAsset,
+  onDuplicateAsset,
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -27,6 +29,7 @@ export const AssetList: React.FC<AssetListProps> = ({
           onView={onViewAsset}
           onEdit={onEditAsset}
           onDelete={onDeleteAsset}
+          onDuplicate={onDuplicateAsset}
         />
       ))}
     </div>

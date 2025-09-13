@@ -29,6 +29,7 @@ interface AssetDetailProps {
   onClose: () => void;
   onEdit: () => void;
   onDelete?: () => void;
+  onDuplicate?: () => void;
   onUpdate?: () => void;
 }
 
@@ -38,6 +39,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   onClose,
   onEdit,
   onDelete,
+  onDuplicate,
   onUpdate,
 }) => {
   return (
@@ -48,7 +50,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
             Asset Details Record For: {asset.name || asset.id}
           </h2>
         </div>
-        <AssetDetailHeader asset={asset} onEdit={onEdit} onDelete={onDelete} />
+        <AssetDetailHeader asset={asset} onEdit={onEdit} onDelete={onDelete} onDuplicate={onDuplicate} />
 
         <div className="space-y-6">
           <AssetBasicInfo asset={asset} />

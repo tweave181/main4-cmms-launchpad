@@ -9,12 +9,14 @@ interface AssetTableProps {
   onViewAsset: (asset: Asset) => void;
   onEditAsset: (asset: Asset) => void;
   onDeleteAsset: (assetId: string) => void;
+  onDuplicateAsset: (asset: Asset) => void;
 }
 export const AssetTable: React.FC<AssetTableProps> = ({
   assets,
   onViewAsset,
   onEditAsset,
-  onDeleteAsset
+  onDeleteAsset,
+  onDuplicateAsset
 }) => {
   const {
     departments
