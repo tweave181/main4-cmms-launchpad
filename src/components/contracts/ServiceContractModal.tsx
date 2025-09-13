@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -127,6 +127,35 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
 
   const [companySearchOpen, setCompanySearchOpen] = React.useState(false);
 
+  // Populate form with contract data when editing
+  useEffect(() => {
+    if (contract && isOpen && companies.length > 0) {
+      reset({
+        contract_title: contract.contract_title || '',
+        vendor_company_id: contract.vendor_company_id || '',
+        address_id: contract.address_id || undefined,
+        description: contract.description || '',
+        start_date: contract.start_date ? new Date(contract.start_date) : undefined,
+        end_date: contract.end_date ? new Date(contract.end_date) : undefined,
+        contract_cost: contract.contract_cost || undefined,
+        status: contract.status || 'Active',
+        email_reminder_enabled: contract.email_reminder_enabled || false,
+        reminder_days_before: contract.reminder_days_before || 30,
+        visit_count: contract.visit_count || undefined,
+      });
+    } else if (!contract && isOpen) {
+      // Reset to default values when creating new contract
+      reset({
+        status: 'Active',
+        email_reminder_enabled: true,
+        contract_cost: undefined,
+        reminder_days_before: 30,
+        visit_count: undefined,
+        vendor_company_id: ''
+      });
+    }
+  }, [contract, isOpen, companies, reset]);
+
   const createContractMutation = useMutation({
     mutationFn: async (data: ContractFormData) => {
       if (!userProfile?.tenant_id) {
@@ -197,6 +226,63 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
     }
   });
 
+  const updateContractMutation = useMutation({
+    mutationFn: async (data: ContractFormData) => {
+      if (!userProfile?.tenant_id || !contract?.id) {
+        throw new Error('Missing required data for update');
+      }
+
+      const selectedCompany = companies.find(c => c.id === data.vendor_company_id);
+      if (!selectedCompany) {
+        throw new Error('Selected vendor not found');
+      }
+
+      const contractData = {
+        contract_title: data.contract_title,
+        vendor_name: selectedCompany.company_name,
+        vendor_company_id: data.vendor_company_id,
+        address_id: data.address_id || null,
+        description: data.description || null,
+        start_date: data.start_date.toISOString().split('T')[0],
+        end_date: data.end_date.toISOString().split('T')[0],
+        status: data.status,
+        email_reminder_enabled: data.email_reminder_enabled,
+        contract_cost: data.contract_cost || null,
+        reminder_days_before: data.email_reminder_enabled ? data.reminder_days_before || null : null,
+        visit_count: data.visit_count || null
+      };
+
+      const { data: result, error } = await supabase
+        .from('service_contracts')
+        .update(contractData)
+        .eq('id', contract.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['service-contract', contract?.id] });
+      if (assetId) {
+        queryClient.invalidateQueries({ queryKey: ['assets'] });
+      }
+      toast({
+        title: 'Success',
+        description: 'Service contract updated successfully',
+      });
+      onClose();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update contract',
+        variant: 'destructive',
+      });
+    }
+  });
+
   const onSubmit = (data: ContractFormData) => {
     if (data.end_date <= data.start_date) {
       toast({
@@ -207,7 +293,11 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
       return;
     }
 
-    createContractMutation.mutate(data);
+    if (contract) {
+      updateContractMutation.mutate(data);
+    } else {
+      createContractMutation.mutate(data);
+    }
   };
 
   return (
@@ -464,7 +554,10 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select onValueChange={(value) => setValue('status', value as any)}>
+              <Select 
+                value={watch('status')} 
+                onValueChange={(value) => setValue('status', value as any)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -514,9 +607,12 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
             </Button>
             <Button 
               type="submit" 
-              disabled={createContractMutation.isPending}
+              disabled={createContractMutation.isPending || updateContractMutation.isPending}
             >
-              {createContractMutation.isPending ? 'Creating...' : 'Create Contract'}
+              {contract 
+                ? (updateContractMutation.isPending ? 'Updating...' : 'Update Contract')
+                : (createContractMutation.isPending ? 'Creating...' : 'Create Contract')
+              }
             </Button>
           </div>
         </form>
