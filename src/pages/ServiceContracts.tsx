@@ -248,10 +248,7 @@ const ServiceContracts: React.FC = () => {
                       <TableCell>
                         <div>
                           <div className="font-medium">{contract.contract_title}</div>
-                          {contract.description && <div className="text-sm text-muted-foreground">
-                              {contract.description.substring(0, 50)}
-                              {contract.description.length > 50 && '...'}
-                            </div>}
+                          {contract.description}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -308,11 +305,7 @@ const ServiceContracts: React.FC = () => {
 
       <ServiceContractModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-      <ContractDetailModal 
-        isOpen={isDetailModalOpen} 
-        onClose={() => setIsDetailModalOpen(false)} 
-        contract={contractForDetail} 
-      />
+      <ContractDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} contract={contractForDetail} />
     </div>;
 };
 export default ServiceContracts;
