@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tag, Plus } from 'lucide-react';
@@ -17,6 +18,8 @@ const Assets: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const {
     assets,
     isLoading,
@@ -24,6 +27,24 @@ const Assets: React.FC = () => {
     refetch,
     deleteAsset
   } = useOfflineAssets();
+
+  // Handle URL parameter to auto-open specific asset
+  useEffect(() => {
+    const assetId = searchParams.get('asset');
+    if (assetId && assets && assets.length > 0 && !isLoading) {
+      const foundAsset = assets.find(asset => asset.id === assetId);
+      if (foundAsset) {
+        setSelectedAsset(foundAsset);
+        setIsDetailOpen(true);
+        // Clear the URL parameter
+        setSearchParams(prev => {
+          const newParams = new URLSearchParams(prev);
+          newParams.delete('asset');
+          return newParams;
+        });
+      }
+    }
+  }, [assets, isLoading, searchParams, setSearchParams]);
   const filteredAssets = assets.filter(asset => asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || asset.asset_tag?.toLowerCase().includes(searchTerm.toLowerCase()) || asset.category?.toLowerCase().includes(searchTerm.toLowerCase()));
   const handleCreateAsset = () => {
     setEditingAsset(null);
