@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { ArrowLeft, Building2, Calendar, DollarSign, Mail, FileText, Edit, Package, AlertCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
+import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
 
 interface ServiceContract {
   id: string;
@@ -67,6 +68,8 @@ const ServiceContractDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { userProfile } = useAuth();
   const { formatDate, formatCurrency } = useGlobalSettings();
+  const queryClient = useQueryClient();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const { data: contract, isLoading, error } = useQuery({
     queryKey: ['service-contract', id],
@@ -229,7 +232,7 @@ const ServiceContractDetail: React.FC = () => {
             <p className="text-muted-foreground">Contract Details</p>
           </div>
         </div>
-        <Button>
+        <Button onClick={() => setIsEditModalOpen(true)}>
           <Edit className="h-4 w-4 mr-2" />
           Edit Contract
         </Button>
@@ -501,6 +504,19 @@ const ServiceContractDetail: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Contract Modal */}
+      <ServiceContractModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          // Invalidate queries to refresh data after edit
+          queryClient.invalidateQueries({ queryKey: ['service-contract', id] });
+          queryClient.invalidateQueries({ queryKey: ['contract-lines', contract?.id] });
+          queryClient.invalidateQueries({ queryKey: ['contract-assets', contract?.id] });
+        }}
+        contract={contract}
+      />
     </div>
   );
 };
