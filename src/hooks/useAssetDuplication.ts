@@ -55,7 +55,7 @@ export const useAssetDuplication = () => {
           }
         });
         
-        newAssetTag = `${baseTag}${maxNumber + 1}`;
+        newAssetTag = `${baseTag}${(maxNumber + 1).toString().padStart(3, '0')}`;
       } else {
         // Generate a simple tag based on asset name
         const baseTag = originalAsset.name.substring(0, 3).toUpperCase();
