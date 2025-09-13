@@ -375,7 +375,7 @@ const ServiceContractDetail: React.FC = () => {
                   <h4 className="text-sm font-semibold mb-3">Contract Line Items</h4>
                   <Table>
                     <TableHeader>
-                      <TableRow>
+                      <TableRow className="bg-muted">
                         <TableHead>Line Description</TableHead>
                         <TableHead>Frequency</TableHead>
                         <TableHead>SLA</TableHead>
@@ -420,7 +420,7 @@ const ServiceContractDetail: React.FC = () => {
                 ) : (
                   <Table>
                     <TableHeader>
-                      <TableRow>
+                      <TableRow className="bg-muted">
                         <TableHead>Asset Tag</TableHead>
                         <TableHead>Asset Name</TableHead>
                         <TableHead>Location</TableHead>
