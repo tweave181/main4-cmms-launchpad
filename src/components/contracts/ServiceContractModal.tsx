@@ -382,15 +382,15 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="address_id">Service Address</Label>
                 <Select
-                  value={selectedAddressId || ''}
-                  onValueChange={(value) => setValue('address_id', value || undefined)}
+                  value={selectedAddressId || 'none'}
+                  onValueChange={(value) => setValue('address_id', value === 'none' ? undefined : value)}
                   disabled={addressesLoading}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select service address (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No specific address</SelectItem>
+                    <SelectItem value="none">No specific address</SelectItem>
                     {companyAddresses.map((address) => (
                       <SelectItem key={address.id} value={address.id}>
                         <div className="text-left">
