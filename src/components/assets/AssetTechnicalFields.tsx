@@ -9,8 +9,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { AssetStatusField } from './fields/AssetStatusField';
-import { AssetPriorityField } from './fields/AssetPriorityField';
 import { ManufacturerField } from './fields/ManufacturerField';
 import type { AssetFormData } from './types';
 
@@ -52,10 +50,6 @@ export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({
       />
 
       <ManufacturerField control={control} />
-
-      <AssetStatusField control={control} />
-
-      <AssetPriorityField control={control} />
     </div>
   );
 };
