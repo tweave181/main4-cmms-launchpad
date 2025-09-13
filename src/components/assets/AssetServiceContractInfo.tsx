@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { FileText, ExternalLink, Plus, Unlink } from 'lucide-react';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { ContractDetailModal } from '@/components/contracts/ContractDetailModal';
-import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
+import { ServiceContractSelectorModal } from '@/components/contracts/ServiceContractSelectorModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import type { Database } from '@/integrations/supabase/types';
@@ -176,7 +176,7 @@ export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> =
                 className="rounded-2xl"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Service Contract
+                Link Existing Contract
               </Button>
             </div>
           )}
@@ -191,10 +191,11 @@ export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> =
         />
       )}
 
-      <ServiceContractModal
+      <ServiceContractSelectorModal
         isOpen={isAddContractModalOpen}
         onClose={() => setIsAddContractModalOpen(false)}
         assetId={asset.id}
+        onContractLinked={onUpdate}
       />
     </>
   );
