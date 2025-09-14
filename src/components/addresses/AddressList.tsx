@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search } from 'lucide-react';
+import { Search, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { useAddresses } from '@/hooks/useAddresses';
 import type { Address } from '@/types/address';
 interface AddressListProps {
@@ -18,12 +18,40 @@ export const AddressList: React.FC<AddressListProps> = ({
     formatDate
   } = useGlobalSettings();
   const [search, setSearch] = useState('');
+  const [companySort, setCompanySort] = useState<'asc' | 'desc' | null>(null);
   const {
     data: addresses = [],
     isLoading
   } = useAddresses(search);
+  const sortedAddresses = useMemo(() => {
+    if (!companySort) return addresses;
+    
+    return [...addresses].sort((a, b) => {
+      const aCompany = a.company_details?.company_name || '';
+      const bCompany = b.company_details?.company_name || '';
+      const comparison = aCompany.localeCompare(bCompany);
+      return companySort === 'asc' ? comparison : -comparison;
+    });
+  }, [addresses, companySort]);
+
   const handleRowClick = (address: Address) => {
     navigate(`/addresses/${address.id}`);
+  };
+
+  const handleCompanySort = () => {
+    if (companySort === null) {
+      setCompanySort('asc');
+    } else if (companySort === 'asc') {
+      setCompanySort('desc');
+    } else {
+      setCompanySort(null);
+    }
+  };
+
+  const getSortIcon = () => {
+    if (companySort === null) return <ArrowUpDown className="h-4 w-4" />;
+    if (companySort === 'asc') return <ChevronUp className="h-4 w-4" />;
+    return <ChevronDown className="h-4 w-4" />;
   };
   if (isLoading) {
     return <div className="flex items-center justify-center h-64">
@@ -46,7 +74,15 @@ export const AddressList: React.FC<AddressListProps> = ({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-gray-300">Company</TableHead>
+                <TableHead 
+                  className={`cursor-pointer hover:bg-gray-400 transition-colors ${companySort ? 'bg-blue-100' : 'bg-gray-300'}`}
+                  onClick={handleCompanySort}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span>Company</span>
+                    {getSortIcon()}
+                  </div>
+                </TableHead>
                 <TableHead className="bg-gray-300">Contact</TableHead>
                 <TableHead className="bg-gray-300">Address</TableHead>
                 <TableHead className="bg-gray-300">Town/City</TableHead>
@@ -55,11 +91,11 @@ export const AddressList: React.FC<AddressListProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-                {addresses.length === 0 ? <TableRow>
+                {sortedAddresses.length === 0 ? <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     {search ? 'No addresses found matching your search.' : 'No addresses found. Create your first address to get started.'}
                   </TableCell>
-                </TableRow> : addresses.map(address => <TableRow 
+                </TableRow> : sortedAddresses.map(address => <TableRow
                   key={address.id} 
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleRowClick(address)}

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAddresses } from '@/hooks/useAddresses';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,6 +7,7 @@ import { AddressTypeBadges } from './AddressTypeBadges';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Address } from '@/types/address';
 import { AddressTypeFilters } from './AddressBookFilters';
+import { ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 interface AddressBookTableProps {
   filters: AddressTypeFilters;
   search?: string;
@@ -16,6 +17,7 @@ export const AddressBookTable = ({
   search
 }: AddressBookTableProps) => {
   const navigate = useNavigate();
+  const [companySort, setCompanySort] = useState<'asc' | 'desc' | null>(null);
   const {
     data: addresses,
     isLoading,
@@ -23,19 +25,48 @@ export const AddressBookTable = ({
   } = useAddresses(search);
   const filteredAddresses = useMemo(() => {
     if (!addresses) return [];
+    
+    // Apply filters
     const hasActiveFilters = Object.values(filters).some(value => value);
-    if (!hasActiveFilters) return addresses;
-    return addresses.filter((address: Address) => {
+    let filtered = hasActiveFilters ? addresses.filter((address: Address) => {
       if (filters.contact && address.is_contact) return true;
       if (filters.supplier && address.is_supplier) return true;
       if (filters.manufacturer && address.is_manufacturer) return true;
       if (filters.contractor && address.is_contractor) return true;
       if (filters.other && address.is_other) return true;
       return false;
-    });
-  }, [addresses, filters]);
+    }) : addresses;
+    
+    // Apply sorting
+    if (companySort) {
+      filtered = [...filtered].sort((a, b) => {
+        const aCompany = a.company_details?.company_name || '';
+        const bCompany = b.company_details?.company_name || '';
+        const comparison = aCompany.localeCompare(bCompany);
+        return companySort === 'asc' ? comparison : -comparison;
+      });
+    }
+    
+    return filtered;
+  }, [addresses, filters, companySort]);
   const handleRowClick = (address: Address) => {
     navigate(`/address-book/${address.id}`);
+  };
+
+  const handleCompanySort = () => {
+    if (companySort === null) {
+      setCompanySort('asc');
+    } else if (companySort === 'asc') {
+      setCompanySort('desc');
+    } else {
+      setCompanySort(null);
+    }
+  };
+
+  const getSortIcon = () => {
+    if (companySort === null) return <ArrowUpDown className="h-4 w-4" />;
+    if (companySort === 'asc') return <ChevronUp className="h-4 w-4" />;
+    return <ChevronDown className="h-4 w-4" />;
   };
   if (isLoading) {
     return <Card>
@@ -67,7 +98,15 @@ export const AddressBookTable = ({
           </p> : <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-gray-300">Company</TableHead>
+                <TableHead 
+                  className={`cursor-pointer hover:bg-gray-400 transition-colors ${companySort ? 'bg-blue-100' : 'bg-gray-300'}`}
+                  onClick={handleCompanySort}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span>Company</span>
+                    {getSortIcon()}
+                  </div>
+                </TableHead>
                 <TableHead className="bg-gray-300">Contact</TableHead>
                 <TableHead className="bg-gray-300">Address</TableHead>
                 <TableHead className="bg-gray-300">Town/City</TableHead>
