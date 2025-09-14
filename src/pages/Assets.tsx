@@ -12,8 +12,15 @@ import { AssetTable } from '@/components/assets/AssetTable';
 import { AssetEmptyState } from './assets/components/AssetEmptyState';
 import { MobileActionButtons } from '@/components/mobile/MobileActionButtons';
 import { useOfflineAssets } from '@/hooks/useOfflineAssets';
+import { useDepartments } from '@/hooks/useDepartments';
 import type { Database } from '@/integrations/supabase/types';
+
 type Asset = Database['public']['Tables']['assets']['Row'];
+type SortConfig = {
+  column: 'name' | 'asset_tag' | 'department';
+  direction: 'asc' | 'desc';
+} | null;
+
 const Assets: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -23,6 +30,7 @@ const Assets: React.FC = () => {
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
   const [duplicatingAsset, setDuplicatingAsset] = useState<Asset | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   
   const {
     assets,
@@ -33,6 +41,7 @@ const Assets: React.FC = () => {
   } = useOfflineAssets();
 
   const { duplicateAsset, isLoading: isDuplicating } = useAssetDuplication();
+  const { departments } = useDepartments();
 
   // Handle URL parameter to auto-open specific asset
   useEffect(() => {
@@ -51,7 +60,63 @@ const Assets: React.FC = () => {
       }
     }
   }, [assets, isLoading, searchParams, setSearchParams]);
-  const filteredAssets = assets.filter(asset => asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || asset.asset_tag?.toLowerCase().includes(searchTerm.toLowerCase()) || asset.category?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  // Helper function to get department name
+  const getDepartmentName = (departmentId: string | null) => {
+    if (!departmentId) return '-';
+    const department = departments.find(d => d.id === departmentId);
+    return department?.name || '-';
+  };
+
+  // Handle sorting
+  const handleSort = (column: 'name' | 'asset_tag' | 'department') => {
+    setSortConfig(prevConfig => {
+      if (!prevConfig || prevConfig.column !== column) {
+        return { column, direction: 'asc' };
+      }
+      if (prevConfig.direction === 'asc') {
+        return { column, direction: 'desc' };
+      }
+      return null; // Remove sorting
+    });
+  };
+
+  // Filter and sort assets
+  const filteredAssets = assets.filter(asset => 
+    asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    asset.asset_tag?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    asset.category?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const sortedAssets = sortConfig ? [...filteredAssets].sort((a, b) => {
+    let aValue: string;
+    let bValue: string;
+
+    switch (sortConfig.column) {
+      case 'name':
+        aValue = a.name.toLowerCase();
+        bValue = b.name.toLowerCase();
+        break;
+      case 'asset_tag':
+        aValue = (a.asset_tag || '').toLowerCase();
+        bValue = (b.asset_tag || '').toLowerCase();
+        break;
+      case 'department':
+        aValue = getDepartmentName(a.department_id).toLowerCase();
+        bValue = getDepartmentName(b.department_id).toLowerCase();
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) {
+      return sortConfig.direction === 'asc' ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return sortConfig.direction === 'asc' ? 1 : -1;
+    }
+    return 0;
+  }) : filteredAssets;
   const handleCreateAsset = () => {
     setEditingAsset(null);
     setIsFormOpen(true);
@@ -119,7 +184,7 @@ const Assets: React.FC = () => {
             <MobileActionButtons onQRScanned={handleQRScanned} showCamera={false} showVoice={false} showQR={true} />
           </div>
 
-          {filteredAssets.length === 0 ? <AssetEmptyState searchTerm={searchTerm} onCreateAsset={handleCreateAsset} /> : <AssetTable assets={filteredAssets} onViewAsset={handleViewAsset} onEditAsset={handleEditAsset} onDeleteAsset={deleteAsset} onDuplicateAsset={handleDuplicateAsset} />}
+          {sortedAssets.length === 0 ? <AssetEmptyState searchTerm={searchTerm} onCreateAsset={handleCreateAsset} /> : <AssetTable assets={sortedAssets} onViewAsset={handleViewAsset} onEditAsset={handleEditAsset} onDeleteAsset={deleteAsset} onDuplicateAsset={handleDuplicateAsset} sortConfig={sortConfig} onSort={handleSort} />}
         </CardContent>
       </Card>
 
