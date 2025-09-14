@@ -33,11 +33,40 @@ serve(async (req: Request) => {
       },
     });
 
-    // Get user from JWT token
-    const { data: { user }, error: userErr } = await supabase.auth.getUser();
-    if (userErr || !user) {
-      console.error('Failed to get user:', userErr);
-      return new Response(JSON.stringify({ error: 'Unauthorized - Invalid token' }), { 
+    // Get user from JWT token with retry logic
+    let user = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries && !user) {
+      try {
+        const { data: { user: authUser }, error: userErr } = await supabase.auth.getUser();
+        if (userErr) {
+          console.error(`Failed to get user (attempt ${retryCount + 1}):`, userErr);
+          if (retryCount === maxRetries - 1) {
+            return new Response(JSON.stringify({ error: 'Unauthorized - Invalid token' }), { 
+              status: 401, 
+              headers: { "Content-Type": "application/json", ...corsHeaders } 
+            });
+          }
+        } else if (authUser) {
+          user = authUser;
+          break;
+        }
+      } catch (err) {
+        console.error(`Auth error (attempt ${retryCount + 1}):`, err);
+      }
+      
+      retryCount++;
+      if (retryCount < maxRetries) {
+        // Wait before retry: 100ms, 200ms, 400ms
+        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, retryCount - 1)));
+      }
+    }
+    
+    if (!user) {
+      console.error('Failed to get user after all retries');
+      return new Response(JSON.stringify({ error: 'Unauthorized - Session not ready' }), { 
         status: 401, 
         headers: { "Content-Type": "application/json", ...corsHeaders } 
       });

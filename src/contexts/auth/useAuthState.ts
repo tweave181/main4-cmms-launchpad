@@ -266,38 +266,65 @@ export const useAuthState = () => {
       }, 0);
 
       if (event === 'SIGNED_IN') {
+        // Wait for session to be fully established before logging
         setTimeout(async () => {
-          try {
-            await supabase.functions.invoke('log-login', {
-              body: { userAgent: navigator.userAgent },
-            });
-          } catch (e: any) {
-            console.warn('Login audit logging failed via edge function, falling back to direct client call', e?.message || e);
+          let retries = 0;
+          const maxRetries = 3;
+          
+          const logLogin = async (): Promise<void> => {
             try {
-              const { data: auth } = await supabase.auth.getUser();
-              const userId = auth.user?.id;
-              if (userId) {
-                // Update last_login directly
-                await supabase
-                  .from('users')
-                  .update({ last_login: new Date().toISOString() })
-                  .eq('id', userId);
-                // Insert audit log row
-                await (supabase as any)
-                  .from('audit_logs')
-                  .insert({
-                    user_id: userId,
-                    action: 'login',
-                    entity_type: 'user',
-                    entity_id: userId,
-                    user_agent: navigator.userAgent,
-                  });
+              // Validate session is ready before calling edge function
+              const { data: { session: currentSession } } = await supabase.auth.getSession();
+              if (!currentSession?.user?.user_metadata?.tenant_id) {
+                throw new Error('Session not fully established');
               }
-            } catch (fallbackErr) {
-              console.warn('Login audit logging fallback failed', fallbackErr);
+              
+              await supabase.functions.invoke('log-login', {
+                body: { userAgent: navigator.userAgent },
+              });
+              console.log('Login logged successfully via edge function');
+            } catch (e: any) {
+              retries++;
+              console.warn(`Login logging attempt ${retries} failed:`, e?.message || e);
+              
+              if (retries < maxRetries) {
+                // Exponential backoff: 500ms, 1s, 2s
+                setTimeout(() => logLogin(), 500 * Math.pow(2, retries - 1));
+                return;
+              }
+              
+              // Final fallback after all retries
+              console.warn('All edge function retries failed, using direct database update');
+              try {
+                const { data: { user: currentUser } } = await supabase.auth.getUser();
+                if (currentUser) {
+                  // Update last_login directly
+                  await supabase
+                    .from('users')
+                    .update({ last_login: new Date().toISOString() })
+                    .eq('id', currentUser.id);
+                  console.log('Login time updated via direct database call');
+                  
+                  // Insert audit log row
+                  await supabase
+                    .from('audit_logs')
+                    .insert({
+                      user_id: currentUser.id,
+                      action: 'login',
+                      entity_type: 'user',
+                      entity_id: currentUser.id,
+                      user_agent: navigator.userAgent,
+                    });
+                  console.log('Audit log created via direct database call');
+                }
+              } catch (fallbackErr) {
+                console.error('Login logging fallback failed:', fallbackErr);
+              }
             }
-          }
-        }, 0);
+          };
+          
+          logLogin();
+        }, 1000); // Initial delay to ensure session is established
       }
 
       setLoading(false);
