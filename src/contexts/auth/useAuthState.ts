@@ -266,65 +266,50 @@ export const useAuthState = () => {
       }, 0);
 
       if (event === 'SIGNED_IN') {
-        // Wait for session to be fully established before logging
+        // Update last_login directly after successful login
         setTimeout(async () => {
-          let retries = 0;
-          const maxRetries = 3;
-          
-          const logLogin = async (): Promise<void> => {
-            try {
-              // Validate session is ready before calling edge function
-              const { data: { session: currentSession } } = await supabase.auth.getSession();
-              if (!currentSession?.user?.user_metadata?.tenant_id) {
-                throw new Error('Session not fully established');
-              }
-              
-              await supabase.functions.invoke('log-login', {
-                body: { userAgent: navigator.userAgent },
-              });
-              console.log('Login logged successfully via edge function');
-            } catch (e: any) {
-              retries++;
-              console.warn(`Login logging attempt ${retries} failed:`, e?.message || e);
-              
-              if (retries < maxRetries) {
-                // Exponential backoff: 500ms, 1s, 2s
-                setTimeout(() => logLogin(), 500 * Math.pow(2, retries - 1));
-                return;
-              }
-              
-              // Final fallback after all retries
-              console.warn('All edge function retries failed, using direct database update');
-              try {
-                const { data: { user: currentUser } } = await supabase.auth.getUser();
-                if (currentUser) {
-                  // Update last_login directly
-                  await supabase
-                    .from('users')
-                    .update({ last_login: new Date().toISOString() })
-                    .eq('id', currentUser.id);
-                  console.log('Login time updated via direct database call');
-                  
-                  // Insert audit log row
-                  await supabase
-                    .from('audit_logs')
-                    .insert({
-                      user_id: currentUser.id,
-                      action: 'login',
-                      entity_type: 'user',
-                      entity_id: currentUser.id,
-                      user_agent: navigator.userAgent,
-                    });
-                  console.log('Audit log created via direct database call');
-                }
-              } catch (fallbackErr) {
-                console.error('Login logging fallback failed:', fallbackErr);
-              }
+          try {
+            // Validate session is established
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            if (!currentUser) {
+              console.warn('No user found for last_login update');
+              return;
             }
-          };
-          
-          logLogin();
-        }, 1000); // Initial delay to ensure session is established
+
+            console.log('Updating last_login for user:', currentUser.id);
+            
+            // Update last_login directly
+            const { error: updateError } = await supabase
+              .from('users')
+              .update({ last_login: new Date().toISOString() })
+              .eq('id', currentUser.id);
+            
+            if (updateError) {
+              console.error('Failed to update last_login:', updateError);
+            } else {
+              console.log('Successfully updated last_login');
+            }
+            
+            // Insert audit log
+            const { error: auditError } = await supabase
+              .from('audit_logs')
+              .insert({
+                user_id: currentUser.id,
+                action: 'login',
+                entity_type: 'user',
+                entity_id: currentUser.id,
+                user_agent: navigator.userAgent,
+              });
+            
+            if (auditError) {
+              console.error('Failed to create audit log:', auditError);
+            } else {
+              console.log('Successfully created login audit log');
+            }
+          } catch (error) {
+            console.error('Login logging failed:', error);
+          }
+        }, 2000); // 2 second delay to ensure session is fully established
       }
 
       setLoading(false);
