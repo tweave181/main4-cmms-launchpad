@@ -11,7 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
-
 interface ServiceContract {
   id: string;
   contract_title: string;
@@ -41,7 +40,6 @@ interface ServiceContract {
     postcode: string | null;
   } | null;
 }
-
 interface ContractLine {
   id: string;
   line_description: string;
@@ -49,7 +47,6 @@ interface ContractLine {
   sla: string | null;
   cost_per_line: number | null;
 }
-
 interface LinkedAsset {
   id: string;
   asset_tag: string | null;
@@ -63,24 +60,35 @@ interface LinkedAsset {
     name: string;
   } | null;
 }
-
 const ServiceContractDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const { userProfile } = useAuth();
-  const { formatDate, formatCurrency } = useGlobalSettings();
+  const {
+    id
+  } = useParams<{
+    id: string;
+  }>();
+  const {
+    userProfile
+  } = useAuth();
+  const {
+    formatDate,
+    formatCurrency
+  } = useGlobalSettings();
   const queryClient = useQueryClient();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  const { data: contract, isLoading, error } = useQuery({
+  const {
+    data: contract,
+    isLoading,
+    error
+  } = useQuery({
     queryKey: ['service-contract', id],
     queryFn: async () => {
       if (!id || !userProfile?.tenant_id) {
         throw new Error('Missing contract ID or tenant');
       }
-
-      const { data, error } = await supabase
-        .from('service_contracts')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('service_contracts').select(`
           *,
           company_details:vendor_company_id (
             id,
@@ -97,56 +105,56 @@ const ServiceContractDetail: React.FC = () => {
             county_or_state,
             postcode
           )
-        `)
-        .eq('id', id)
-        .eq('tenant_id', userProfile.tenant_id)
-        .single();
-
+        `).eq('id', id).eq('tenant_id', userProfile.tenant_id).single();
       if (error) throw error;
       return data as ServiceContract;
     },
-    enabled: !!id && !!userProfile?.tenant_id,
+    enabled: !!id && !!userProfile?.tenant_id
   });
-
-  const { data: contractLines = [], isLoading: isLoadingLines } = useQuery({
+  const {
+    data: contractLines = [],
+    isLoading: isLoadingLines
+  } = useQuery({
     queryKey: ['contract-lines', contract?.id],
     queryFn: async () => {
       if (!contract?.id) return [];
-      const { data, error } = await supabase
-        .from('contract_lines')
-        .select('*')
-        .eq('contract_id', contract.id)
-        .order('created_at', { ascending: true });
+      const {
+        data,
+        error
+      } = await supabase.from('contract_lines').select('*').eq('contract_id', contract.id).order('created_at', {
+        ascending: true
+      });
       if (error) throw error;
       return data as ContractLine[];
     },
-    enabled: !!contract?.id,
+    enabled: !!contract?.id
   });
-
-  const { data: linkedAssets = [], isLoading: isLoadingAssets } = useQuery({
+  const {
+    data: linkedAssets = [],
+    isLoading: isLoadingAssets
+  } = useQuery({
     queryKey: ['contract-assets', contract?.id],
     queryFn: async () => {
       if (!contract?.id) return [];
-      const { data, error } = await supabase
-        .from('assets')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('assets').select(`
           id,
           asset_tag,
           name,
           category,
           location:locations(name, location_code),
           department:departments(name)
-        `)
-        .eq('service_contract_id', contract.id)
-        .order('asset_tag', { ascending: true });
+        `).eq('service_contract_id', contract.id).order('asset_tag', {
+        ascending: true
+      });
       if (error) throw error;
       return data as LinkedAsset[];
     },
-    enabled: !!contract?.id,
+    enabled: !!contract?.id
   });
-
   const isLoadingCoverage = isLoadingLines || isLoadingAssets;
-
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'Active':
@@ -161,27 +169,21 @@ const ServiceContractDetail: React.FC = () => {
         return 'secondary';
     }
   };
-
   const getDaysUntilExpiry = (endDate: string) => {
     const today = new Date();
     const expiryDate = new Date(endDate);
     const diffTime = expiryDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
-
   if (isLoading) {
-    return (
-      <div className="p-6">
+    return <div className="p-6">
         <div className="flex items-center justify-center h-32">
           <div className="text-muted-foreground">Loading contract details...</div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (error || !contract) {
-    return (
-      <div className="p-6">
+    return <div className="p-6">
         <Card>
           <CardContent className="p-6">
             <div className="text-center text-destructive">
@@ -189,14 +191,10 @@ const ServiceContractDetail: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
   const daysUntilExpiry = getDaysUntilExpiry(contract.end_date);
-
-  return (
-    <div className="p-6 space-y-6">
+  return <div className="p-6 space-y-6">
       {/* Breadcrumbs */}
       <Breadcrumb>
         <BreadcrumbList>
@@ -284,12 +282,10 @@ const ServiceContractDetail: React.FC = () => {
                   </p>
                 </div>
               </div>
-              {contract.description && (
-                <div>
+              {contract.description && <div>
                   <label className="text-sm font-medium text-muted-foreground">Description</label>
                   <p className="mt-1 text-sm">{contract.description}</p>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
 
@@ -309,33 +305,23 @@ const ServiceContractDetail: React.FC = () => {
                     {contract.company_details?.company_name || contract.vendor_name}
                   </p>
                 </div>
-                {contract.company_details?.email && (
-                  <div>
+                {contract.company_details?.email && <div>
                     <label className="text-sm font-medium text-muted-foreground">Email</label>
                     <p className="font-medium">{contract.company_details.email}</p>
-                  </div>
-                )}
-                {contract.company_details?.phone && (
-                  <div>
+                  </div>}
+                {contract.company_details?.phone && <div>
                     <label className="text-sm font-medium text-muted-foreground">Phone</label>
                     <p className="font-medium">{contract.company_details.phone}</p>
-                  </div>
-                )}
+                  </div>}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Service Address</label>
-                  {contract.address ? (
-                    <div className="font-medium">
+                  {contract.address ? <div className="font-medium">
                       <div>{contract.address.address_line_1}</div>
                       {contract.address.address_line_2 && <div>{contract.address.address_line_2}</div>}
                       <div>
-                        {[contract.address.town_or_city, contract.address.county_or_state, contract.address.postcode]
-                          .filter(Boolean)
-                          .join(', ')}
+                        {[contract.address.town_or_city, contract.address.county_or_state, contract.address.postcode].filter(Boolean).join(', ')}
                       </div>
-                    </div>
-                  ) : (
-                    <p className="font-medium text-muted-foreground">No specific service address</p>
-                  )}
+                    </div> : <p className="font-medium text-muted-foreground">No specific service address</p>}
                 </div>
               </div>
             </CardContent>
@@ -359,12 +345,10 @@ const ServiceContractDetail: React.FC = () => {
                   {contract.email_reminder_enabled ? 'Enabled' : 'Disabled'}
                 </p>
               </div>
-              {contract.reminder_days_before && (
-                <div>
+              {contract.reminder_days_before && <div>
                   <label className="text-sm font-medium text-muted-foreground">Reminder Period</label>
                   <p className="font-medium">{contract.reminder_days_before} days before expiry</p>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
 
@@ -377,12 +361,10 @@ const ServiceContractDetail: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {contract.visit_count && (
-                <div>
+              {contract.visit_count && <div>
                   <label className="text-sm font-medium text-muted-foreground">Planned Visits</label>
                   <p className="font-medium">{contract.visit_count}</p>
-                </div>
-              )}
+                </div>}
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Contract Duration</label>
                 <p className="font-medium">
@@ -400,15 +382,11 @@ const ServiceContractDetail: React.FC = () => {
           <CardTitle>Items covered by this Contract</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoadingCoverage ? (
-            <div className="flex items-center justify-center py-8">
+          {isLoadingCoverage ? <div className="flex items-center justify-center py-8">
               <div className="text-muted-foreground">Loading...</div>
-            </div>
-          ) : (
-            <div className="space-y-6">
+            </div> : <div className="space-y-6">
               {/* Contract Lines Section */}
-              {contractLines.length > 0 && (
-                <div>
+              {contractLines.length > 0 && <div>
                   <h4 className="text-sm font-semibold mb-3">Contract Line Items</h4>
                   <Table>
                     <TableHeader>
@@ -420,8 +398,7 @@ const ServiceContractDetail: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {contractLines.map((line) => (
-                        <TableRow key={line.id}>
+                      {contractLines.map(line => <TableRow key={line.id}>
                           <TableCell className="font-medium">
                             {line.line_description}
                           </TableCell>
@@ -434,12 +411,10 @@ const ServiceContractDetail: React.FC = () => {
                           <TableCell className="text-right">
                             {line.cost_per_line ? formatCurrency(line.cost_per_line) : 'N/A'}
                           </TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                     </TableBody>
                   </Table>
-                </div>
-              )}
+                </div>}
 
               {/* Linked Assets Section */}
               <div>
@@ -447,33 +422,25 @@ const ServiceContractDetail: React.FC = () => {
                   <Package className="h-4 w-4" />
                   Assets Covered by This Contract
                 </h4>
-                {linkedAssets.length === 0 ? (
-                  <div className="text-center py-6 border border-dashed rounded-lg">
+                {linkedAssets.length === 0 ? <div className="text-center py-6 border border-dashed rounded-lg">
                     <Package className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                     <p className="text-muted-foreground text-sm">
                       No assets are currently linked to this contract.
                     </p>
-                  </div>
-                ) : (
-                  <Table>
+                  </div> : <Table>
                     <TableHeader>
                       <TableRow className="bg-muted">
-                        <TableHead>Asset Tag</TableHead>
-                        <TableHead>Asset Name</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Department</TableHead>
+                        <TableHead className="bg-gray-300">Asset Tag</TableHead>
+                        <TableHead className="bg-gray-300">Asset Name</TableHead>
+                        <TableHead className="bg-gray-300">Location</TableHead>
+                        <TableHead className="bg-gray-300">Category</TableHead>
+                        <TableHead className="bg-gray-300">Department</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {linkedAssets.map((asset) => (
-                        <TableRow
-                          key={asset.id}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => {
-                            window.open(`/assets?asset=${asset.id}`, '_blank');
-                          }}
-                        >
+                      {linkedAssets.map(asset => <TableRow key={asset.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
+                  window.open(`/assets?asset=${asset.id}`, '_blank');
+                }}>
                           <TableCell className="font-medium">
                             {asset.asset_tag || 'N/A'}
                           </TableCell>
@@ -483,42 +450,37 @@ const ServiceContractDetail: React.FC = () => {
                           </TableCell>
                           <TableCell>{asset.category || 'N/A'}</TableCell>
                           <TableCell>{asset.department?.name || 'N/A'}</TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                     </TableBody>
-                  </Table>
-                )}
+                  </Table>}
               </div>
 
               {/* Show message if no line items and no assets */}
-              {contractLines.length === 0 && linkedAssets.length === 0 && (
-                <div className="text-center py-8">
+              {contractLines.length === 0 && linkedAssets.length === 0 && <div className="text-center py-8">
                   <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No coverage items found</h3>
                   <p className="text-muted-foreground">
                     No line items or assets are currently associated with this contract.
                   </p>
-                </div>
-              )}
-            </div>
-          )}
+                </div>}
+            </div>}
         </CardContent>
       </Card>
 
       {/* Edit Contract Modal */}
-      <ServiceContractModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          // Invalidate queries to refresh data after edit
-          queryClient.invalidateQueries({ queryKey: ['service-contract', id] });
-          queryClient.invalidateQueries({ queryKey: ['contract-lines', contract?.id] });
-          queryClient.invalidateQueries({ queryKey: ['contract-assets', contract?.id] });
-        }}
-        contract={contract}
-      />
-    </div>
-  );
+      <ServiceContractModal isOpen={isEditModalOpen} onClose={() => {
+      setIsEditModalOpen(false);
+      // Invalidate queries to refresh data after edit
+      queryClient.invalidateQueries({
+        queryKey: ['service-contract', id]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['contract-lines', contract?.id]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['contract-assets', contract?.id]
+      });
+    }} contract={contract} />
+    </div>;
 };
-
 export default ServiceContractDetail;
