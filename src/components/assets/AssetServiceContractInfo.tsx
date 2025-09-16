@@ -165,14 +165,14 @@ export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> =
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Service Contract</h3>
-              <p className="text-muted-foreground mb-4">
+            <div className="py-4 text-center">
+              <h3 className="text-sm font-medium mb-2">No Service Contract</h3>
+              <p className="text-muted-foreground text-xs mb-3">
                 This asset is not currently linked to any service contract.
               </p>
               <Button
                 onClick={() => setIsAddContractModalOpen(true)}
+                size="sm"
                 className="rounded-2xl"
               >
                 <Plus className="w-4 h-4 mr-2" />
