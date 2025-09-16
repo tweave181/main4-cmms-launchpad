@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ContactsList } from '@/components/address-contacts/ContactsList';
+import { AddressContractsList } from './AddressContractsList';
 import { FileText } from 'lucide-react';
 import type { Address } from '@/types/address';
 
@@ -21,13 +22,7 @@ export const AddressDetailTabs: React.FC<AddressDetailTabsProps> = ({ address, o
       case 'contacts':
         return <ContactsList addressId={address.id} />;
       case 'contracts':
-        return (
-          <div className="text-center py-8 text-muted-foreground">
-            <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No service contracts linked yet.</p>
-            <p className="text-sm mt-2">Service contract functionality will be available soon.</p>
-          </div>
-        );
+        return <AddressContractsList addressId={address.id} />;
       default:
         return null;
     }
