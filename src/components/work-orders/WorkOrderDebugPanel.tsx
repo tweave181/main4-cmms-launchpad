@@ -34,11 +34,10 @@ export const WorkOrderDebugPanel: React.FC = () => {
         throw new Error('No tenant found');
       }
 
-      // First, let's query to see what's currently in the database
+      // Query ALL work orders globally (not tenant-specific) to test global numbering
       const { data: existingWorkOrders, error: queryError } = await supabase
         .from('work_orders')
-        .select('work_order_number, status')
-        .eq('tenant_id', userProfile.tenant_id)
+        .select('work_order_number, status, tenant_id')
         .order('work_order_number', { ascending: false });
 
       if (queryError) {
@@ -46,20 +45,21 @@ export const WorkOrderDebugPanel: React.FC = () => {
         throw queryError;
       }
 
-      console.log('🧪 DEBUG: Existing work orders in DB:', existingWorkOrders?.length || 0);
+      console.log('🧪 DEBUG: Total work orders in DB (globally):', existingWorkOrders?.length || 0);
       
-      // Find the latest work order number
+      // Find the latest work order number globally, handling both "WO-0001" and "WO0001" formats
       let latestWorkOrderNumber: string | null = null;
       if (existingWorkOrders && existingWorkOrders.length > 0) {
         const woNumbers = existingWorkOrders
           .map(wo => wo.work_order_number)
-          .filter(num => num && /^WO[0-9]+$/.test(num));
+          .filter(num => num && /^WO-?[0-9]+$/.test(num)); // Handle both formats
         
         if (woNumbers.length > 0) {
-          // Sort by numeric value to get the true latest
+          // Sort by numeric value to get the true latest, handling both formats
           latestWorkOrderNumber = woNumbers.sort((a, b) => {
-            const numA = parseInt(a.substring(2));
-            const numB = parseInt(b.substring(2));
+            // Extract number from both "WO-0001" and "WO0001" formats
+            const numA = a.startsWith('WO-') ? parseInt(a.substring(3)) : parseInt(a.substring(2));
+            const numB = b.startsWith('WO-') ? parseInt(b.substring(3)) : parseInt(b.substring(2));
             return numB - numA;
           })[0];
         }
@@ -68,7 +68,10 @@ export const WorkOrderDebugPanel: React.FC = () => {
       console.log('🧪 DEBUG: Latest work order number found:', latestWorkOrderNumber);
 
       if (latestWorkOrderNumber) {
-        const suffix = latestWorkOrderNumber.substring(2);
+        // Handle parsing suffix from both formats
+        const suffix = latestWorkOrderNumber.startsWith('WO-') 
+          ? latestWorkOrderNumber.substring(3) 
+          : latestWorkOrderNumber.substring(2);
         console.log('🧪 DEBUG: Parsed numeric suffix:', suffix);
         
         try {
