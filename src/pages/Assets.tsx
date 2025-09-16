@@ -147,13 +147,17 @@ const Assets: React.FC = () => {
   };
 
   const handleAssetUpdate = async () => {
-    await refetch();
-    // Also refresh the selected asset with updated service contract data
-    if (selectedAsset) {
-      const updatedAsset = assets.find(asset => asset.id === selectedAsset.id);
-      if (updatedAsset) {
-        setSelectedAsset(updatedAsset);
+    try {
+      const result = await refetch();
+      // Get the fresh data from the refetch result
+      if (result.data && selectedAsset) {
+        const updatedAsset = result.data.find(asset => asset.id === selectedAsset.id);
+        if (updatedAsset) {
+          setSelectedAsset(updatedAsset);
+        }
       }
+    } catch (error) {
+      console.error('Failed to refresh asset data:', error);
     }
   };
   const handleQRScanned = (code: string) => {
