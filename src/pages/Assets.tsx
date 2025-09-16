@@ -145,6 +145,17 @@ const Assets: React.FC = () => {
       refetch();
     }
   };
+
+  const handleAssetUpdate = async () => {
+    await refetch();
+    // Also refresh the selected asset with updated service contract data
+    if (selectedAsset) {
+      const updatedAsset = assets.find(asset => asset.id === selectedAsset.id);
+      if (updatedAsset) {
+        setSelectedAsset(updatedAsset);
+      }
+    }
+  };
   const handleQRScanned = (code: string) => {
     // Search for asset by QR code
     const foundAsset = assets.find(asset => asset.asset_tag === code || asset.name.toLowerCase().includes(code.toLowerCase()));
@@ -210,7 +221,7 @@ const Assets: React.FC = () => {
     }} onDuplicate={() => {
       setIsDetailOpen(false);
       handleDuplicateAsset(selectedAsset);
-    }} />}
+    }} onUpdate={handleAssetUpdate} />}
 
       {isDuplicateDialogOpen && duplicatingAsset && (
         <DuplicateAssetDialog
