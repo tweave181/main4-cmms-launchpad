@@ -484,7 +484,9 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
                     selected={startDate}
                     onSelect={(date) => setValue('start_date', date!)}
                     initialFocus
-                    className="p-3 pointer-events-auto"
+                    captionLayout="dropdown"
+                    fromYear={new Date().getFullYear() - 5}
+                    toYear={new Date().getFullYear() + 10}
                   />
                 </PopoverContent>
               </Popover>
@@ -511,7 +513,9 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
                     selected={endDate}
                     onSelect={(date) => setValue('end_date', date!)}
                     initialFocus
-                    className="p-3 pointer-events-auto"
+                    captionLayout="dropdown"
+                    fromYear={new Date().getFullYear() - 5}
+                    toYear={new Date().getFullYear() + 10}
                   />
                 </PopoverContent>
               </Popover>
