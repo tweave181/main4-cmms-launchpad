@@ -28,9 +28,11 @@ export const usePartWithSupplier = (partId: string) => {
           *,
           addresses!fk_inventory_parts_supplier (
             id,
-            company_name,
             contact_name,
-            address_line_1
+            address_line_1,
+            company_details!addresses_company_id_fkey (
+              company_name
+            )
           )
         `)
         .eq('id', partId)
@@ -45,7 +47,7 @@ export const usePartWithSupplier = (partId: string) => {
         ...data,
         supplier: data.addresses ? {
           id: (data.addresses as any).id,
-          company_name: (data.addresses as any).company_name,
+          company_name: (data.addresses as any).company_details?.company_name || null,
           contact_name: (data.addresses as any).contact_name,
           address_line_1: (data.addresses as any).address_line_1,
         } : undefined
