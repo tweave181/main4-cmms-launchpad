@@ -13,6 +13,7 @@ export interface CompanyDetails {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  types?: string[];
 }
 
 import type { AddressFormData } from './address';

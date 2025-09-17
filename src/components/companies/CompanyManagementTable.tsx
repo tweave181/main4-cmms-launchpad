@@ -9,6 +9,7 @@ import { Search, Plus, FileText } from 'lucide-react';
 import { useCompanies } from '@/hooks/useCompanies';
 
 import { CompanyDetailModal } from './CompanyDetailModal';
+import { CompanyTypeBadges } from './CompanyTypeBadges';
 import type { CompanyDetails } from '@/types/company';
 interface CompanyManagementTableProps {
   onCreateCompany: () => void;
@@ -34,9 +35,19 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
     
     if (typeFilter === 'all') return matchesSearch;
     
-    // Since companies no longer have address relationships, 
-    // we can't filter by address types
-    return false;
+    // Filter by company types
+    const typeMapping: Record<string, string> = {
+      'manufacturer': 'Manufacturer',
+      'supplier': 'Supplier',
+      'contractor': 'Contractor',
+      'contact': 'Contact',
+      'other': 'Other'
+    };
+    
+    const targetType = typeMapping[typeFilter];
+    const hasType = company.types?.includes(targetType) || false;
+    
+    return matchesSearch && hasType;
   });
 
   // Paginate results
@@ -123,9 +134,7 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
                     {company.company_name}
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-muted-foreground">
-                      No address types available
-                    </div>
+                    <CompanyTypeBadges types={company.types || []} />
                   </TableCell>
                   <TableCell>{company.contact_name || '-'}</TableCell>
                   <TableCell>{company.email || '-'}</TableCell>

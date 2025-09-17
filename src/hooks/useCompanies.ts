@@ -18,27 +18,17 @@ export const useCompanies = (type?: string) => {
       let query = supabase
         .from('company_details')
         .select(`
-          *
+          *,
+          addresses (
+            is_manufacturer,
+            is_supplier,
+            is_contractor,
+            is_contact,
+            is_other
+          )
         `)
         .eq('tenant_id', userProfile.tenant_id)
         .order('company_name');
-
-      // If filtering by type, join with addresses and filter by address types
-      if (type) {
-        // Map company types to address boolean fields
-        const typeMapping: Record<string, string> = {
-          'manufacturer': 'is_manufacturer',
-          'contractor': 'is_contractor', 
-          'vendor': 'is_supplier',
-          'supplier': 'is_supplier',
-          'service_provider': 'is_contractor'
-        };
-        
-        const addressField = typeMapping[type];
-        if (addressField) {
-          query = query.eq(`company_address.${addressField}`, true);
-        }
-      }
 
       const { data, error } = await query;
 
@@ -47,7 +37,48 @@ export const useCompanies = (type?: string) => {
         throw error;
       }
 
-      return data as CompanyDetails[];
+      // Transform data to include aggregated types
+      const companiesWithTypes = data?.map(company => {
+        const types: string[] = [];
+        
+        if (company.addresses && Array.isArray(company.addresses)) {
+          const hasType = (typeField: string) => 
+            company.addresses.some((addr: any) => addr[typeField] === true);
+          
+          if (hasType('is_manufacturer')) types.push('Manufacturer');
+          if (hasType('is_supplier')) types.push('Supplier');
+          if (hasType('is_contractor')) types.push('Contractor');
+          if (hasType('is_contact')) types.push('Contact');
+          if (hasType('is_other')) types.push('Other');
+        }
+
+        return {
+          ...company,
+          types,
+          addresses: undefined // Remove addresses from the return data
+        };
+      }) || [];
+
+      // Filter by type if specified
+      if (type) {
+        const typeMapping: Record<string, string> = {
+          'manufacturer': 'Manufacturer',
+          'contractor': 'Contractor', 
+          'vendor': 'Supplier',
+          'supplier': 'Supplier',
+          'contact': 'Contact',
+          'other': 'Other'
+        };
+        
+        const targetType = typeMapping[type];
+        if (targetType) {
+          return companiesWithTypes.filter(company => 
+            company.types.includes(targetType)
+          ) as CompanyDetails[];
+        }
+      }
+
+      return companiesWithTypes as CompanyDetails[];
     },
     enabled: !!userProfile?.tenant_id,
   });
