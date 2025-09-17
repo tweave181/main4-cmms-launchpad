@@ -26,7 +26,9 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
   const itemsPerPage = 10;
   const {
     data: companies = [],
-    isLoading
+    isLoading,
+    error,
+    isError
   } = useCompanies();
 
   // Filter companies based on search and type filter
@@ -67,6 +69,15 @@ export const CompanyManagementTable: React.FC<CompanyManagementTableProps> = ({
   if (isLoading) {
     return <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>;
+  }
+
+  if (isError) {
+    return <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 mb-2">Error loading companies</p>
+          <p className="text-sm text-gray-500">{error?.message || 'Unknown error'}</p>
+        </div>
       </div>;
   }
   return <div className="space-y-4">

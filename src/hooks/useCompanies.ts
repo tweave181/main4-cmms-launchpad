@@ -19,7 +19,7 @@ export const useCompanies = (type?: string) => {
         .from('company_details')
         .select(`
           *,
-          addresses (
+          addresses!addresses_company_id_fkey (
             is_manufacturer,
             is_supplier,
             is_contractor,
