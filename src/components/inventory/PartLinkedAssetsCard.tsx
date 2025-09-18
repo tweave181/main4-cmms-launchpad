@@ -5,23 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Wrench, ExternalLink } from 'lucide-react';
 import { usePartLinkedAssets } from '@/hooks/queries/usePartLinkedAssets';
-
 interface PartLinkedAssetsCardProps {
   partId: string;
 }
-
 export const PartLinkedAssetsCard: React.FC<PartLinkedAssetsCardProps> = ({
-  partId,
+  partId
 }) => {
-  const { data: linkedAssets, isLoading } = usePartLinkedAssets(partId);
-
+  const {
+    data: linkedAssets,
+    isLoading
+  } = usePartLinkedAssets(partId);
   const openAssetDetail = (assetId: string) => {
     window.open(`/assets?asset=${assetId}`, '_blank');
   };
-
   if (isLoading) {
-    return (
-      <Card className="rounded-2xl shadow-sm border border-gray-200">
+    return <Card className="rounded-2xl shadow-sm border border-gray-200">
         <CardHeader>
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Wrench className="h-5 w-5 text-muted-foreground" />
@@ -31,12 +29,9 @@ export const PartLinkedAssetsCard: React.FC<PartLinkedAssetsCardProps> = ({
         <CardContent>
           <div className="text-sm text-muted-foreground">Loading linked assets...</div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card className="rounded-2xl shadow-sm border border-gray-200">
+  return <Card className="rounded-2xl shadow-sm border border-gray-200">
       <CardHeader>
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <Wrench className="h-5 w-5 text-muted-foreground" />
@@ -44,31 +39,23 @@ export const PartLinkedAssetsCard: React.FC<PartLinkedAssetsCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!linkedAssets || linkedAssets.length === 0 ? (
-          <div className="text-sm text-muted-foreground text-center py-4">
+        {!linkedAssets || linkedAssets.length === 0 ? <div className="text-sm text-muted-foreground text-center py-4">
             This part isn't linked to any assets yet.
-          </div>
-        ) : (
-          <Table>
+          </div> : <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Asset</TableHead>
-                <TableHead>Tag</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Qty Required</TableHead>
+                <TableHead className="bg-gray-300">Asset</TableHead>
+                <TableHead className="bg-gray-300">Tag</TableHead>
+                <TableHead className="bg-gray-300">Location</TableHead>
+                <TableHead className="bg-gray-300">Qty Required</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {linkedAssets.map((asset) => (
-                <TableRow key={asset.id}>
+              {linkedAssets.map(asset => <TableRow key={asset.id}>
                   <TableCell className="font-medium">{asset.name}</TableCell>
                   <TableCell>
-                    {asset.asset_tag ? (
-                      <Badge variant="outline">{asset.asset_tag}</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
+                    {asset.asset_tag ? <Badge variant="outline">{asset.asset_tag}</Badge> : <span className="text-muted-foreground">-</span>}
                   </TableCell>
                   <TableCell>
                     {asset.location || <span className="text-muted-foreground">-</span>}
@@ -77,21 +64,13 @@ export const PartLinkedAssetsCard: React.FC<PartLinkedAssetsCardProps> = ({
                     <Badge variant="secondary">{asset.quantity_required}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openAssetDetail(asset.id)}
-                      className="p-1"
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => openAssetDetail(asset.id)} className="p-1">
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </TableCell>
-                </TableRow>
-              ))}
+                </TableRow>)}
             </TableBody>
-          </Table>
-        )}
+          </Table>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
