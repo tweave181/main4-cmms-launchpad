@@ -28,7 +28,14 @@ export const AddressForm: React.FC<AddressFormProps> = ({ control, prefix }) => 
           <FormItem>
             <FormLabel>Address Line 1 *</FormLabel>
             <FormControl>
-              <Input placeholder="Enter address line 1" {...field} />
+              <Input 
+                placeholder="Enter address line 1" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -42,7 +49,14 @@ export const AddressForm: React.FC<AddressFormProps> = ({ control, prefix }) => 
           <FormItem>
             <FormLabel>Address Line 2</FormLabel>
             <FormControl>
-              <Input placeholder="Enter address line 2 (optional)" {...field} />
+              <Input 
+                placeholder="Enter address line 2 (optional)" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -56,7 +70,14 @@ export const AddressForm: React.FC<AddressFormProps> = ({ control, prefix }) => 
           <FormItem>
             <FormLabel>Address Line 3</FormLabel>
             <FormControl>
-              <Input placeholder="Enter address line 3 (optional)" {...field} />
+              <Input 
+                placeholder="Enter address line 3 (optional)" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -71,7 +92,14 @@ export const AddressForm: React.FC<AddressFormProps> = ({ control, prefix }) => 
             <FormItem>
               <FormLabel>Town/City</FormLabel>
               <FormControl>
-                <Input placeholder="Enter town or city" {...field} />
+                <Input 
+                  placeholder="Enter town or city" 
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -85,7 +113,14 @@ export const AddressForm: React.FC<AddressFormProps> = ({ control, prefix }) => 
             <FormItem>
               <FormLabel>County/State</FormLabel>
               <FormControl>
-                <Input placeholder="Enter county or state" {...field} />
+                <Input 
+                  placeholder="Enter county or state" 
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -100,7 +135,14 @@ export const AddressForm: React.FC<AddressFormProps> = ({ control, prefix }) => 
           <FormItem>
             <FormLabel>Postcode</FormLabel>
             <FormControl>
-              <Input placeholder="Enter postcode" {...field} />
+              <Input 
+                placeholder="Enter postcode" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

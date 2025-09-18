@@ -101,7 +101,14 @@ export const CreateManufacturerModal: React.FC<CreateManufacturerModalProps> = (
                 <FormItem>
                   <FormLabel>Manufacturer Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter manufacturer name" {...field} />
+                    <Input 
+                      placeholder="Enter manufacturer name" 
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -115,7 +122,14 @@ export const CreateManufacturerModal: React.FC<CreateManufacturerModalProps> = (
                 <FormItem>
                   <FormLabel>Contact Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter contact name" {...field} />
+                    <Input 
+                      placeholder="Enter contact name" 
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -129,7 +143,14 @@ export const CreateManufacturerModal: React.FC<CreateManufacturerModalProps> = (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter email address" {...field} />
+                    <Input 
+                      placeholder="Enter email address" 
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -143,7 +164,14 @@ export const CreateManufacturerModal: React.FC<CreateManufacturerModalProps> = (
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter phone number" {...field} />
+                    <Input 
+                      placeholder="Enter phone number" 
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

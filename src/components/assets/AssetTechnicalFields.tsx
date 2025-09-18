@@ -28,7 +28,14 @@ export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({
           <FormItem>
             <FormLabel>Serial Number</FormLabel>
             <FormControl>
-              <Input placeholder="Enter serial number" {...field} />
+              <Input 
+                placeholder="Enter serial number" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -42,7 +49,14 @@ export const AssetTechnicalFields: React.FC<AssetTechnicalFieldsProps> = ({
           <FormItem>
             <FormLabel>Model</FormLabel>
             <FormControl>
-              <Input placeholder="Enter model" {...field} />
+              <Input 
+                placeholder="Enter model" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

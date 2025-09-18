@@ -27,7 +27,14 @@ export const CompanyContactFields: React.FC<CompanyContactFieldsProps> = ({
           <FormItem>
             <FormLabel>Contact Name</FormLabel>
             <FormControl>
-              <Input placeholder="Enter contact name" {...field} />
+              <Input 
+                placeholder="Enter contact name" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -41,7 +48,15 @@ export const CompanyContactFields: React.FC<CompanyContactFieldsProps> = ({
           <FormItem>
             <FormLabel>Email</FormLabel>
             <FormControl>
-              <Input type="email" placeholder="Enter email" {...field} />
+              <Input 
+                type="email" 
+                placeholder="Enter email" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -55,7 +70,14 @@ export const CompanyContactFields: React.FC<CompanyContactFieldsProps> = ({
           <FormItem>
             <FormLabel>Phone</FormLabel>
             <FormControl>
-              <Input placeholder="Enter phone number" {...field} />
+              <Input 
+                placeholder="Enter phone number" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

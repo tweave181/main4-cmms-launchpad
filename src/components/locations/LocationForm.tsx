@@ -119,7 +119,14 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                 <FormItem>
                   <FormLabel>Location Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter location name" {...field} />
+                    <Input 
+                      placeholder="Enter location name" 
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

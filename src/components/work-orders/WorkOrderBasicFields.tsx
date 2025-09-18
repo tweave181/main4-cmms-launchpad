@@ -28,7 +28,14 @@ export const WorkOrderBasicFields: React.FC<WorkOrderBasicFieldsProps> = ({
           <FormItem>
             <FormLabel>Title</FormLabel>
             <FormControl>
-              <Input placeholder="Enter work order title" {...field} />
+              <Input 
+                placeholder="Enter work order title" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

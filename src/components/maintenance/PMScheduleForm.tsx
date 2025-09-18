@@ -87,7 +87,14 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
               <FormItem>
                 <FormLabel>Schedule Name *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter schedule name" {...field} />
+                  <Input 
+                    placeholder="Enter schedule name" 
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -153,6 +160,10 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
                   placeholder="Enter schedule description"
                   {...field}
                   rows={3}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
                 />
               </FormControl>
               <FormMessage />
@@ -171,6 +182,10 @@ export const PMScheduleForm: React.FC<PMScheduleFormProps> = ({
                   placeholder="Enter detailed maintenance instructions"
                   {...field}
                   rows={4}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
                 />
               </FormControl>
               <FormMessage />

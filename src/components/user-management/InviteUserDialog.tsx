@@ -105,7 +105,14 @@ export const InviteUserDialog: React.FC = () => {
                   <FormItem>
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="user@example.com" {...field} />
+                      <Input 
+                        placeholder="user@example.com" 
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

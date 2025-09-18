@@ -36,7 +36,14 @@ export const InventoryPartBasicFields: React.FC<InventoryPartBasicFieldsProps> =
             <FormItem>
               <FormLabel>Part Name *</FormLabel>
               <FormControl>
-                <Input placeholder="Enter part name" {...field} />
+              <Input 
+                placeholder="Enter part name" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -50,7 +57,14 @@ export const InventoryPartBasicFields: React.FC<InventoryPartBasicFieldsProps> =
             <FormItem>
               <FormLabel>SKU *</FormLabel>
               <FormControl>
-                <Input placeholder="Enter SKU" {...field} />
+              <Input 
+                placeholder="Enter SKU" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -65,7 +79,14 @@ export const InventoryPartBasicFields: React.FC<InventoryPartBasicFieldsProps> =
           <FormItem>
             <FormLabel>Description</FormLabel>
             <FormControl>
-              <Textarea placeholder="Enter part description" {...field} />
+              <Textarea 
+                placeholder="Enter part description" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -80,7 +101,14 @@ export const InventoryPartBasicFields: React.FC<InventoryPartBasicFieldsProps> =
             <FormItem>
               <FormLabel>Category</FormLabel>
               <FormControl>
-                <Input placeholder="Enter category" {...field} />
+                <Input 
+                  placeholder="Enter category" 
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

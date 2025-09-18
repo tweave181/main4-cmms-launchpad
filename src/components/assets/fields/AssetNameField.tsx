@@ -24,7 +24,14 @@ export const AssetNameField: React.FC<AssetNameFieldProps> = ({ control }) => {
         <FormItem>
           <FormLabel>Asset Name *</FormLabel>
           <FormControl>
-            <Input placeholder="Enter asset name" {...field} />
+            <Input 
+              placeholder="Enter asset name" 
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
+              {...field} 
+            />
           </FormControl>
           <FormMessage />
         </FormItem>

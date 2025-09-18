@@ -25,7 +25,14 @@ export const UserBasicFields: React.FC<UserBasicFieldsProps> = ({ control }) => 
           <FormItem>
             <FormLabel>Full Name</FormLabel>
             <FormControl>
-              <Input placeholder="Enter full name" {...field} />
+              <Input 
+                placeholder="Enter full name" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -39,7 +46,15 @@ export const UserBasicFields: React.FC<UserBasicFieldsProps> = ({ control }) => 
           <FormItem>
             <FormLabel>Email</FormLabel>
             <FormControl>
-              <Input placeholder="Enter email address" type="email" {...field} />
+              <Input 
+                placeholder="Enter email address" 
+                type="email" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -53,7 +68,14 @@ export const UserBasicFields: React.FC<UserBasicFieldsProps> = ({ control }) => 
           <FormItem>
             <FormLabel>Phone Number</FormLabel>
             <FormControl>
-              <Input placeholder="Enter phone number (optional)" {...field} />
+              <Input 
+                placeholder="Enter phone number (optional)" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

@@ -102,7 +102,14 @@ export const DepartmentForm: React.FC<DepartmentFormProps> = ({
                 <FormItem>
                   <FormLabel>Department Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter department name" {...field} />
+                    <Input 
+                      placeholder="Enter department name" 
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -97,7 +97,14 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                     Name <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Category name" {...field} />
+                    <Input 
+                      placeholder="Category name" 
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -114,6 +121,10 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                     <Textarea 
                       placeholder="Category description (optional)"
                       rows={3}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
                       {...field}
                     />
                   </FormControl>

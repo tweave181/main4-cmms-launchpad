@@ -27,7 +27,14 @@ export const InventoryPartLocationFields: React.FC<InventoryPartLocationFieldsPr
           <FormItem>
             <FormLabel>Storage Locations</FormLabel>
             <FormControl>
-              <Input placeholder="Enter locations (comma separated)" {...field} />
+              <Input 
+                placeholder="Enter locations (comma separated)" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -41,7 +48,14 @@ export const InventoryPartLocationFields: React.FC<InventoryPartLocationFieldsPr
           <FormItem>
             <FormLabel>Linked Asset Type</FormLabel>
             <FormControl>
-              <Input placeholder="Enter asset type" {...field} />
+              <Input 
+                placeholder="Enter asset type" 
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
