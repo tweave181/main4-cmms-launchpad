@@ -16,8 +16,7 @@ export const PartLinkedAssetsCard: React.FC<PartLinkedAssetsCardProps> = ({
   const { data: linkedAssets, isLoading } = usePartLinkedAssets(partId);
 
   const openAssetDetail = (assetId: string) => {
-    // TODO: Navigate to asset detail page
-    console.log('Navigate to asset detail:', assetId);
+    window.open(`/assets?asset=${assetId}`, '_blank');
   };
 
   if (isLoading) {
