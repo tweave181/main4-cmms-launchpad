@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { SparePartsCategorySelector } from '@/components/inventory/SparePartsCategorySelector';
 import type { FormData } from './useInventoryPartForm';
 
 interface InventoryPartBasicFieldsProps {
@@ -94,25 +95,11 @@ export const InventoryPartBasicFields: React.FC<InventoryPartBasicFieldsProps> =
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
+        <SparePartsCategorySelector
           control={control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Enter category" 
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          name="spare_parts_category_id"
+          label="Category"
+          placeholder="Select category"
         />
 
         <FormField

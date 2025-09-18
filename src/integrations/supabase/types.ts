@@ -838,6 +838,7 @@ export type Database = {
           quantity_in_stock: number
           reorder_threshold: number
           sku: string
+          spare_parts_category_id: string | null
           storage_locations: string[] | null
           supplier_id: string | null
           tenant_id: string
@@ -855,6 +856,7 @@ export type Database = {
           quantity_in_stock?: number
           reorder_threshold?: number
           sku: string
+          spare_parts_category_id?: string | null
           storage_locations?: string[] | null
           supplier_id?: string | null
           tenant_id: string
@@ -872,6 +874,7 @@ export type Database = {
           quantity_in_stock?: number
           reorder_threshold?: number
           sku?: string
+          spare_parts_category_id?: string | null
           storage_locations?: string[] | null
           supplier_id?: string | null
           tenant_id?: string
@@ -884,6 +887,13 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_parts_spare_parts_category_id_fkey"
+            columns: ["spare_parts_category_id"]
+            isOneToOne: false
+            referencedRelation: "spare_parts_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -1521,6 +1531,44 @@ export type Database = {
             columns: ["vendor_company_id"]
             isOneToOne: false
             referencedRelation: "company_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spare_parts_categories: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spare_parts_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]

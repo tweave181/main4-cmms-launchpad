@@ -39,6 +39,7 @@ export const AppSidebar = () => {
     { icon: MapPin, label: 'Location Levels', href: '/admin/preferences/location-levels' },
     { icon: MapPin, label: 'Locations', href: '/admin/preferences/locations' },
     { icon: FolderOpen, label: 'Categories', href: '/admin/preferences/categories' },
+    { icon: Tag, label: 'Spare Parts Categories', href: '/spare-parts-categories' },
     { icon: Cog, label: 'Asset Prefixes', href: '/admin/preferences/asset-prefixes' },
   ];
 

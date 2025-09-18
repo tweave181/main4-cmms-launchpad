@@ -39,6 +39,7 @@ import ServiceContracts from "./pages/ServiceContracts";
 import ServiceContractDetail from "./pages/ServiceContractDetail";
 import AssetPrefixManager from "./pages/AssetPrefixManager";
 import CategoryManager from "./pages/CategoryManager";
+import SparePartsCategoryManager from "./pages/SparePartsCategoryManager";
 import SystemAuditLog from "./pages/SystemAuditLog";
 import AdminSettings from "./pages/AdminSettings";
 import NotFound from "./pages/NotFound";
@@ -94,8 +95,9 @@ function App() {
                               <Route path="/admin/preferences/location-levels" element={<LocationLevels />} />
                               <Route path="/admin/preferences/location-levels/:id" element={<LocationLevelDetails />} />
                               <Route path="/admin/preferences/locations" element={<Locations />} />
-                              <Route path="/admin/preferences/categories" element={<CategoryManager />} />
-                              <Route path="/admin/preferences/asset-prefixes" element={<AssetPrefixManager />} />
+                               <Route path="/admin/preferences/categories" element={<CategoryManager />} />
+                               <Route path="/spare-parts-categories" element={<SparePartsCategoryManager />} />
+                               <Route path="/admin/preferences/asset-prefixes" element={<AssetPrefixManager />} />
                               
                               {/* Legacy Route Redirects */}
                               <Route path="/departments" element={<Navigate to="/admin/preferences/departments" replace />} />
