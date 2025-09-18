@@ -6,7 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import type { Database } from '@/integrations/supabase/types';
-type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
+type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'] & {
+  spare_parts_category?: {
+    name: string;
+  };
+};
 interface InventoryPartTableProps {
   parts: InventoryPart[];
   onDeletePart: (partId: string) => void;
@@ -55,7 +59,7 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
                 <TableCell className="font-medium">{part.name}</TableCell>
                 <TableCell>{part.sku}</TableCell>
                 <TableCell className="px-0 mx-0">{part.quantity_in_stock}</TableCell>
-                <TableCell>{part.category || 'Uncategorized'}</TableCell>
+                <TableCell>{part.spare_parts_category?.name || 'Uncategorized'}</TableCell>
                 <TableCell>
                   <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
                 </TableCell>

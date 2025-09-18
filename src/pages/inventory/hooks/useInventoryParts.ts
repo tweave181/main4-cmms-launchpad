@@ -5,7 +5,11 @@ import { useAuth } from '@/contexts/auth';
 import { toast } from '@/components/ui/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
-type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
+type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'] & {
+  spare_parts_category?: {
+    name: string;
+  };
+};
 type InventoryPartInsert = Database['public']['Tables']['inventory_parts']['Insert'];
 type InventoryPartUpdate = Database['public']['Tables']['inventory_parts']['Update'];
 
@@ -18,11 +22,22 @@ export const useInventoryParts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('inventory_parts')
-        .select('*')
+        .select(`
+          *,
+          spare_parts_categories!spare_parts_category_id (
+            name
+          )
+        `)
         .order('name');
 
       if (error) throw error;
-      return data as InventoryPart[];
+      
+      return data.map(item => ({
+        ...item,
+        spare_parts_category: item.spare_parts_categories ? {
+          name: (item.spare_parts_categories as any).name,
+        } : undefined
+      })) as InventoryPart[];
     },
     enabled: !!userProfile?.tenant_id,
   });
