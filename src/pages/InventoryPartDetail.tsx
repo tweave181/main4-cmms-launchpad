@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Form } from '@/components/ui/form';
 import { ArrowLeft, Edit, Trash2, Package, MapPin, Save, X } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +18,7 @@ import { usePartWithSupplier } from '@/hooks/queries/usePartWithSupplier';
 import { PartSupplierCard } from '@/components/inventory/PartSupplierCard';
 import { PartLinkedAssetsCard } from '@/components/inventory/PartLinkedAssetsCard';
 import { useInventoryParts } from '@/pages/inventory/hooks/useInventoryParts';
+import { SparePartsCategorySelector } from '@/components/inventory/SparePartsCategorySelector';
 
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
 
@@ -36,6 +39,22 @@ const InventoryPartDetail: React.FC = () => {
   // Use the enhanced hook that includes supplier data
   const { data: part, isLoading } = usePartWithSupplier(id || '');
   const { updatePart } = useInventoryParts();
+
+  // Form setup for category editing
+  const form = useForm({
+    defaultValues: {
+      spare_parts_category_id: part?.spare_parts_category_id || null,
+    },
+  });
+
+  // Update form when part data changes
+  useEffect(() => {
+    if (part) {
+      form.reset({
+        spare_parts_category_id: part.spare_parts_category_id || null,
+      });
+    }
+  }, [part, form]);
   
   // Update part mutation
   const updatePartMutation = useMutation({
@@ -115,8 +134,23 @@ const InventoryPartDetail: React.FC = () => {
   };
 
   const handleCancelEdit = () => {
+    // Reset form to original values
+    if (part) {
+      form.reset({
+        spare_parts_category_id: part.spare_parts_category_id || null,
+      });
+    }
     setMode('view');
     navigate(`/inventory/${id}`);
+  };
+
+  const handleSave = () => {
+    const formData = form.getValues();
+    updatePartMutation.mutate({
+      updates: {
+        spare_parts_category_id: formData.spare_parts_category_id,
+      }
+    });
   };
 
   if (isLoading) {
@@ -179,7 +213,7 @@ const InventoryPartDetail: React.FC = () => {
                         <X className="h-4 w-4 mr-2" />
                         Cancel
                       </Button>
-                      <Button onClick={() => setMode('view')}>
+                      <Button onClick={handleSave} disabled={updatePartMutation.isPending}>
                         <Save className="h-4 w-4 mr-2" />
                         Save
                       </Button>
@@ -238,10 +272,21 @@ const InventoryPartDetail: React.FC = () => {
                   <div className="space-y-4">
                     <h3 className="font-medium">Details</h3>
                     <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Category:</span>
-                        <span>{part.spare_parts_category?.name || 'Uncategorized'}</span>
-                      </div>
+                      {mode === 'edit' ? (
+                        <Form {...form}>
+                          <SparePartsCategorySelector
+                            control={form.control}
+                            name="spare_parts_category_id"
+                            label="Category"
+                            placeholder="Select a category"
+                          />
+                        </Form>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Category:</span>
+                          <span>{part.spare_parts_category?.name || 'Uncategorized'}</span>
+                        </div>
+                      )}
                       {part.linked_asset_type && (
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Asset Type:</span>
