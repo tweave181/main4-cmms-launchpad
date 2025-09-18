@@ -10,6 +10,9 @@ type InventoryPartWithSupplier = Database['public']['Tables']['inventory_parts']
     contact_name: string | null;
     address_line_1: string;
   };
+  spare_parts_category?: {
+    name: string;
+  };
 };
 
 export const usePartWithSupplier = (partId: string) => {
@@ -33,6 +36,9 @@ export const usePartWithSupplier = (partId: string) => {
             company_details!addresses_company_id_fkey (
               company_name
             )
+          ),
+          spare_parts_categories!spare_parts_category_id (
+            name
           )
         `)
         .eq('id', partId)
@@ -50,6 +56,9 @@ export const usePartWithSupplier = (partId: string) => {
           company_name: (data.addresses as any).company_details?.company_name || null,
           contact_name: (data.addresses as any).contact_name,
           address_line_1: (data.addresses as any).address_line_1,
+        } : undefined,
+        spare_parts_category: data.spare_parts_categories ? {
+          name: (data.spare_parts_categories as any).name,
         } : undefined
       };
     },

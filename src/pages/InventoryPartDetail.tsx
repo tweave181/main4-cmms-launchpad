@@ -240,7 +240,7 @@ const InventoryPartDetail: React.FC = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Category:</span>
-                        <span>{part.category || 'Uncategorized'}</span>
+                        <span>{part.spare_parts_category?.name || 'Uncategorized'}</span>
                       </div>
                       {part.linked_asset_type && (
                         <div className="flex justify-between">
