@@ -57,7 +57,10 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
     return badges;
   };
   const typeBadges = getTypeBadges();
-  return <Card className={cn("group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-border", onClick && "hover:border-primary/20", className)} onClick={handleCardClick}>
+  return <Card className={cn("group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-border relative", onClick && "hover:border-primary/20", className)} onClick={handleCardClick}>
+      {/* Red vertical line */}
+      <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-red-500"></div>
+      
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -70,6 +73,8 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
           </div>
           <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />
         </div>
+        {/* Horizontal divider after header */}
+        <div className="border-b border-border ml-5"></div>
       </CardHeader>
 
       <CardContent className="space-y-3">
@@ -82,29 +87,39 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
               {[address.town_or_city, address.postcode].filter(Boolean).join(', ')}
             </p>}
         </div>
+        {/* Horizontal divider after address */}
+        <div className="border-b border-border ml-5"></div>
 
         {/* Contact Info */}
-        {(address.phone || address.email) && <div className="space-y-1">
+        {(address.phone || address.email) && <>
+          <div className="space-y-1">
             {address.phone && <p className="text-xs text-muted-foreground px-[20px]">
                 📞 {address.phone}
               </p>}
-            {address.email && <p className="text-xs text-muted-foreground truncate">
+            {address.email && <p className="text-xs text-muted-foreground truncate px-[20px]">
                 ✉️ {address.email}
               </p>}
-          </div>}
+          </div>
+          {/* Horizontal divider after contact info */}
+          <div className="border-b border-border ml-5"></div>
+        </>}
 
         {/* Type Badges */}
-        {typeBadges.length > 0 && <div className="flex flex-wrap gap-1">
+        {typeBadges.length > 0 && <>
+          <div className="flex flex-wrap gap-1 pl-5">
             {typeBadges.slice(0, 3).map((badge, index) => <Badge key={index} variant={badge.variant} className="text-xs">
                 {badge.label}
               </Badge>)}
             {typeBadges.length > 3 && <Badge variant="outline" className="text-xs">
                 +{typeBadges.length - 3}
               </Badge>}
-          </div>}
+          </div>
+          {/* Horizontal divider after badges */}
+          <div className="border-b border-border ml-5"></div>
+        </>}
 
         {/* Actions */}
-        {showActions && <div className="flex gap-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {showActions && <div className="flex gap-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity pl-5">
             <Button variant="ghost" size="sm" onClick={handleCopy} className="h-8 px-2">
               <Copy className="h-3 w-3" />
             </Button>
