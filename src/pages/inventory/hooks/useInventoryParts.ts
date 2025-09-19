@@ -9,6 +9,9 @@ type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'] & {
   spare_parts_category?: {
     name: string;
   };
+  supplier?: {
+    company_name: string;
+  };
 };
 type InventoryPartInsert = Database['public']['Tables']['inventory_parts']['Insert'];
 type InventoryPartUpdate = Database['public']['Tables']['inventory_parts']['Update'];
@@ -26,6 +29,11 @@ export const useInventoryParts = () => {
           *,
           spare_parts_categories!spare_parts_category_id (
             name
+          ),
+          addresses!supplier_id (
+            company_details!company_id (
+              company_name
+            )
           )
         `)
         .order('name');
@@ -36,6 +44,9 @@ export const useInventoryParts = () => {
         ...item,
         spare_parts_category: item.spare_parts_categories ? {
           name: (item.spare_parts_categories as any).name,
+        } : undefined,
+        supplier: item.addresses?.company_details ? {
+          company_name: (item.addresses.company_details as any).company_name,
         } : undefined
       })) as InventoryPart[];
     },
