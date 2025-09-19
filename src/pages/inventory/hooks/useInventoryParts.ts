@@ -30,8 +30,8 @@ export const useInventoryParts = () => {
           spare_parts_categories!spare_parts_category_id (
             name
           ),
-          addresses!supplier_id (
-            company_details!company_id (
+          supplier_address:addresses!supplier_id (
+            company_details (
               company_name
             )
           )
@@ -45,8 +45,8 @@ export const useInventoryParts = () => {
         spare_parts_category: item.spare_parts_categories ? {
           name: (item.spare_parts_categories as any).name,
         } : undefined,
-        supplier: item.addresses?.company_details ? {
-          company_name: (item.addresses.company_details as any).company_name,
+        supplier: item.supplier_address?.company_details ? {
+          company_name: (item.supplier_address.company_details as any).company_name,
         } : undefined
       })) as InventoryPart[];
     },
