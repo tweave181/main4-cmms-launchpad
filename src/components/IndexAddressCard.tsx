@@ -58,78 +58,106 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
   };
   const typeBadges = getTypeBadges();
   return <Card className={cn("group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-border relative", onClick && "hover:border-primary/20", className)} onClick={handleCardClick}>
-      {/* Red vertical line */}
-      <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-red-500"></div>
+      {/* Red vertical line - positioned closer to text */}
+      <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-red-500"></div>
       
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2 pt-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground truncate px-[20px]">
-              {address.company_details?.company_name || 'No Company'}
-            </h3>
-            {address.contact_name && <p className="text-sm text-muted-foreground mt-1 px-[20px]">
-                {address.contact_name}
-              </p>}
+            <div className="pl-6">
+              <h3 className="font-semibold text-foreground truncate">
+                {address.company_details?.company_name || 'No Company'}
+              </h3>
+              <div className="border-b border-blue-500 mt-1 mb-2"></div>
+              {address.contact_name && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    {address.contact_name}
+                  </p>
+                  <div className="border-b border-blue-500 mt-1"></div>
+                </>
+              )}
+            </div>
           </div>
           <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />
         </div>
-        {/* Horizontal divider after header */}
-        <div className="border-b border-border ml-5"></div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
-        {/* Address Info */}
-        <div className="space-y-1">
-          <p className="text-sm text-foreground font-medium px-[20px]">
+      <CardContent className="pt-2 pb-4">
+        {/* Address Info - Envelope Format */}
+        <div className="pl-6">
+          <p className="text-sm text-foreground font-medium">
             {address.address_line_1}
           </p>
-          {(address.town_or_city || address.postcode) && <p className="text-sm text-muted-foreground px-[20px]">
-              {[address.town_or_city, address.postcode].filter(Boolean).join(', ')}
-            </p>}
+          <div className="border-b border-blue-500 mt-1 mb-2"></div>
+          
+          {(address.town_or_city || address.postcode) && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {[address.town_or_city, address.postcode].filter(Boolean).join(' , ')}
+              </p>
+              <div className="border-b border-blue-500 mt-1 mb-2"></div>
+            </>
+          )}
         </div>
-        {/* Horizontal divider after address */}
-        <div className="border-b border-border ml-5"></div>
 
         {/* Contact Info */}
-        {(address.phone || address.email) && <>
-          <div className="space-y-1">
-            {address.phone && <p className="text-xs text-muted-foreground px-[20px]">
-                📞 {address.phone}
-              </p>}
-            {address.email && <p className="text-xs text-muted-foreground truncate px-[20px]">
-                ✉️ {address.email}
-              </p>}
+        {(address.phone || address.email) && (
+          <div className="pl-6">
+            {address.phone && (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  📞 {address.phone}
+                </p>
+                <div className="border-b border-blue-500 mt-1 mb-2"></div>
+              </>
+            )}
+            {address.email && (
+              <>
+                <p className="text-xs text-muted-foreground truncate">
+                  ✉️ {address.email}
+                </p>
+                <div className="border-b border-blue-500 mt-1 mb-2"></div>
+              </>
+            )}
           </div>
-          {/* Horizontal divider after contact info */}
-          <div className="border-b border-border ml-5"></div>
-        </>}
+        )}
 
         {/* Type Badges */}
-        {typeBadges.length > 0 && <>
-          <div className="flex flex-wrap gap-1 pl-5">
-            {typeBadges.slice(0, 3).map((badge, index) => <Badge key={index} variant={badge.variant} className="text-xs">
-                {badge.label}
-              </Badge>)}
-            {typeBadges.length > 3 && <Badge variant="outline" className="text-xs">
-                +{typeBadges.length - 3}
-              </Badge>}
+        {typeBadges.length > 0 && (
+          <div className="pl-6">
+            <div className="flex flex-wrap gap-1">
+              {typeBadges.slice(0, 3).map((badge, index) => (
+                <Badge key={index} variant={badge.variant} className="text-xs">
+                  {badge.label}
+                </Badge>
+              ))}
+              {typeBadges.length > 3 && (
+                <Badge variant="outline" className="text-xs">
+                  +{typeBadges.length - 3}
+                </Badge>
+              )}
+            </div>
+            <div className="border-b border-blue-500 mt-1"></div>
           </div>
-          {/* Horizontal divider after badges */}
-          <div className="border-b border-border ml-5"></div>
-        </>}
+        )}
 
         {/* Actions */}
-        {showActions && <div className="flex gap-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity pl-5">
+        {showActions && (
+          <div className="flex gap-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity pl-6">
             <Button variant="ghost" size="sm" onClick={handleCopy} className="h-8 px-2">
               <Copy className="h-3 w-3" />
             </Button>
-            {onClick && <Button variant="ghost" size="sm" onClick={e => {
-          e.stopPropagation();
-          handleCardClick();
-        }} className="h-8 px-2">
+            {onClick && (
+              <Button variant="ghost" size="sm" onClick={e => {
+                e.stopPropagation();
+                handleCardClick();
+              }} className="h-8 px-2">
                 <Eye className="h-3 w-3" />
-              </Button>}
-          </div>}
+              </Button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>;
 };
