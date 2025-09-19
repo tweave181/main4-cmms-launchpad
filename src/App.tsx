@@ -42,6 +42,7 @@ import CategoryManager from "./pages/CategoryManager";
 import SparePartsCategoryManager from "./pages/SparePartsCategoryManager";
 import SystemAuditLog from "./pages/SystemAuditLog";
 import AdminSettings from "./pages/AdminSettings";
+import AddressCardTest from "./pages/AddressCardTest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -79,8 +80,9 @@ function App() {
                               <Route path="/address-book/:id" element={<AddressDetail />} />
                               <Route path="/reports" element={<Reports />} />
                                <Route path="/users" element={<UserManagement />} />
-                               <Route path="/addresses" element={<Addresses />} />
-                               <Route path="/addresses/:id" element={<AddressDetail />} />
+                                <Route path="/addresses" element={<Addresses />} />
+                                <Route path="/addresses/:id" element={<AddressDetail />} />
+                                <Route path="/test/address-cards" element={<AddressCardTest />} />
                                <Route path="/admin/service-contracts" element={<ServiceContracts />} />
                                <Route path="/admin/service-contracts/:id" element={<ServiceContractDetail />} />
                                <Route path="/system-audit-log" element={<SystemAuditLog />} />
