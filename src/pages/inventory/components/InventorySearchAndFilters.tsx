@@ -1,10 +1,8 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Plus } from 'lucide-react';
-
 interface InventorySearchAndFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -15,7 +13,6 @@ interface InventorySearchAndFiltersProps {
   onCreatePart: () => void;
   categories: string[];
 }
-
 export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps> = ({
   searchTerm,
   onSearchChange,
@@ -24,12 +21,11 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
   stockFilter,
   onStockFilterChange,
   onCreatePart,
-  categories,
+  categories
 }) => {
-  return (
-    <div className="space-y-4 mb-6">
+  return <div className="space-y-4 mb-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Inventory Parts</h2>
+        <h2 className="text-lg font-semibold">Inventory Parts List</h2>
         <Button onClick={onCreatePart} className="whitespace-nowrap">
           <Plus className="h-4 w-4 mr-2" />
           Add Inventory Part
@@ -38,11 +34,7 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
       
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
-          <Input
-            placeholder="Search parts by name, SKU, or description..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
+          <Input placeholder="Search parts by name, SKU, or description..." value={searchTerm} onChange={e => onSearchChange(e.target.value)} />
         </div>
         
         <div className="flex gap-4">
@@ -52,11 +44,9 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
+              {categories.map(category => <SelectItem key={category} value={category}>
                   {category}
-                </SelectItem>
-              ))}
+                </SelectItem>)}
             </SelectContent>
           </Select>
           
@@ -73,6 +63,5 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
           </Select>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
