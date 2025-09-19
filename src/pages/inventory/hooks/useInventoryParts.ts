@@ -23,32 +23,31 @@ export const useInventoryParts = () => {
   const { data: parts, isLoading, refetch } = useQuery({
     queryKey: ['inventory-parts', userProfile?.tenant_id],
     queryFn: async () => {
+      console.log('🔍 Fetching inventory parts for tenant:', userProfile?.tenant_id);
+      console.log('🔍 User profile:', userProfile);
+      
+      // Start with a simple query first
       const { data, error } = await supabase
         .from('inventory_parts')
-        .select(`
-          *,
-          spare_parts_categories!spare_parts_category_id (
-            name
-          ),
-          supplier_address:addresses!supplier_id (
-            company_details (
-              company_name
-            )
-          )
-        `)
+        .select('*')
         .order('name');
 
-      if (error) throw error;
+      console.log('🔍 Inventory parts query result:', { data, error, count: data?.length });
+
+      if (error) {
+        console.error('❌ Error fetching inventory parts:', error);
+        alert(`Database Error: ${error.message}`);
+        throw error;
+      }
       
-      return data.map(item => ({
-        ...item,
-        spare_parts_category: item.spare_parts_categories ? {
-          name: (item.spare_parts_categories as any).name,
-        } : undefined,
-        supplier: item.supplier_address?.company_details ? {
-          company_name: (item.supplier_address.company_details as any).company_name,
-        } : undefined
-      })) as InventoryPart[];
+      console.log('✅ Found parts:', data?.length);
+      if (data?.length === 0) {
+        console.log('⚠️ No parts found - checking RLS policies');
+        alert(`No inventory parts found. User tenant: ${userProfile?.tenant_id}, User role: ${userProfile?.role}`);
+      }
+      
+      // Return simple data for now, we'll add related data back later
+      return (data || []) as InventoryPart[];
     },
     enabled: !!userProfile?.tenant_id,
   });
