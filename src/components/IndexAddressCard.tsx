@@ -75,7 +75,7 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
                   <p className="text-sm text-muted-foreground">
                     {address.contact_name}
                   </p>
-                  <div className="border-b border-blue-500 mt-1 mb-2"></div>
+                  <div className="border-b border-blue-500 mt-1 ml-2"></div>
                 </>
               )}
             </div>
