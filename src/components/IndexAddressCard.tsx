@@ -68,7 +68,8 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
               <h3 className="font-semibold text-foreground truncate">
                 {address.company_details?.company_name || 'No Company'}
               </h3>
-              <div className="border-b border-blue-500 mt-1 mb-2"></div>
+               {/*mt-1 mb-2*/}              
+              <div className="border-b border-blue-500 "></div>
               {address.contact_name && (
                 <>
                   <p className="text-sm text-muted-foreground">
