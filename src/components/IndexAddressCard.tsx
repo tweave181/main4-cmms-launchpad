@@ -61,61 +61,63 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
       {/* Red vertical line - positioned closer to text */}
     <MapPin className="absolute left-2 top-6 h-4 w-4 text-muted-foreground" />
      <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-red-500"></div>
+     
+     {/* Fixed positioned blue lines for consistent spacing */}
+     <div className="absolute left-10 right-4 top-[52px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[78px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[120px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[146px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[172px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[198px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[224px] h-px bg-blue-500"></div>
+     
       <CardHeader className="pb-2 pt-4">
         <div className="flex items-start px-0 mx-px">
           <div className="flex-1 min-w-0">
-            <div className="pl-6">
+            <div className="pl-6 relative z-10">
               <h3 className="font-semibold text-foreground truncate">
                 {address.company_details?.company_name || 'No Company'}
               </h3>
-               {/*mt-1 mb-2*/}              
-              <div className="border-b border-blue-500 "></div>
-              {address.contact_name && <>
-                  <p className="text-sm text-muted-foreground">
-                    {address.contact_name}
-                  </p>
-                  <div className="border-b border-blue-500 mt-1"></div>
-                </>}
+              {address.contact_name && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {address.contact_name}
+                </p>
+              )}
             </div>
           </div>
-          
         </div>
       </CardHeader>
 
       <CardContent className="pt-2 pb-4">
         {/* Address Info - Envelope Format */}
-        <div className="pl-6">
+        <div className="pl-6 relative z-10">
           <p className="text-sm text-foreground font-medium">
             {address.address_line_1}
           </p>
-          <div className="border-b border-blue-500 mt-1 mb-2"></div>
           
-          {(address.town_or_city || address.postcode) && <>
-              <p className="text-sm text-muted-foreground">
-                {[address.town_or_city, address.postcode].filter(Boolean).join(' , ')}
-              </p>
-              <div className="border-b border-blue-500 mt-1 mb-2"></div>
-            </>}
+          {(address.town_or_city || address.postcode) && (
+            <p className="text-sm text-muted-foreground mt-1">
+              {[address.town_or_city, address.postcode].filter(Boolean).join(' , ')}
+            </p>
+          )}
         </div>
 
         {/* Contact Info */}
-        {(address.phone || address.email) && <div className="pl-6">
-            {address.phone && <>
-                <p className="text-xs text-muted-foreground">
-                  📞 {address.phone}
-                </p>
-                <div className="border-b border-blue-500 mt-1 mb-2"></div>
-              </>}
-            {address.email && <>
-                <p className="text-xs text-muted-foreground truncate">
-                  ✉️ {address.email}
-                </p>
-                <div className="border-b border-blue-500 mt-1 mb-2"></div>
-              </>}
-          </div>}
+        <div className="pl-6 relative z-10">
+          {address.phone && (
+            <p className="text-xs text-muted-foreground">
+              📞 {address.phone}
+            </p>
+          )}
+          {address.email && (
+            <p className="text-xs text-muted-foreground truncate">
+              ✉️ {address.email}
+            </p>
+          )}
+        </div>
 
         {/* Type Badges */}
-        {typeBadges.length > 0 && <div className="pl-6">
+        {typeBadges.length > 0 && <div className="pl-6 relative z-10">
             <div className="flex flex-wrap gap-1">
               {typeBadges.slice(0, 3).map((badge, index) => <Badge key={index} variant={badge.variant} className="text-xs">
                   {badge.label}
@@ -124,7 +126,6 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
                   +{typeBadges.length - 3}
                 </Badge>}
             </div>
-            <div className="border-b border-blue-500 mt-1"></div>
           </div>}
 
         {/* Actions */}
