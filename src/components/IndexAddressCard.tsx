@@ -59,7 +59,7 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
   const typeBadges = getTypeBadges();
   return <Card className={cn("group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-border relative", onClick && "hover:border-primary/20", className)} onClick={handleCardClick}>
       {/* Red vertical line - positioned closer to text */}
-      <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-red-500"></div>
+      <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-red-500"></div>
       
       <CardHeader className="pb-2 pt-4">
         <div className="flex items-start justify-between">
