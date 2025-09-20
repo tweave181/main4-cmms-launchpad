@@ -64,7 +64,7 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
      
      {/* Fixed positioned blue lines for consistent spacing */}
      <div className="absolute left-10 right-4 top-[52px] h-px bg-blue-500"></div>
-     <div className="absolute left-10 right-4 top-[78px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[82px] h-px bg-blue-500"></div>
      <div className="absolute left-10 right-4 top-[104px] h-px bg-blue-500"></div>
      <div className="absolute left-10 right-4 top-[130px] h-px bg-blue-500"></div>
      <div className="absolute left-10 right-4 top-[156px] h-px bg-blue-500"></div>
