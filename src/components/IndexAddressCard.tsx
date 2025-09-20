@@ -63,6 +63,7 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
       
       <CardHeader className="pb-2 pt-4">
         <div className="flex items-start justify-between">
+          <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />          
           <div className="flex-1 min-w-0">
             <div className="pl-6">
               <h3 className="font-semibold text-foreground truncate">
@@ -80,7 +81,6 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
               )}
             </div>
           </div>
-          <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />
         </div>
       </CardHeader>
 
