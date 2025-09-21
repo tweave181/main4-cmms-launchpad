@@ -88,7 +88,7 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
         </div>
       </CardHeader>
 
-      <CardContent className="pt-2 pb-4">
+      <CardContent className="pt-2 pt-0">
         {/* Address Info - Envelope Format */}
         <div className="pl-6 relative z-10">
           <p className="text-sm text-foreground font-medium">
