@@ -64,12 +64,12 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
      
      {/* Fixed positioned blue lines for consistent spacing */}
      <div className="absolute left-10 right-4 top-[42px] h-px bg-blue-500"></div>
-     <div className="absolute left-10 right-4 top-[78px] h-px bg-blue-500"></div>
-     <div className="absolute left-10 right-4 top-[104px] h-px bg-blue-500"></div>
-     <div className="absolute left-10 right-4 top-[130px] h-px bg-blue-500"></div>
-     <div className="absolute left-10 right-4 top-[156px] h-px bg-blue-500"></div>
-     <div className="absolute left-10 right-4 top-[182px] h-px bg-blue-500"></div>
-     <div className="absolute left-10 right-4 top-[200px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[68px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[94px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[120px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[146px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[172px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[198px] h-px bg-blue-500"></div>
      
       <CardHeader className="pb-2 pt-4">
         <div className="flex items-start px-0 mx-px">
