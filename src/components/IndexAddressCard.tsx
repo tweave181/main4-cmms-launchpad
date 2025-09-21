@@ -103,7 +103,7 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
         </div>
 
         {/* Contact Info */}
-        <div className="pl-6 relative z-10 mt-2">
+        <div className="pl-6 relative z-10 mt-3">
           {address.phone && (
             <p className="text-xs text-muted-foreground">
               📞 {address.phone}
