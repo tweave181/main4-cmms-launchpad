@@ -68,7 +68,7 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
      <div className="absolute left-10 right-4 top-[104px] h-px bg-blue-500"></div>
      <div className="absolute left-10 right-4 top-[130px] h-px bg-blue-500"></div>
      <div className="absolute left-10 right-4 top-[156px] h-px bg-blue-500"></div>
-     <div className="absolute left-10 right-4 top-[174px] h-px bg-blue-500"></div>
+     <div className="absolute left-10 right-4 top-[182x] h-px bg-blue-500"></div>
      <div className="absolute left-10 right-4 top-[200px] h-px bg-blue-500"></div>
      
       <CardHeader className="pb-2 pt-4">
