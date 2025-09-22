@@ -111,7 +111,7 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
           )}
           <div className="pl-6 relative z-10 mt-2">         
             {address.email && (
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-muted-foreground"> {/* truncate */}
               ✉️ {address.email}
             </p>
           )}
