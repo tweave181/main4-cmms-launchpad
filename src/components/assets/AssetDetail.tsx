@@ -1,9 +1,5 @@
-
 import React from 'react';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AssetDetailHeader } from './AssetDetailHeader';
 import { AssetBasicInfo } from './AssetBasicInfo';
 import { AssetFinancialInfo } from './AssetFinancialInfo';
@@ -12,7 +8,6 @@ import { AssetRecordInfo } from './AssetRecordInfo';
 import { AssetDetailTabs } from './AssetDetailTabs';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import type { Database } from '@/integrations/supabase/types';
-
 type Asset = Database['public']['Tables']['assets']['Row'] & {
   service_contract?: {
     id: string;
@@ -22,7 +17,6 @@ type Asset = Database['public']['Tables']['assets']['Row'] & {
     end_date: string;
   } | null;
 };
-
 interface AssetDetailProps {
   asset: Asset;
   isOpen: boolean;
@@ -32,7 +26,6 @@ interface AssetDetailProps {
   onDuplicate?: () => void;
   onUpdate?: () => void;
 }
-
 export const AssetDetail: React.FC<AssetDetailProps> = ({
   asset,
   isOpen,
@@ -40,16 +33,11 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   onEdit,
   onDelete,
   onDuplicate,
-  onUpdate,
+  onUpdate
 }) => {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <div className="mb-4">
-          <h2 className="text-lg font-medium text-muted-foreground mb-2">
-            Asset Details Record For: {asset.name || asset.id}
-          </h2>
-        </div>
+        
         <AssetDetailHeader asset={asset} onEdit={onEdit} onDelete={onDelete} onDuplicate={onDuplicate} />
 
         <div className="space-y-6">
@@ -74,6 +62,5 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           </div>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
