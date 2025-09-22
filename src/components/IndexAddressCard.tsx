@@ -109,14 +109,14 @@ export const IndexAddressCard: React.FC<IndexAddressCardProps> = ({
               📞 {address.phone}
             </p>
           )}
-          <div className="pl-6 relative z-10 mt-3">         
+       </div>
+       <div className="pl-6 relative z-10 mt-2">         
             {address.email && (
             <p className="text-xs text-muted-foreground"> {/* truncate */}
               ✉️ {address.email}
             </p>
-          )}
-          </div> 
-        </div>
+          )} 
+       </div>
 
         {/* Type Badges */}
         {typeBadges.length > 0 && <div className="pl-6 relative z-10">
