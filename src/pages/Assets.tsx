@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tag, Plus } from 'lucide-react';
+import { PageBanner } from '@/components/ui/page-banner';
 import { AssetForm } from '@/components/assets/AssetForm';
 import { AssetDetail } from '@/components/assets/AssetDetail';
 import { DuplicateAssetDialog } from '@/components/assets/DuplicateAssetDialog';
@@ -176,21 +177,21 @@ const Assets: React.FC = () => {
         </div>
       </div>;
   }
-  return <div className="p-6">
-      <Card className="rounded-2xl shadow-sm border border-gray-200">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
-              <Tag className="h-6 w-6 text-primary" />
-              <span>Asset Management List</span>
-              {isOffline && <span className="text-sm text-orange-600">(Offline)</span>}
-            </CardTitle>
-            <Button onClick={handleCreateAsset} className="rounded-2xl">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Asset
-            </Button>
-          </div>
-        </CardHeader>
+  return <div>
+      <PageBanner title="Asset Management List" />
+      <div className="p-6">
+        <Card className="rounded-2xl shadow-sm border border-gray-200">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {isOffline && <span className="text-sm text-orange-600">(Offline)</span>}
+              </div>
+              <Button onClick={handleCreateAsset} className="rounded-2xl">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Asset
+              </Button>
+            </div>
+          </CardHeader>
         <CardContent>
           <AssetSearchAndFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
@@ -239,6 +240,7 @@ const Assets: React.FC = () => {
           isLoading={isDuplicating}
         />
       )}
-    </div>;
+    </div>
+  </div>;
 };
 export default Assets;

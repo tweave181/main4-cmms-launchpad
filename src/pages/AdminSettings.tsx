@@ -5,6 +5,7 @@ import { Settings, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useProgramSettings } from '@/hooks/useProgramSettings';
 import { SystemSettingsForm } from '@/components/program-settings/SystemSettingsForm';
+import { PageBanner } from '@/components/ui/page-banner';
 
 const AdminSettings: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -53,23 +54,20 @@ const AdminSettings: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <Card className="rounded-2xl shadow-sm border border-gray-200">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
-            <Settings className="h-6 w-6 text-primary" />
-            <span>System Settings</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-6">
-            Configure global system settings for your organization including localization, 
-            branding, and operational preferences.
-          </p>
-        </CardContent>
-      </Card>
+    <div>
+      <PageBanner title="System Settings" />
+      <div className="p-6 space-y-6">
+        <Card className="rounded-2xl shadow-sm border border-gray-200">
+          <CardContent className="pt-6">
+            <p className="text-muted-foreground mb-6">
+              Configure global system settings for your organization including localization, 
+              branding, and operational preferences.
+            </p>
+          </CardContent>
+        </Card>
 
-      <SystemSettingsForm settings={settings} />
+        <SystemSettingsForm settings={settings} />
+      </div>
     </div>
   );
 };

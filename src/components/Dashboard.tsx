@@ -5,23 +5,27 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { AdminPanel } from '@/components/dashboard/AdminPanel';
 import { UpcomingContractRenewals } from '@/components/dashboard/UpcomingContractRenewals';
+import { PageBanner } from '@/components/ui/page-banner';
 
 const Dashboard: React.FC = () => {
   return (
-    <div className="p-6">
-      {/* Main Content */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column */}
-        <div className="space-y-6">
-          <WelcomeCard />
-          <QuickActions />
-        </div>
+    <div>
+      <PageBanner title="Dashboard" />
+      <div className="p-6">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-6">
+            <WelcomeCard />
+            <QuickActions />
+          </div>
 
-        {/* Right Column */}
-        <div className="space-y-6">
-          <DashboardStats />
-          <UpcomingContractRenewals />
-          <AdminPanel />
+          {/* Right Column */}
+          <div className="space-y-6">
+            <DashboardStats />
+            <UpcomingContractRenewals />
+            <AdminPanel />
+          </div>
         </div>
       </div>
     </div>
