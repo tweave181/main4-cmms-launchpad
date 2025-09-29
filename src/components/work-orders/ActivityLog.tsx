@@ -3,9 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Phone, Mail, User, Filter } from 'lucide-react';
+import { MessageSquare, Phone, Mail, User, Filter, Edit2, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
+import { EditCommentModal } from './EditCommentModal';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ActivityLogProps {
   workOrderId: string;
@@ -15,6 +18,7 @@ interface WorkOrderComment {
   id: string;
   comment: string;
   comment_type: string;
+  comment_status_name?: string;
   created_at: string;
   user_id: string;
   work_order_id: string;
@@ -25,7 +29,10 @@ interface WorkOrderComment {
 
 export const ActivityLog: React.FC<ActivityLogProps> = ({ workOrderId }) => {
   const [showContactEventsOnly, setShowContactEventsOnly] = useState(false);
+  const [editingComment, setEditingComment] = useState<WorkOrderComment | null>(null);
   const { userProfile } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: activities = [], isLoading } = useQuery({
     queryKey: ['work-order-activities', workOrderId, userProfile?.tenant_id],
@@ -62,7 +69,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ workOrderId }) => {
     }
   };
 
-  const getActivityBadge = (type: string) => {
+  const getActivityBadge = (type: string, statusName?: string) => {
     switch (type) {
       case 'contact_event':
         return <Badge variant="outline" className="text-xs">Contact</Badge>;
@@ -71,8 +78,44 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ workOrderId }) => {
       case 'assignment':
         return <Badge variant="outline" className="text-xs">Assignment</Badge>;
       default:
-        return <Badge variant="outline" className="text-xs">Comment</Badge>;
+        return statusName ? (
+          <Badge variant="outline" className="text-xs">{statusName}</Badge>
+        ) : (
+          <Badge variant="outline" className="text-xs">Comment</Badge>
+        );
     }
+  };
+
+  const handleEditComment = (comment: WorkOrderComment) => {
+    setEditingComment(comment);
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('work_order_comments')
+        .delete()
+        .eq('id', commentId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['work-order-activities', workOrderId] });
+      toast({
+        title: 'Success',
+        description: 'Comment deleted successfully',
+      });
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete comment',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const canEditComment = (comment: WorkOrderComment) => {
+    return comment.user_id === userProfile?.id || userProfile?.role === 'admin';
   };
 
   if (isLoading) {
@@ -123,6 +166,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ workOrderId }) => {
           <div className="space-y-4">
             {filteredActivities.map((activity) => {
               const IconComponent = getActivityIcon(activity.comment_type);
+              const canEdit = canEditComment(activity);
               return (
                 <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="flex-shrink-0 mt-0.5">
@@ -133,17 +177,43 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ workOrderId }) => {
                       <span className="text-sm font-medium text-gray-900">
                         {activity.user?.name || 'Unknown User'}
                       </span>
-                      {getActivityBadge(activity.comment_type)}
+                      {getActivityBadge(activity.comment_type, activity.comment_status_name)}
                     </div>
                     <p className="text-sm text-gray-700 mb-1">{activity.comment}</p>
                     <p className="text-xs text-gray-500">{formatDate(activity.created_at)}</p>
                   </div>
+                  {canEdit && (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        onClick={() => handleEditComment(activity)}
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteComment(activity.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         )}
       </CardContent>
+      
+      <EditCommentModal
+        comment={editingComment}
+        isOpen={!!editingComment}
+        onClose={() => setEditingComment(null)}
+      />
     </Card>
   );
 };

@@ -1837,6 +1837,7 @@ export type Database = {
         Row: {
           comment: string
           comment_status: Database["public"]["Enums"]["comment_status"] | null
+          comment_status_name: string | null
           comment_time_closed: string | null
           comment_time_created: string | null
           comment_time_worked: string | null
@@ -1849,6 +1850,7 @@ export type Database = {
         Insert: {
           comment: string
           comment_status?: Database["public"]["Enums"]["comment_status"] | null
+          comment_status_name?: string | null
           comment_time_closed?: string | null
           comment_time_created?: string | null
           comment_time_worked?: string | null
@@ -1861,6 +1863,7 @@ export type Database = {
         Update: {
           comment?: string
           comment_status?: Database["public"]["Enums"]["comment_status"] | null
+          comment_status_name?: string | null
           comment_time_closed?: string | null
           comment_time_created?: string | null
           comment_time_worked?: string | null

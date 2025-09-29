@@ -5,6 +5,8 @@ import { Settings, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useProgramSettings } from '@/hooks/useProgramSettings';
 import { SystemSettingsForm } from '@/components/program-settings/SystemSettingsForm';
+import { CommentStatusManagement } from '@/components/admin/CommentStatusManagement';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const AdminSettings: React.FC = () => {
@@ -76,7 +78,20 @@ const AdminSettings: React.FC = () => {
         </CardContent>
       </Card>
 
-      <SystemSettingsForm settings={settings} />
+      <Tabs defaultValue="system" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="system">System Settings</TabsTrigger>
+          <TabsTrigger value="comments">Comment Status</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="system">
+          <SystemSettingsForm settings={settings} />
+        </TabsContent>
+        
+        <TabsContent value="comments">
+          <CommentStatusManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
