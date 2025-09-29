@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tag, Plus } from 'lucide-react';
-import { PageBanner } from '@/components/ui/page-banner';
+
 import { AssetForm } from '@/components/assets/AssetForm';
 import { AssetDetail } from '@/components/assets/AssetDetail';
 import { DuplicateAssetDialog } from '@/components/assets/DuplicateAssetDialog';
@@ -177,9 +177,7 @@ const Assets: React.FC = () => {
         </div>
       </div>;
   }
-  return <div>
-      <PageBanner title="Asset Management List" />
-      <div className="p-6">
+  return <div className="p-6">
         <Card className="rounded-2xl shadow-sm border border-gray-200">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
@@ -240,7 +238,6 @@ const Assets: React.FC = () => {
           isLoading={isDuplicating}
         />
       )}
-    </div>
-  </div>;
+    </div>;
 };
 export default Assets;

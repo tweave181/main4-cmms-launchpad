@@ -5,7 +5,7 @@ import { Settings, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useProgramSettings } from '@/hooks/useProgramSettings';
 import { SystemSettingsForm } from '@/components/program-settings/SystemSettingsForm';
-import { PageBanner } from '@/components/ui/page-banner';
+
 
 const AdminSettings: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -16,7 +16,10 @@ const AdminSettings: React.FC = () => {
     return (
       <div className="p-6">
         <Card className="rounded-2xl shadow-sm border border-gray-200">
-          <CardContent className="pt-6">
+          <CardHeader>
+            <CardTitle>Admin Settings</CardTitle>
+          </CardHeader>
+          <CardContent>
             <p className="text-muted-foreground">
               You don't have permission to access this page.
             </p>
@@ -30,7 +33,10 @@ const AdminSettings: React.FC = () => {
     return (
       <div className="p-6">
         <Card className="rounded-2xl shadow-sm border border-gray-200">
-          <CardContent className="pt-6 flex items-center justify-center">
+          <CardHeader>
+            <CardTitle>Admin Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin mr-2" />
             <span>Loading system settings...</span>
           </CardContent>
@@ -43,7 +49,10 @@ const AdminSettings: React.FC = () => {
     return (
       <div className="p-6">
         <Card className="rounded-2xl shadow-sm border border-gray-200">
-          <CardContent className="pt-6">
+          <CardHeader>
+            <CardTitle>Admin Settings</CardTitle>
+          </CardHeader>
+          <CardContent>
             <p className="text-destructive">
               Error loading system settings. Please try again.
             </p>
@@ -54,20 +63,20 @@ const AdminSettings: React.FC = () => {
   }
 
   return (
-    <div>
-      <PageBanner title="System Settings" />
-      <div className="p-6 space-y-6">
-        <Card className="rounded-2xl shadow-sm border border-gray-200">
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground mb-6">
-              Configure global system settings for your organization including localization, 
-              branding, and operational preferences.
-            </p>
-          </CardContent>
-        </Card>
+    <div className="p-6 space-y-6">
+      <Card className="rounded-2xl shadow-sm border border-gray-200">
+        <CardHeader>
+          <CardTitle>Admin Settings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground mb-6">
+            Configure global system settings for your organization including localization, 
+            branding, and operational preferences.
+          </p>
+        </CardContent>
+      </Card>
 
-        <SystemSettingsForm settings={settings} />
-      </div>
+      <SystemSettingsForm settings={settings} />
     </div>
   );
 };
