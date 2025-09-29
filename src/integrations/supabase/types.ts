@@ -508,6 +508,39 @@ export type Database = {
         }
         Relationships: []
       }
+      comment_status_options: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          sort_order: number
+          status_color: string
+          status_name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          status_color?: string
+          status_name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          status_color?: string
+          status_name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       company_details: {
         Row: {
           company_description: string | null

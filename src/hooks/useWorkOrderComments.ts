@@ -3,6 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
 
+export interface CommentStatusOption {
+  id: string;
+  status_name: string;
+  status_color: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
 export interface WorkOrderComment {
   id: string;
   work_order_id: string;
@@ -11,6 +19,7 @@ export interface WorkOrderComment {
   comment_type: 'comment' | 'status_change' | 'assignment' | 'time_log';
   created_at: string;
   comment_status?: 'open' | 'closed' | null;
+  comment_status_name?: string | null;
   comment_time_created?: string | null;
   comment_time_worked?: string | null;
   comment_time_closed?: string | null;
@@ -21,6 +30,7 @@ export interface CreateCommentData {
   work_order_id: string;
   comment: string;
   comment_type: 'comment' | 'status_change' | 'assignment' | 'time_log';
+  comment_status_name?: string;
 }
 
 export const useWorkOrderComments = (workOrderId: string) => {
@@ -44,6 +54,26 @@ export const useWorkOrderComments = (workOrderId: string) => {
       return data as WorkOrderComment[];
     },
     enabled: !!workOrderId,
+  });
+};
+
+export const useCommentStatusOptions = () => {
+  return useQuery({
+    queryKey: ['comment-status-options'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('comment_status_options')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (error) {
+        console.error('Error fetching comment status options:', error);
+        throw error;
+      }
+
+      return data as CommentStatusOption[];
+    },
   });
 };
 

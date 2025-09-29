@@ -72,7 +72,7 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
     id: string; 
     workOrder: WorkOrder; 
   } | null>(null);
-  const [commentModalOpen, setCommentModalOpen] = useState<string | null>(null);
+  const [commentModalOpen, setCommentModalOpen] = useState<WorkOrder | null>(null);
   const { data: contractors = [] } = useCompanies('contractor');
   
   const isAdmin = userProfile?.role === 'admin';
@@ -86,9 +86,9 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
     setSelectedContractor(null);
   };
 
-  const handleCommentClick = (e: React.MouseEvent, workOrderId: string) => {
+  const handleCommentClick = (e: React.MouseEvent, workOrder: WorkOrder) => {
     e.stopPropagation();
-    setCommentModalOpen(workOrderId);
+    setCommentModalOpen(workOrder);
   };
 
   const handleCloseCommentModal = () => {
@@ -168,7 +168,7 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={(e) => handleCommentClick(e, workOrder.id)}
+                    onClick={(e) => handleCommentClick(e, workOrder)}
                     className="p-2 h-8 w-8"
                     title="Add comment"
                   >
@@ -259,7 +259,7 @@ export const WorkOrderList: React.FC<WorkOrderListProps> = ({
       
       {commentModalOpen && (
         <AddCommentModal
-          workOrderId={commentModalOpen}
+          workOrder={commentModalOpen}
           isOpen={!!commentModalOpen}
           onClose={handleCloseCommentModal}
         />
