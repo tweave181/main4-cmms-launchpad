@@ -15,6 +15,14 @@ export interface ProgramSettings {
   organization_name?: string;
   system_contact_email?: string;
   logo_url?: string;
+  email_provider?: string;
+  email_from_name?: string;
+  email_from_address?: string;
+  smtp_host?: string;
+  smtp_port?: number;
+  smtp_secure?: boolean;
+  smtp_username?: string;
+  email_signature?: string;
   created_at: string;
   updated_at: string;
 }
@@ -29,6 +37,14 @@ export interface ProgramSettingsFormData {
   organization_name?: string;
   system_contact_email?: string;
   logo_url?: string;
+  email_provider?: string;
+  email_from_name?: string;
+  email_from_address?: string;
+  smtp_host?: string;
+  smtp_port?: number;
+  smtp_secure?: boolean;
+  smtp_username?: string;
+  email_signature?: string;
 }
 
 export const useProgramSettings = () => {

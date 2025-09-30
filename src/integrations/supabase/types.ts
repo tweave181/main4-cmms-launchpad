@@ -723,6 +723,8 @@ export type Database = {
           created_at: string
           delivered_at: string
           delivery_method: string
+          delivery_status: string | null
+          email_delivery_log_id: string | null
           id: string
           reminder_date: string
           tenant_id: string
@@ -733,6 +735,8 @@ export type Database = {
           created_at?: string
           delivered_at?: string
           delivery_method: string
+          delivery_status?: string | null
+          email_delivery_log_id?: string | null
           id?: string
           reminder_date?: string
           tenant_id: string
@@ -743,6 +747,8 @@ export type Database = {
           created_at?: string
           delivered_at?: string
           delivery_method?: string
+          delivery_status?: string | null
+          email_delivery_log_id?: string | null
           id?: string
           reminder_date?: string
           tenant_id?: string
@@ -754,6 +760,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "service_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_reminders_log_email_delivery_log_id_fkey"
+            columns: ["email_delivery_log_id"]
+            isOneToOne: false
+            referencedRelation: "email_delivery_log"
             referencedColumns: ["id"]
           },
           {
@@ -852,6 +865,142 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "departments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_delivery_log: {
+        Row: {
+          clicked_at: string | null
+          created_at: string | null
+          delivered_at: string | null
+          delivery_status: string | null
+          error_message: string | null
+          id: string
+          opened_at: string | null
+          provider_response: Json | null
+          recipient_email: string
+          recipient_user_id: string | null
+          sent_at: string | null
+          subject: string
+          template_id: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_status?: string | null
+          error_message?: string | null
+          id?: string
+          opened_at?: string | null
+          provider_response?: Json | null
+          recipient_email: string
+          recipient_user_id?: string | null
+          sent_at?: string | null
+          subject: string
+          template_id?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_status?: string | null
+          error_message?: string | null
+          id?: string
+          opened_at?: string | null
+          provider_response?: Json | null
+          recipient_email?: string
+          recipient_user_id?: string | null
+          sent_at?: string | null
+          subject?: string
+          template_id?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_delivery_log_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_delivery_log_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_delivery_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          body_html: string
+          body_text: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          subject: string
+          template_name: string
+          template_type: string
+          tenant_id: string | null
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          body_html: string
+          body_text?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          subject: string
+          template_name: string
+          template_type: string
+          tenant_id?: string | null
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          body_html?: string
+          body_text?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          subject?: string
+          template_name?: string
+          template_type?: string
+          tenant_id?: string | null
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_templates_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1206,6 +1355,75 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          contract_reminder_days: number[] | null
+          contract_reminders_enabled: boolean | null
+          created_at: string | null
+          email_frequency: string | null
+          id: string
+          maintenance_notifications_enabled: boolean | null
+          security_alerts_enabled: boolean | null
+          setting_type: string
+          system_notifications_enabled: boolean | null
+          tenant_id: string | null
+          toast_duration: number | null
+          toast_notifications_enabled: boolean | null
+          toast_position: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          contract_reminder_days?: number[] | null
+          contract_reminders_enabled?: boolean | null
+          created_at?: string | null
+          email_frequency?: string | null
+          id?: string
+          maintenance_notifications_enabled?: boolean | null
+          security_alerts_enabled?: boolean | null
+          setting_type: string
+          system_notifications_enabled?: boolean | null
+          tenant_id?: string | null
+          toast_duration?: number | null
+          toast_notifications_enabled?: boolean | null
+          toast_position?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          contract_reminder_days?: number[] | null
+          contract_reminders_enabled?: boolean | null
+          created_at?: string | null
+          email_frequency?: string | null
+          id?: string
+          maintenance_notifications_enabled?: boolean | null
+          security_alerts_enabled?: boolean | null
+          setting_type?: string
+          system_notifications_enabled?: boolean | null
+          tenant_id?: string | null
+          toast_duration?: number | null
+          toast_notifications_enabled?: boolean | null
+          toast_position?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       part_asset_associations: {
         Row: {
           asset_id: string
@@ -1455,10 +1673,18 @@ export type Database = {
           currency: string | null
           date_format: string | null
           default_fiscal_year_start: string | null
+          email_from_address: string | null
+          email_from_name: string | null
+          email_provider: string | null
+          email_signature: string | null
           id: string
           language: string | null
           logo_url: string | null
           organization_name: string | null
+          smtp_host: string | null
+          smtp_port: number | null
+          smtp_secure: boolean | null
+          smtp_username: string | null
           system_contact_email: string | null
           tenant_id: string
           timezone: string | null
@@ -1470,10 +1696,18 @@ export type Database = {
           currency?: string | null
           date_format?: string | null
           default_fiscal_year_start?: string | null
+          email_from_address?: string | null
+          email_from_name?: string | null
+          email_provider?: string | null
+          email_signature?: string | null
           id?: string
           language?: string | null
           logo_url?: string | null
           organization_name?: string | null
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_secure?: boolean | null
+          smtp_username?: string | null
           system_contact_email?: string | null
           tenant_id: string
           timezone?: string | null
@@ -1485,10 +1719,18 @@ export type Database = {
           currency?: string | null
           date_format?: string | null
           default_fiscal_year_start?: string | null
+          email_from_address?: string | null
+          email_from_name?: string | null
+          email_provider?: string | null
+          email_signature?: string | null
           id?: string
           language?: string | null
           logo_url?: string | null
           organization_name?: string | null
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_secure?: boolean | null
+          smtp_username?: string | null
           system_contact_email?: string | null
           tenant_id?: string
           timezone?: string | null

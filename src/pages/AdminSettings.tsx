@@ -7,6 +7,7 @@ import { useProgramSettings } from '@/hooks/useProgramSettings';
 import { SystemSettingsForm } from '@/components/program-settings/SystemSettingsForm';
 import { CommentStatusManagement } from '@/components/admin/CommentStatusManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EmailNotificationsSettings } from '@/components/email-notifications/EmailNotificationsSettings';
 
 
 const AdminSettings: React.FC = () => {
@@ -81,11 +82,16 @@ const AdminSettings: React.FC = () => {
       <Tabs defaultValue="system" className="space-y-6">
         <TabsList>
           <TabsTrigger value="system">System Settings</TabsTrigger>
+          <TabsTrigger value="emails">Email & Notifications</TabsTrigger>
           <TabsTrigger value="comments">Comment Status</TabsTrigger>
         </TabsList>
         
         <TabsContent value="system">
           <SystemSettingsForm settings={settings} />
+        </TabsContent>
+        
+        <TabsContent value="emails">
+          <EmailNotificationsSettings />
         </TabsContent>
         
         <TabsContent value="comments">
