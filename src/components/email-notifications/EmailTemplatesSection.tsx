@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Plus, Loader2 } from 'lucide-react';
-import { useEmailTemplates } from '@/hooks/useEmailTemplates';
+import { useEmailTemplates, EmailTemplate } from '@/hooks/useEmailTemplates';
 import {
   Table,
   TableBody,
@@ -12,9 +12,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { EmailTemplateFormModal } from './EmailTemplateFormModal';
+import { EmailTemplatePreviewModal } from './EmailTemplatePreviewModal';
 
 export const EmailTemplatesSection: React.FC = () => {
   const { data: templates, isLoading } = useEmailTemplates();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | undefined>();
 
   const getTemplateTypeBadge = (type: string) => {
     const colors: Record<string, string> = {
@@ -40,7 +46,7 @@ export const EmailTemplatesSection: React.FC = () => {
             <FileText className="h-5 w-5" />
             <CardTitle>Email Templates</CardTitle>
           </div>
-          <Button>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Create Template
           </Button>
@@ -85,10 +91,24 @@ export const EmailTemplatesSection: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedTemplate(template);
+                          setIsEditModalOpen(true);
+                        }}
+                      >
                         Edit
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedTemplate(template);
+                          setIsPreviewModalOpen(true);
+                        }}
+                      >
                         Preview
                       </Button>
                     </div>
@@ -105,6 +125,29 @@ export const EmailTemplatesSection: React.FC = () => {
           </div>
         )}
       </CardContent>
+
+      <EmailTemplateFormModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      <EmailTemplateFormModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedTemplate(undefined);
+        }}
+        template={selectedTemplate}
+      />
+
+      <EmailTemplatePreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={() => {
+          setIsPreviewModalOpen(false);
+          setSelectedTemplate(undefined);
+        }}
+        template={selectedTemplate}
+      />
     </Card>
   );
 };
