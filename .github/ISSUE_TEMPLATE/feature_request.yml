@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest an idea for Main4
+labels: [enhancement]
+body:
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      placeholder: work-orders, assets, pm-schedules, inventory, vendors, auth
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / job-to-be-done
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal / acceptance criteria
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes / links
