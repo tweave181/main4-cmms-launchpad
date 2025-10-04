@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ hashFiles('**/package.json') != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ hashFiles('**/Dockerfile') != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build image
         run: |
           docker build -t main4-cmms:ci . || echo "No top-level Dockerfile"
