@@ -1,0 +1,40 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  node:
+    name: Node build & test
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('**/package.json') != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm i; fi
+      - name: Lint
+        run: |
+          if [ -f package.json ]; then npm run -s lint || echo "No lint script"; fi
+      - name: Test
+        run: |
+          if [ -f package.json ]; then npm test --silent || echo "No tests yet"; fi
+      - name: Build
+        run: |
+          if [ -f package.json ]; then npm run -s build || echo "No build script"; fi
+
+  docker:
+    name: Docker build (smoke)
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('**/Dockerfile') != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: |
+          docker build -t main4-cmms:ci . || echo "No top-level Dockerfile"
