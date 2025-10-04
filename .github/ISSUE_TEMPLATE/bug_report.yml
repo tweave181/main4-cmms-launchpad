@@ -1,0 +1,25 @@
+name: Bug report
+description: File a bug
+labels: [bug]
+body:
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      description: Which area? (web, api, infra)
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
