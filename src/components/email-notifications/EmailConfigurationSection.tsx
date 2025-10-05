@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useForm } from 'react-hook-form';
-import { Mail, TestTube } from 'lucide-react';
+import { Mail, TestTube, HelpCircle, Loader2 } from 'lucide-react';
 import { useProgramSettings, useUpdateProgramSettings } from '@/hooks/useProgramSettings';
-import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface EmailConfigFormData {
   email_provider: string;
@@ -55,7 +56,17 @@ export const EmailConfigurationSection: React.FC = () => {
 
   const onSubmit = (data: EmailConfigFormData) => {
     if (!settings?.id) return;
-    updateSettings.mutate({ id: settings.id, data });
+    updateSettings.mutate({ 
+      id: settings.id, 
+      data 
+    }, {
+      onSuccess: () => {
+        toast.success('Email configuration saved successfully');
+      },
+      onError: () => {
+        toast.error('Failed to save email configuration');
+      }
+    });
   };
 
   if (isLoading) {
@@ -80,102 +91,174 @@ export const EmailConfigurationSection: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email_provider">Email Service Provider</Label>
-              <Select
-                value={emailProvider}
-                onValueChange={(value) => setValue('email_provider', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="resend">Resend</SelectItem>
-                  <SelectItem value="sendgrid">SendGrid</SelectItem>
-                  <SelectItem value="smtp">Custom SMTP</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+        <TooltipProvider>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email_from_name">From Name</Label>
-                <Input
-                  id="email_from_name"
-                  {...register('email_from_name')}
-                  placeholder="System"
-                />
+                <Label htmlFor="email_provider" className="flex items-center gap-2">
+                  Email Service Provider
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Choose your email service provider. You'll need to set up an account and configure API keys in Supabase secrets (RESEND_API_KEY or SENDGRID_API_KEY).</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </Label>
+                <Select
+                  value={emailProvider}
+                  onValueChange={(value) => setValue('email_provider', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="resend">Resend</SelectItem>
+                    <SelectItem value="sendgrid">SendGrid</SelectItem>
+                    <SelectItem value="smtp">Custom SMTP</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email_from_address">From Email Address</Label>
-                <Input
-                  id="email_from_address"
-                  type="email"
-                  {...register('email_from_address')}
-                  placeholder="noreply@example.com"
-                />
-              </div>
-            </div>
-
-            {emailProvider === 'smtp' && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="smtp_host">SMTP Host</Label>
-                    <Input
-                      id="smtp_host"
-                      {...register('smtp_host')}
-                      placeholder="smtp.example.com"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="smtp_port">SMTP Port</Label>
-                    <Input
-                      id="smtp_port"
-                      type="number"
-                      {...register('smtp_port', { valueAsNumber: true })}
-                      placeholder="587"
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email_from_name" className="flex items-center gap-2">
+                    From Name
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>The display name that appears as the sender in recipients' inboxes (e.g., "MyCompany Maintenance" or "Facilities Team").</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <Input
+                    id="email_from_name"
+                    {...register('email_from_name')}
+                    placeholder="MyCompany Maintenance"
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="smtp_username">SMTP Username</Label>
+                  <Label htmlFor="email_from_address" className="flex items-center gap-2">
+                    From Email Address
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>The email address emails will be sent from. Must use a verified domain with your email provider (e.g., noreply@yourcompany.com).</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
                   <Input
-                    id="smtp_username"
-                    {...register('smtp_username')}
-                    placeholder="username@example.com"
+                    id="email_from_address"
+                    type="email"
+                    {...register('email_from_address')}
+                    placeholder="noreply@yourcompany.com"
                   />
                 </div>
-              </>
-            )}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email_signature">Email Signature</Label>
-              <Textarea
-                id="email_signature"
-                {...register('email_signature')}
-                placeholder="Best regards,&#10;Your Team"
-                rows={4}
-              />
+              {emailProvider === 'smtp' && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="smtp_host" className="flex items-center gap-2">
+                        SMTP Host
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>The SMTP server hostname (e.g., smtp.gmail.com or mail.yourcompany.com).</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </Label>
+                      <Input
+                        id="smtp_host"
+                        {...register('smtp_host')}
+                        placeholder="smtp.example.com"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="smtp_port" className="flex items-center gap-2">
+                        SMTP Port
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>The SMTP port number. Common ports: 587 (TLS), 465 (SSL), or 25 (unencrypted).</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </Label>
+                      <Input
+                        id="smtp_port"
+                        type="number"
+                        {...register('smtp_port', { valueAsNumber: true })}
+                        placeholder="587"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="smtp_username" className="flex items-center gap-2">
+                      SMTP Username
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>Your SMTP authentication username. Store the password securely in Supabase secrets as SMTP_PASSWORD.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <Input
+                      id="smtp_username"
+                      {...register('smtp_username')}
+                      placeholder="username@example.com"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email_signature" className="flex items-center gap-2">
+                  Email Signature
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>The closing text that appears at the end of all emails (e.g., "Best regards, The Maintenance Team").</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </Label>
+                <Textarea
+                  id="email_signature"
+                  {...register('email_signature')}
+                  placeholder="Best regards,&#10;The Maintenance Team"
+                  rows={4}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="flex gap-2">
-            <Button type="submit" disabled={updateSettings.isPending}>
-              {updateSettings.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Configuration
-            </Button>
-            <Button type="button" variant="outline">
-              <TestTube className="mr-2 h-4 w-4" />
-              Test Connection
-            </Button>
-          </div>
-        </form>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={updateSettings.isPending}>
+                {updateSettings.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Configuration
+              </Button>
+              <Button type="button" variant="outline">
+                <TestTube className="mr-2 h-4 w-4" />
+                Test Connection
+              </Button>
+            </div>
+          </form>
+        </TooltipProvider>
       </CardContent>
     </Card>
   );
