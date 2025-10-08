@@ -115,7 +115,7 @@ export const EmailConfigurationSection: React.FC = () => {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 max-w-2xl">
                 <div className="space-y-2">
                   <Label htmlFor="email_from_name" className="flex items-center gap-2">
                     From Name
@@ -148,7 +148,7 @@ export const EmailConfigurationSection: React.FC = () => {
               </div>
 
               {emailProvider === 'smtp' && <>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 max-w-2xl">
                     <div className="space-y-2">
                       <Label htmlFor="smtp_host" className="flex items-center gap-2">
                         SMTP Host
