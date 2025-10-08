@@ -2,15 +2,16 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReusableTabs, TabItem } from '@/components/ui/reusable-tabs';
-import { Users, UserCheck, Mail } from 'lucide-react';
+import { Users, UserCheck, Mail, Shield } from 'lucide-react';
 import { UserList } from '@/components/user-management/UserList';
 import { InvitationList } from '@/components/user-management/InvitationList';
 import { InviteUserDialog } from '@/components/user-management/InviteUserDialog';
+import { PermissionMatrix } from '@/components/permissions/PermissionMatrix';
 import { useAuth } from '@/contexts/auth';
 
 
 const UserManagement: React.FC = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSystemAdmin } = useAuth();
 
   if (!isAdmin) {
     return (
@@ -49,7 +50,13 @@ const UserManagement: React.FC = () => {
                 label: "Invitations",
                 icon: Mail,
                 content: <InvitationList />
-              }
+              },
+              ...(isSystemAdmin ? [{
+                value: "permissions",
+                label: "Permissions",
+                icon: Shield,
+                content: <PermissionMatrix />
+              }] : [])
             ]}
             defaultValue="users"
           />

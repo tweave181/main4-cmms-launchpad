@@ -2,11 +2,13 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { Phone } from 'lucide-react';
+import { Phone, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { UserRoleBadge } from './UserRoleBadge';
 import { UserEmploymentBadge } from './UserEmploymentBadge';
-
+import { UserPermissionsOverride } from '@/components/permissions/UserPermissionsOverride';
+import { useAuth } from '@/contexts/auth';
+import { Button } from '@/components/ui/button';
 import type { Database } from '@/integrations/supabase/types';
 
 type User = Database['public']['Tables']['users']['Row'] & {
@@ -27,23 +29,29 @@ export const UserTableRow: React.FC<UserTableRowProps> = ({
   isUpdating,
   onUserClick,
 }) => {
+  const { isSystemAdmin } = useAuth();
+  
   return (
-    <TableRow className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => onUserClick(user)}>
-      <TableCell className="font-medium">{user.name}</TableCell>
-      <TableCell>{user.email}</TableCell>
-      <TableCell>
+    <TableRow className="hover:bg-muted/50 transition-colors">
+      <TableCell className="font-medium cursor-pointer" onClick={() => onUserClick(user)}>
+        {user.name}
+      </TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
+        {user.email}
+      </TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         <UserRoleBadge role={user.role} />
       </TableCell>
-      <TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         <UserEmploymentBadge employmentStatus={user.employment_status || undefined} />
       </TableCell>
-      <TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         {user.departments?.name || 'No department'}
       </TableCell>
-      <TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         {user.job_titles?.title_name || 'No job title'}
       </TableCell>
-      <TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         {user.phone_number ? (
           <div className="flex items-center space-x-1">
             <Phone className="h-3 w-3 text-muted-foreground" />
@@ -53,19 +61,34 @@ export const UserTableRow: React.FC<UserTableRowProps> = ({
           <span className="text-muted-foreground text-sm">-</span>
         )}
       </TableCell>
-      <TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
           {user.status === 'active' ? 'Active' : 'Inactive'}
         </Badge>
       </TableCell>
-      <TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         {user.last_login 
           ? format(new Date(user.last_login), 'MMM d, yyyy')
           : 'Never'
         }
       </TableCell>
-      <TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         {format(new Date(user.created_at), 'MMM d, yyyy')}
+      </TableCell>
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2">
+          {isSystemAdmin && (
+            <UserPermissionsOverride
+              userId={user.id}
+              userName={user.name}
+              trigger={
+                <Button variant="ghost" size="sm">
+                  <Shield className="h-4 w-4" />
+                </Button>
+              }
+            />
+          )}
+        </div>
       </TableCell>
     </TableRow>
   );
