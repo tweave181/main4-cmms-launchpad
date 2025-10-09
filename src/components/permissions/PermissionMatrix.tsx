@@ -150,7 +150,7 @@ export const PermissionMatrix: React.FC = () => {
                 <Badge variant="outline" className="text-sm capitalize bg-orange-100">
                   {resource.replace(/_/g, " ")}
                 </Badge>
-                <div className="h-px w-32 bg-border" />
+                <div className="h-px w-24 bg-border" />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {permissions.map((perm) => (
