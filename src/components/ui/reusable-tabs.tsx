@@ -33,7 +33,7 @@ export const ReusableTabs: React.FC<ReusableTabsProps> = ({
       className={cn("w-full", className)}
     >
       <div className="mb-6">
-        <TabsList className="grid w-full grid-cols-3 h-12 bg-muted rounded-lg p-1">
+        <TabsList className="inline-flex h-12 bg-muted rounded-lg p-1 gap-1">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.value}
