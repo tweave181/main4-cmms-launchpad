@@ -1,7 +1,7 @@
-import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface TabItem {
   value: string;
@@ -18,22 +18,11 @@ interface ReusableTabsProps {
   onValueChange?: (value: string) => void;
 }
 
-export const ReusableTabs: React.FC<ReusableTabsProps> = ({
-  tabs,
-  defaultValue,
-  className,
-  value,
-  onValueChange,
-}) => {
+export const ReusableTabs: React.FC<ReusableTabsProps> = ({ tabs, defaultValue, className, value, onValueChange }) => {
   return (
-    <Tabs
-      defaultValue={defaultValue}
-      value={value}
-      onValueChange={onValueChange}
-      className={cn("w-full", className)}
-    >
+    <Tabs defaultValue={defaultValue} value={value} onValueChange={onValueChange} className={cn("w-full", className)}>
       <div className="mb-6">
-        <TabsList className="grid w-full grid-cols-3 h-12 bg-muted rounded-lg p-1">
+        <TabsList className="inline-flex h-12 bg-muted rounded-lg p-1 gap-1">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -46,7 +35,7 @@ export const ReusableTabs: React.FC<ReusableTabsProps> = ({
           ))}
         </TabsList>
       </div>
-      
+
       {tabs.map((tab) => (
         <TabsContent key={tab.value} value={tab.value} className="mt-0">
           {tab.content}
