@@ -156,8 +156,7 @@ export const PermissionMatrix: React.FC = () => {
                 {permissions.map((perm) => (
                   <div
                     key={perm.id}
-                    className="flex items-center space-x-2 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                  >
+                    className="flex items-center space-x-2 px-3 py-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                     <Checkbox
                       id={perm.id}
                       checked={selectedPermissions.has(perm.id)}
