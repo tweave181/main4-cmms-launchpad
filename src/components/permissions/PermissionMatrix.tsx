@@ -152,7 +152,7 @@ export const PermissionMatrix: React.FC = () => {
                 </Badge>
                 <div className="h-px w-24 bg-border" />
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                 {permissions.map((perm) => (
                   <div
                     key={perm.id}
