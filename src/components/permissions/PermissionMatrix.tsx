@@ -154,11 +154,11 @@ export const PermissionMatrix: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {permissions.map((perm) => (
-                  <div
-                    key={perm.id}
-                    className="flex items-center space-x-2 px-3 py-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                    <
-                    <Checkbox
+                <div
+                  key={perm.id}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                >
+                  <Checkbox
                       id={perm.id}
                       checked={selectedPermissions.has(perm.id)}
                       onCheckedChange={() => handlePermissionToggle(perm.id)}
