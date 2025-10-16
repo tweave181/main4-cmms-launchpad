@@ -42,6 +42,7 @@ import CategoryManager from "./pages/CategoryManager";
 import SparePartsCategoryManager from "./pages/SparePartsCategoryManager";
 import SystemAuditLog from "./pages/SystemAuditLog";
 import AdminSettings from "./pages/AdminSettings";
+import Preferences from "./pages/Preferences";
 import AddressCardTest from "./pages/AddressCardTest";
 import NotFound from "./pages/NotFound";
 
@@ -87,6 +88,7 @@ function App() {
                                <Route path="/admin/service-contracts/:id" element={<ServiceContractDetail />} />
                                <Route path="/system-audit-log" element={<SystemAuditLog />} />
                               <Route path="/settings" element={<AdminSettings />} />
+                              <Route path="/preferences" element={<Preferences />} />
                               
                               {/* New Preferences Routes */}
                               <Route path="/admin/preferences/company" element={<Companies />} />
