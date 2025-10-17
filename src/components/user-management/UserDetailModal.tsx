@@ -237,14 +237,21 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="email"
-                            disabled={!isEdit}
-                            className={!isEdit ? "border-none bg-transparent p-0" : ""}
-                          />
-                        </FormControl>
+                        {isEdit ? (
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              type="email"
+                            />
+                          </FormControl>
+                        ) : (
+                          <a 
+                            href={`mailto:${field.value}`}
+                            className="text-sm text-primary hover:underline block"
+                          >
+                            {field.value}
+                          </a>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
