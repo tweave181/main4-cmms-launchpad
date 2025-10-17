@@ -7,16 +7,7 @@ import { AssetDescriptionSection } from './AssetDescriptionSection';
 import { AssetRecordInfo } from './AssetRecordInfo';
 import { AssetDetailTabs } from './AssetDetailTabs';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import type { Database } from '@/integrations/supabase/types';
-type Asset = Database['public']['Tables']['assets']['Row'] & {
-  service_contract?: {
-    id: string;
-    contract_title: string;
-    vendor_name: string;
-    status: string;
-    end_date: string;
-  } | null;
-};
+import type { Asset } from './types';
 interface AssetDetailProps {
   asset: Asset;
   isOpen: boolean;

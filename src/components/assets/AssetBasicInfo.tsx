@@ -4,9 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hash, Package, MapPin, Building, Building2 } from 'lucide-react';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useCompanies } from '@/hooks/useCompanies';
-import type { Database } from '@/integrations/supabase/types';
-
-type Asset = Database['public']['Tables']['assets']['Row'];
+import type { Asset } from './types';
 
 interface AssetBasicInfoProps {
   asset: Asset;

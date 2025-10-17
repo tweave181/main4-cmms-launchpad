@@ -2,10 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
-import type { Database } from '@/integrations/supabase/types';
-
-type Asset = Database['public']['Tables']['assets']['Row'];
-type AssetInsert = Database['public']['Tables']['assets']['Insert'];
+import type { Asset, AssetInsert } from '@/components/assets/types';
 
 export const useAssetDuplication = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -79,6 +76,11 @@ export const useAssetDuplication = () => {
         status: originalAsset.status,
         priority: originalAsset.priority,
         notes: originalAsset.notes,
+        
+        // Copy hierarchy fields
+        parent_asset_id: originalAsset.parent_asset_id,
+        asset_type: originalAsset.asset_type,
+        asset_level: originalAsset.asset_level,
 
         // Generate new asset tag
         asset_tag: newAssetTag,
@@ -88,7 +90,6 @@ export const useAssetDuplication = () => {
 
         // Conditionally handle service contract
         service_contract_id: keepServiceContract ? originalAsset.service_contract_id : null,
-        id_service_contracts: keepServiceContract ? originalAsset.id_service_contracts : null,
 
         // Set required fields
         tenant_id: userProfile.tenant_id,
@@ -107,12 +108,19 @@ export const useAssetDuplication = () => {
         throw error;
       }
 
+      // Transform the result to match Asset type
+      const typedNewAsset: Asset = {
+        ...newAsset,
+        asset_level: newAsset.asset_level as 1 | 2 | 3,
+        asset_type: newAsset.asset_type as 'unit' | 'component' | 'consumable'
+      };
+
       toast({
         title: "Success",
         description: `Asset duplicated successfully. New asset tag: ${newAssetTag}`,
       });
 
-      return newAsset;
+      return typedNewAsset;
 
     } catch (error) {
       console.error('Error duplicating asset:', error);

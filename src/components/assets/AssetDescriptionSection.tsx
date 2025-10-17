@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Database } from '@/integrations/supabase/types';
-type Asset = Database['public']['Tables']['assets']['Row'];
+import type { Asset } from './types';
 interface AssetDescriptionSectionProps {
   asset: Asset;
 }

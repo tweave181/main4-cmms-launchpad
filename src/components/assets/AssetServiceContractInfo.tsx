@@ -10,17 +10,7 @@ import { ContractDetailModal } from '@/components/contracts/ContractDetailModal'
 import { ServiceContractSelectorModal } from '@/components/contracts/ServiceContractSelectorModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import type { Database } from '@/integrations/supabase/types';
-
-type Asset = Database['public']['Tables']['assets']['Row'] & {
-  service_contract?: {
-    id: string;
-    contract_title: string;
-    vendor_name: string;
-    status: string;
-    end_date: string;
-  } | null;
-};
+import type { Asset } from './types';
 
 interface AssetServiceContractInfoProps {
   asset: Asset;

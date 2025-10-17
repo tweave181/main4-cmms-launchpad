@@ -21,10 +21,16 @@ export interface Asset {
   priority: 'low' | 'medium' | 'high' | 'critical';
   notes?: string;
   service_contract_id?: string;
+  parent_asset_id?: string | null;
+  asset_level: 1 | 2 | 3;
+  asset_type: 'unit' | 'component' | 'consumable';
   created_at: string;
   updated_at: string;
   created_by?: string;
   updated_by?: string;
+  // Joined/computed fields
+  children?: Asset[];
+  parent?: { id: string; name: string; asset_tag?: string } | null;
 }
 
 export interface AssetFormData {
@@ -44,6 +50,8 @@ export interface AssetFormData {
   priority: 'low' | 'medium' | 'high' | 'critical';
   notes?: string;
   service_contract_id?: string;
+  parent_asset_id?: string;
+  asset_type: 'unit' | 'component' | 'consumable';
 }
 
 export interface AssetInsert {
@@ -64,6 +72,9 @@ export interface AssetInsert {
   priority: 'low' | 'medium' | 'high' | 'critical';
   notes?: string | null;
   service_contract_id?: string | null;
+  parent_asset_id?: string | null;
+  asset_level: 1 | 2 | 3;
+  asset_type: 'unit' | 'component' | 'consumable';
   tenant_id: string;
   created_by?: string;
   updated_by?: string;
@@ -86,4 +97,6 @@ export const assetSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   notes: z.string().optional(),
   service_contract_id: z.string().optional(),
+  parent_asset_id: z.string().optional(),
+  asset_type: z.enum(['unit', 'component', 'consumable']),
 });

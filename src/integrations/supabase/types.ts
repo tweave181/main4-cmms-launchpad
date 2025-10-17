@@ -324,7 +324,9 @@ export type Database = {
       }
       assets: {
         Row: {
+          asset_level: number | null
           asset_tag: string | null
+          asset_type: string | null
           category: string | null
           created_at: string
           created_by: string | null
@@ -339,6 +341,7 @@ export type Database = {
           model: string | null
           name: string
           notes: string | null
+          parent_asset_id: string | null
           priority: Database["public"]["Enums"]["asset_priority"]
           purchase_cost: number | null
           purchase_date: string | null
@@ -351,7 +354,9 @@ export type Database = {
           warranty_expiry: string | null
         }
         Insert: {
+          asset_level?: number | null
           asset_tag?: string | null
+          asset_type?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -366,6 +371,7 @@ export type Database = {
           model?: string | null
           name: string
           notes?: string | null
+          parent_asset_id?: string | null
           priority?: Database["public"]["Enums"]["asset_priority"]
           purchase_cost?: number | null
           purchase_date?: string | null
@@ -378,7 +384,9 @@ export type Database = {
           warranty_expiry?: string | null
         }
         Update: {
+          asset_level?: number | null
           asset_tag?: string | null
+          asset_type?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -393,6 +401,7 @@ export type Database = {
           model?: string | null
           name?: string
           notes?: string | null
+          parent_asset_id?: string | null
           priority?: Database["public"]["Enums"]["asset_priority"]
           purchase_cost?: number | null
           purchase_date?: string | null
@@ -424,6 +433,13 @@ export type Database = {
             columns: ["manufacturer_company_id"]
             isOneToOne: false
             referencedRelation: "company_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_parent_asset_id_fkey"
+            columns: ["parent_asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
             referencedColumns: ["id"]
           },
           {
@@ -2336,7 +2352,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      asset_hierarchy: {
+        Row: {
+          asset_level: number | null
+          asset_type: string | null
+          depth: number | null
+          full_path: string | null
+          id: string | null
+          name: string | null
+          parent_asset_id: string | null
+          path: string[] | null
+          tenant_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_invitation: {

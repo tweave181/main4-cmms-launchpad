@@ -3,9 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/components/ui/use-toast';
-import type { Database } from '@/integrations/supabase/types';
-
-type Asset = Database['public']['Tables']['assets']['Row'];
+import type { Asset } from '@/components/assets/types';
 
 export const useAssets = () => {
   const { userProfile } = useAuth();
@@ -21,7 +19,9 @@ export const useAssets = () => {
             department:departments(name),
             location:locations(name, location_code),
             manufacturer_company:company_details(company_name),
-            service_contract:service_contracts(id, contract_title, vendor_name, status, end_date)
+            service_contract:service_contracts(id, contract_title, vendor_name, status, end_date),
+            parent:assets!parent_asset_id(id, name, asset_tag),
+            children:assets!parent_asset_id(id, name, asset_tag, asset_type, asset_level)
           `)
           .order('created_at', { ascending: false });
 
@@ -41,7 +41,14 @@ export const useAssets = () => {
           }
           throw error;
         }
-        return data as Asset[];
+        
+        // Transform database result to Asset type
+        return (data || []).map((asset: any) => ({
+          ...asset,
+          asset_level: asset.asset_level as 1 | 2 | 3,
+          asset_type: asset.asset_type as 'unit' | 'component' | 'consumable',
+          children: Array.isArray(asset.children) ? asset.children : (asset.children ? [asset.children] : [])
+        })) as Asset[];
       } catch (err: any) {
         throw err;
       }

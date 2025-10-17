@@ -1,9 +1,7 @@
 
 import React from 'react';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
-import type { Database } from '@/integrations/supabase/types';
-
-type Asset = Database['public']['Tables']['assets']['Row'];
+import type { Asset } from './types';
 
 interface AssetRecordInfoProps {
   asset: Asset;

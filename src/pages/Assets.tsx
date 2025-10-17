@@ -14,9 +14,8 @@ import { AssetEmptyState } from './assets/components/AssetEmptyState';
 import { MobileActionButtons } from '@/components/mobile/MobileActionButtons';
 import { useOfflineAssets } from '@/hooks/useOfflineAssets';
 import { useDepartments } from '@/hooks/useDepartments';
-import type { Database } from '@/integrations/supabase/types';
+import type { Asset } from '@/components/assets/types';
 
-type Asset = Database['public']['Tables']['assets']['Row'];
 type SortConfig = {
   column: 'name' | 'asset_tag' | 'department';
   direction: 'asc' | 'desc';

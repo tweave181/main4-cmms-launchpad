@@ -4,9 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DollarSign, Calendar, ChevronDown } from 'lucide-react';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
-import type { Database } from '@/integrations/supabase/types';
-
-type Asset = Database['public']['Tables']['assets']['Row'];
+import type { Asset } from './types';
 
 interface AssetFinancialInfoProps {
   asset: Asset;

@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Copy } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
-import type { Database } from '@/integrations/supabase/types';
-
-type Asset = Database['public']['Tables']['assets']['Row'];
+import type { Asset } from './types';
 
 interface AssetDetailHeaderProps {
   asset: Asset;

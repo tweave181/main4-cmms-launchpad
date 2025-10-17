@@ -7,6 +7,13 @@ export const transformFormDataToAsset = (
   userProfile: UserProfile,
   isEditing: boolean = false
 ): AssetInsert => {
+  // Determine asset level from type
+  const assetLevelMap: Record<'unit' | 'component' | 'consumable', 1 | 2 | 3> = {
+    unit: 1,
+    component: 2,
+    consumable: 3
+  };
+
   const assetData: AssetInsert = {
     name: data.name.trim(),
     description: data.description?.trim() || null,
@@ -25,6 +32,9 @@ export const transformFormDataToAsset = (
     priority: data.priority || 'medium',
     notes: data.notes?.trim() || null,
     service_contract_id: data.service_contract_id?.trim() || null,
+    parent_asset_id: data.parent_asset_id || null,
+    asset_type: data.asset_type,
+    asset_level: assetLevelMap[data.asset_type],
     tenant_id: userProfile.tenant_id,
   };
 

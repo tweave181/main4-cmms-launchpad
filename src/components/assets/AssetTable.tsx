@@ -3,9 +3,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { useDepartments } from '@/hooks/useDepartments';
-import type { Database } from '@/integrations/supabase/types';
+import type { Asset } from '@/components/assets/types';
 
-type Asset = Database['public']['Tables']['assets']['Row'];
 type SortConfig = {
   column: 'name' | 'asset_tag' | 'department';
   direction: 'asc' | 'desc';

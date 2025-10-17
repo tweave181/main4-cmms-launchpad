@@ -36,6 +36,8 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
       priority: asset?.priority || 'medium',
       notes: asset?.notes || '',
       service_contract_id: asset?.service_contract_id || '',
+      parent_asset_id: asset?.parent_asset_id || '',
+      asset_type: asset?.asset_type || 'unit',
     },
   });
 

@@ -113,7 +113,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <AssetBasicFields control={form.control} />
+                  <AssetBasicFields control={form.control} currentAssetId={asset?.id} />
                   <AssetTechnicalFields 
                     control={form.control}
                   />
