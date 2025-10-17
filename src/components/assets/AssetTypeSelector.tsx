@@ -24,7 +24,6 @@ export const AssetTypeSelector: React.FC<AssetTypeSelectorProps> = ({
           <Select 
             onValueChange={field.onChange} 
             value={field.value}
-            disabled={isEditing} // Don't allow changing type after creation
           >
             <FormControl>
               <SelectTrigger>
@@ -68,8 +67,8 @@ export const AssetTypeSelector: React.FC<AssetTypeSelectorProps> = ({
             </SelectContent>
           </Select>
           {isEditing && (
-            <FormDescription>
-              Asset type cannot be changed after creation
+            <FormDescription className="text-amber-600">
+              ⚠️ Changing asset type will update its hierarchy level. Ensure this asset has no child assets before changing.
             </FormDescription>
           )}
           <FormMessage />

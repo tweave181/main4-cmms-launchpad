@@ -54,3 +54,23 @@ export const validateAssetForEditing = (asset: any): boolean => {
 
   return true;
 };
+
+export const validateAssetTypeChange = (asset: any, newType: string): boolean => {
+  // Check if asset has children
+  if (asset?.children && asset.children.length > 0) {
+    console.error('Cannot change asset type: asset has children:', asset);
+    toast({
+      title: "Cannot Change Type",
+      description: `This asset has ${asset.children.length} child asset(s). Remove child assets before changing type.`,
+      variant: "destructive",
+    });
+    return false;
+  }
+
+  // If changing from the current type, log the change
+  if (asset?.asset_type !== newType) {
+    console.log(`Asset type changing from ${asset.asset_type} to ${newType}`);
+  }
+
+  return true;
+};

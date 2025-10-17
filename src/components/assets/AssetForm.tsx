@@ -36,7 +36,20 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   onSuccess,
 }) => {
   const { userProfile, loading } = useAuth();
-  const { form, onSubmit, isEditing } = useAssetForm({ asset, onSuccess });
+  const { 
+    form, 
+    onSubmit, 
+    isEditing,
+    showTypeChangeConfirm,
+    confirmTypeChange,
+    cancelTypeChange 
+  } = useAssetForm({ 
+    asset, 
+    onSuccess: () => {
+      onClose();
+      onSuccess();
+    }
+  });
   const dropdownData = useAssetDropdownData();
   const { showConfirmation, handleCancel, handleConfirmCancel, handleGoBack } = useFormDialog({
     onClose,
@@ -147,6 +160,17 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         description="All unsaved changes will be lost."
         confirmText="Yes, Cancel"
         cancelText="Go Back"
+      />
+
+      <ConfirmationDialog
+        isOpen={showTypeChangeConfirm}
+        onClose={cancelTypeChange}
+        onConfirm={confirmTypeChange}
+        title="Confirm Asset Type Change"
+        description="Changing the asset type will update its hierarchy level. This may affect how the asset appears in the asset tree. Are you sure you want to continue?"
+        confirmText="Change Type"
+        cancelText="Cancel"
+        variant="default"
       />
     </>
   );

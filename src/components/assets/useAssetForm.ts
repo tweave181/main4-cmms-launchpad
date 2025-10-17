@@ -3,10 +3,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/auth';
 import { assetSchema, type Asset, type AssetFormData } from './types';
-import { validateUserProfile, validateFormData, validateAssetForEditing } from './utils/validation';
+import { validateUserProfile, validateFormData, validateAssetForEditing, validateAssetTypeChange } from './utils/validation';
 import { transformFormDataToAsset } from './utils/dataTransform';
 import { logError, showErrorToast } from './utils/errorHandling';
 import { createAsset, updateAsset } from './utils/databaseOperations';
+import { useState } from 'react';
 
 interface UseAssetFormProps {
   asset?: Asset | null;
@@ -16,6 +17,8 @@ interface UseAssetFormProps {
 export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
   const { userProfile } = useAuth();
   const isEditing = !!asset;
+  const [showTypeChangeConfirm, setShowTypeChangeConfirm] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<AssetFormData | null>(null);
 
   const form = useForm<AssetFormData>({
     resolver: zodResolver(assetSchema),
@@ -41,9 +44,21 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
     },
   });
 
-  const onSubmit = async (data: AssetFormData) => {
+  const confirmTypeChange = async () => {
+    if (!pendingFormData) return;
+    
+    setShowTypeChangeConfirm(false);
+    await processSubmit(pendingFormData);
+    setPendingFormData(null);
+  };
+
+  const cancelTypeChange = () => {
+    setShowTypeChangeConfirm(false);
+    setPendingFormData(null);
+  };
+
+  const processSubmit = async (data: AssetFormData) => {
     try {
-      // Log the full asset input for debugging
       console.log('Asset form submission started:', {
         formData: data,
         userProfile: userProfile,
@@ -86,9 +101,30 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
     }
   };
 
+  const onSubmit = async (data: AssetFormData) => {
+    // Check if asset type is changing on an existing asset
+    if (isEditing && asset && data.asset_type !== asset.asset_type) {
+      // Validate the type change
+      if (!validateAssetTypeChange(asset, data.asset_type)) {
+        return;
+      }
+      
+      // Show confirmation dialog
+      setPendingFormData(data);
+      setShowTypeChangeConfirm(true);
+      return;
+    }
+
+    // If not changing type or creating new, process immediately
+    await processSubmit(data);
+  };
+
   return {
     form,
     onSubmit,
     isEditing,
+    showTypeChangeConfirm,
+    confirmTypeChange,
+    cancelTypeChange,
   };
 };
