@@ -19,7 +19,7 @@ export const useAssets = () => {
             department:departments(name),
             location:locations(name, location_code),
             manufacturer_company:company_details(company_name),
-            service_contract:service_contracts(id, contract_title, vendor_name, status, end_date),
+            service_contract:service_contracts(id, contract_title, vendor_name, status, start_date, end_date),
             parent:assets!parent_asset_id(id, name, asset_tag),
             children:assets!parent_asset_id(id, name, asset_tag, asset_type, asset_level)
           `)

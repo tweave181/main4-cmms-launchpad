@@ -80,7 +80,7 @@ export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> =
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {asset.service_contract ? (
+          {asset.service_contract_id && asset.service_contract ? (
             <div className="space-y-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
@@ -173,7 +173,7 @@ export const AssetServiceContractInfo: React.FC<AssetServiceContractInfoProps> =
         </CardContent>
       </Card>
 
-      {asset.service_contract && (
+      {asset.service_contract_id && asset.service_contract && (
         <ContractDetailModal
           isOpen={isContractModalOpen}
           onClose={() => setIsContractModalOpen(false)}

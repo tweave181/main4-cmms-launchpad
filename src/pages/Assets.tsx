@@ -10,8 +10,11 @@ import { DuplicateAssetDialog } from '@/components/assets/DuplicateAssetDialog';
 import { useAssetDuplication } from '@/hooks/useAssetDuplication';
 import { AssetSearchAndFilters } from './assets/components/AssetSearchAndFilters';
 import { AssetTable } from '@/components/assets/AssetTable';
+import { AssetTreeView } from '@/components/assets/AssetTreeView';
 import { AssetEmptyState } from './assets/components/AssetEmptyState';
 import { MobileActionButtons } from '@/components/mobile/MobileActionButtons';
+import { Button as ToggleButton } from '@/components/ui/button';
+import { List, Network } from 'lucide-react';
 import { useOfflineAssets } from '@/hooks/useOfflineAssets';
 import { useDepartments } from '@/hooks/useDepartments';
 import type { Asset } from '@/components/assets/types';
@@ -31,6 +34,7 @@ const Assets: React.FC = () => {
   const [duplicatingAsset, setDuplicatingAsset] = useState<Asset | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+  const [viewMode, setViewMode] = useState<'flat' | 'tree'>('flat');
   
   const {
     assets,
@@ -190,14 +194,41 @@ const Assets: React.FC = () => {
             </div>
           </CardHeader>
         <CardContent>
-          <AssetSearchAndFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+          <div className="flex items-center justify-between mb-4">
+            <AssetSearchAndFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+            
+            <div className="flex gap-2 ml-4">
+              <ToggleButton
+                variant={viewMode === 'flat' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('flat')}
+              >
+                <List className="h-4 w-4 mr-1" />
+                Flat
+              </ToggleButton>
+              <ToggleButton
+                variant={viewMode === 'tree' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('tree')}
+              >
+                <Network className="h-4 w-4 mr-1" />
+                Tree
+              </ToggleButton>
+            </div>
+          </div>
 
           {/* Mobile QR scanning for assets */}
           <div className="md:hidden mb-4">
             <MobileActionButtons onQRScanned={handleQRScanned} showCamera={false} showVoice={false} showQR={true} />
           </div>
 
-          {sortedAssets.length === 0 ? <AssetEmptyState searchTerm={searchTerm} onCreateAsset={handleCreateAsset} /> : <AssetTable assets={sortedAssets} onViewAsset={handleViewAsset} onEditAsset={handleEditAsset} onDeleteAsset={deleteAsset} onDuplicateAsset={handleDuplicateAsset} sortConfig={sortConfig} onSort={handleSort} />}
+          {sortedAssets.length === 0 ? (
+            <AssetEmptyState searchTerm={searchTerm} onCreateAsset={handleCreateAsset} />
+          ) : viewMode === 'tree' ? (
+            <AssetTreeView assets={sortedAssets} onViewAsset={handleViewAsset} />
+          ) : (
+            <AssetTable assets={sortedAssets} onViewAsset={handleViewAsset} onEditAsset={handleEditAsset} onDeleteAsset={deleteAsset} onDuplicateAsset={handleDuplicateAsset} sortConfig={sortConfig} onSort={handleSort} />
+          )}
         </CardContent>
       </Card>
 

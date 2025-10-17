@@ -6,6 +6,7 @@ import { AssetFinancialInfo } from './AssetFinancialInfo';
 import { AssetDescriptionSection } from './AssetDescriptionSection';
 import { AssetRecordInfo } from './AssetRecordInfo';
 import { AssetDetailTabs } from './AssetDetailTabs';
+import { AssetBreadcrumb } from './AssetBreadcrumb';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import type { Asset } from './types';
 interface AssetDetailProps {
@@ -32,6 +33,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
         <AssetDetailHeader asset={asset} onEdit={onEdit} onDelete={onDelete} onDuplicate={onDuplicate} />
 
         <div className="space-y-6">
+          <AssetBreadcrumb asset={asset} />
           <AssetBasicInfo asset={asset} />
           <AssetDescriptionSection asset={asset} />
           <AssetFinancialInfo asset={asset} />

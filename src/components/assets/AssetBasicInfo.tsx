@@ -15,7 +15,7 @@ const { departments } = useDepartments();
 const department = departments.find(d => d.id === asset.department_id);
 const { data: companies = [] } = useCompanies();
 const manufacturerCompany = companies.find(c => c.id === (asset as any).manufacturer_company_id);
-
+ 
   return (
     <Card className="rounded-2xl">
       <CardHeader>
@@ -25,6 +25,22 @@ const manufacturerCompany = companies.find(c => c.id === (asset as any).manufact
         </CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {asset.parent && (
+          <div className="flex items-center space-x-2 md:col-span-2 p-3 bg-muted/50 rounded-lg">
+            <Building2 className="h-4 w-4 text-primary" />
+            <div>
+              <p className="text-sm font-medium">Parent Asset</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">{asset.parent.name}</p>
+                {asset.parent.asset_tag && (
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-mono">
+                    {asset.parent.asset_tag}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         {asset.asset_tag && (
           <div className="flex items-center space-x-2">
             <Hash className="h-4 w-4 text-gray-500" />

@@ -3,6 +3,7 @@ import { AssetServiceContractInfo } from './AssetServiceContractInfo';
 import { AssetWorkOrders } from './AssetWorkOrders';
 import { AssetMaintenanceTab } from './AssetMaintenanceTab';
 import { AssetSparePartsList } from './AssetSparePartsList';
+import { AssetChildrenList } from './AssetChildrenList';
 import type { Asset } from './types';
 
 interface AssetDetailTabsProps {
@@ -17,7 +18,11 @@ export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({ asset, onUpdat
     { id: 'service-contract', label: 'Service Contract' },
     { id: 'work-orders', label: 'Work Orders' },
     { id: 'maintenance', label: 'Maintenance' },
-    { id: 'spare-parts', label: 'Spare Parts List' }
+    { id: 'spare-parts', label: 'Spare Parts List' },
+    ...(asset.asset_type !== 'consumable' ? [{ 
+      id: 'children', 
+      label: asset.asset_type === 'unit' ? 'Components' : 'Consumables' 
+    }] : []),
   ];
 
   const renderTabContent = () => {
@@ -30,6 +35,15 @@ export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({ asset, onUpdat
         return <AssetMaintenanceTab assetId={asset.id} />;
       case 'spare-parts':
         return <AssetSparePartsList assetId={asset.id} />;
+      case 'children':
+        return (
+          <AssetChildrenList
+            asset={asset}
+            onViewChild={(child) => console.log('View child:', child)}
+            onEditChild={(child) => console.log('Edit child:', child)}
+            onAddChild={(parentId, childType) => console.log('Add child:', parentId, childType)}
+          />
+        );
       default:
         return null;
     }
