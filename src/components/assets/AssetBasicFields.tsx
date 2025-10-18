@@ -36,6 +36,11 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control, cur
     name: 'asset_type',
   });
 
+  const parentAssetValue = useWatch({
+    control,
+    name: 'parent_asset_id',
+  });
+
   const categoryValue = useWatch({
     control,
     name: 'category',
@@ -75,12 +80,17 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control, cur
 
   return (
     <>
-      <AssetTypeSelector control={control} isEditing={!!currentAssetId} />
+      <AssetTypeSelector 
+        control={control} 
+        isEditing={!!currentAssetId}
+        disabled={!!parentAssetValue}
+      />
       <AssetParentSelector 
         control={control} 
         assetType={assetTypeValue || 'unit'} 
         allAssets={assets}
         currentAssetId={currentAssetId}
+        disabled={!!parentAssetValue}
       />
       <AssetNameField control={control} />
       <AssetTagField control={control} onTagSelect={handleTagSelect} />

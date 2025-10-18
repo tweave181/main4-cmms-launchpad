@@ -118,7 +118,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         <FormDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <FormDialogHeader>
             <FormDialogTitle>
-              {isEditing ? 'Edit Asset' : 'Create New Asset'}
+              {isEditing ? 'Edit Asset' : asset?.parent_asset_id ? `Create New ${asset.asset_type === 'component' ? 'Component' : 'Consumable'}` : 'Create New Asset'}
             </FormDialogTitle>
           </FormDialogHeader>
 

@@ -10,13 +10,15 @@ interface AssetParentSelectorProps {
   assetType: 'unit' | 'component' | 'consumable';
   allAssets: Asset[];
   currentAssetId?: string;
+  disabled?: boolean;
 }
 
 export const AssetParentSelector: React.FC<AssetParentSelectorProps> = ({
   control,
   assetType,
   allAssets,
-  currentAssetId
+  currentAssetId,
+  disabled = false
 }) => {
   const availableParents = getAvailableParents(assetType, allAssets, currentAssetId);
 
@@ -34,7 +36,7 @@ export const AssetParentSelector: React.FC<AssetParentSelectorProps> = ({
       render={({ field }) => (
         <FormItem>
           <FormLabel>{parentLabel} *</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value || ''}>
+          <Select onValueChange={field.onChange} value={field.value || ''} disabled={disabled}>
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder={`Select ${parentLabel.toLowerCase()}...`} />

@@ -8,11 +8,13 @@ import { Building2, Settings, Package } from 'lucide-react';
 interface AssetTypeSelectorProps {
   control: Control<AssetFormData>;
   isEditing?: boolean;
+  disabled?: boolean;
 }
 
 export const AssetTypeSelector: React.FC<AssetTypeSelectorProps> = ({
   control,
-  isEditing = false
+  isEditing = false,
+  disabled = false
 }) => {
   return (
     <FormField
@@ -24,6 +26,7 @@ export const AssetTypeSelector: React.FC<AssetTypeSelectorProps> = ({
           <Select 
             onValueChange={field.onChange} 
             value={field.value}
+            disabled={disabled}
           >
             <FormControl>
               <SelectTrigger>
