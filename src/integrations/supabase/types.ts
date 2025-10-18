@@ -1031,6 +1031,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          inventory_type: Database["public"]["Enums"]["inventory_type"]
           linked_asset_type: string | null
           name: string
           quantity_in_stock: number
@@ -1049,6 +1050,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          inventory_type?: Database["public"]["Enums"]["inventory_type"]
           linked_asset_type?: string | null
           name: string
           quantity_in_stock?: number
@@ -1067,6 +1069,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          inventory_type?: Database["public"]["Enums"]["inventory_type"]
           linked_asset_type?: string | null
           name?: string
           quantity_in_stock?: number
@@ -2463,6 +2466,12 @@ export type Database = {
       comment_status: "open" | "closed"
       contract_status: "Active" | "Expired" | "Terminated" | "Pending Review"
       employment_status: "Full Time" | "Part Time" | "Bank Staff" | "Contractor"
+      inventory_type:
+        | "spare_parts"
+        | "consumables"
+        | "tools"
+        | "supplies"
+        | "materials"
       part_unit:
         | "pieces"
         | "kg"
@@ -2613,6 +2622,13 @@ export const Constants = {
       comment_status: ["open", "closed"],
       contract_status: ["Active", "Expired", "Terminated", "Pending Review"],
       employment_status: ["Full Time", "Part Time", "Bank Staff", "Contractor"],
+      inventory_type: [
+        "spare_parts",
+        "consumables",
+        "tools",
+        "supplies",
+        "materials",
+      ],
       part_unit: [
         "pieces",
         "kg",

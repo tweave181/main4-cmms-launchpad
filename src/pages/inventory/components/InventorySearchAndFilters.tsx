@@ -8,6 +8,8 @@ interface InventorySearchAndFiltersProps {
   onSearchChange: (value: string) => void;
   categoryFilter: string;
   onCategoryFilterChange: (value: string) => void;
+  inventoryTypeFilter: string;
+  onInventoryTypeFilterChange: (value: string) => void;
   stockFilter: string;
   onStockFilterChange: (value: string) => void;
   onCreatePart: () => void;
@@ -18,6 +20,8 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
   onSearchChange,
   categoryFilter,
   onCategoryFilterChange,
+  inventoryTypeFilter,
+  onInventoryTypeFilterChange,
   stockFilter,
   onStockFilterChange,
   onCreatePart,
@@ -38,6 +42,20 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
         </div>
         
         <div className="flex gap-4">
+          <Select value={inventoryTypeFilter} onValueChange={onInventoryTypeFilterChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Inventory Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="spare_parts">Spare Parts</SelectItem>
+              <SelectItem value="consumables">Consumables</SelectItem>
+              <SelectItem value="tools">Tools</SelectItem>
+              <SelectItem value="supplies">Supplies</SelectItem>
+              <SelectItem value="materials">Materials</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by Category" />

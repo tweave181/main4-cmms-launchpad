@@ -287,6 +287,16 @@ const InventoryPartDetail: React.FC = () => {
                           <span>{part.spare_parts_category?.name || 'Uncategorized'}</span>
                         </div>
                       )}
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Inventory Type:</span>
+                        <span>
+                          {(part as any).inventory_type === 'spare_parts' && 'Spare Parts'}
+                          {(part as any).inventory_type === 'consumables' && 'Consumables'}
+                          {(part as any).inventory_type === 'tools' && 'Tools'}
+                          {(part as any).inventory_type === 'supplies' && 'Supplies'}
+                          {(part as any).inventory_type === 'materials' && 'Materials'}
+                        </span>
+                      </div>
                       {part.linked_asset_type && (
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Asset Type:</span>

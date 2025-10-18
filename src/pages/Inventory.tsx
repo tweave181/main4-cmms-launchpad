@@ -15,6 +15,7 @@ const Inventory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
+  const [inventoryTypeFilter, setInventoryTypeFilter] = useState('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const {
@@ -46,6 +47,9 @@ const Inventory: React.FC = () => {
       // Category filter
       const matchesCategory = categoryFilter === 'all' || part.category === categoryFilter;
 
+      // Inventory type filter
+      const matchesInventoryType = inventoryTypeFilter === 'all' || (part as any).inventory_type === inventoryTypeFilter;
+
       // Stock filter
       let matchesStock = true;
       if (stockFilter === 'low') {
@@ -56,9 +60,9 @@ const Inventory: React.FC = () => {
         matchesStock = part.quantity_in_stock > part.reorder_threshold;
       }
 
-      return matchesSearch && matchesCategory && matchesStock;
+      return matchesSearch && matchesCategory && matchesInventoryType && matchesStock;
     });
-  }, [parts, searchTerm, categoryFilter, stockFilter]);
+  }, [parts, searchTerm, categoryFilter, inventoryTypeFilter, stockFilter]);
 
   const handleViewPart = (part: InventoryPart) => {
     console.log('View part:', part);
@@ -103,6 +107,8 @@ const Inventory: React.FC = () => {
             onSearchChange={setSearchTerm}
             categoryFilter={categoryFilter}
             onCategoryFilterChange={setCategoryFilter}
+            inventoryTypeFilter={inventoryTypeFilter}
+            onInventoryTypeFilterChange={setInventoryTypeFilter}
             stockFilter={stockFilter}
             onStockFilterChange={setStockFilter}
             onCreatePart={() => setCreateModalOpen(true)}

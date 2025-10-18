@@ -95,13 +95,40 @@ export const InventoryPartBasicFields: React.FC<InventoryPartBasicFieldsProps> =
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={control}
+          name="inventory_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Inventory Type *</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select inventory type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="spare_parts">Spare Parts</SelectItem>
+                  <SelectItem value="consumables">Consumables</SelectItem>
+                  <SelectItem value="tools">Tools</SelectItem>
+                  <SelectItem value="supplies">Supplies</SelectItem>
+                  <SelectItem value="materials">Materials</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <SparePartsCategorySelector
           control={control}
           name="spare_parts_category_id"
           label="Category"
           placeholder="Select category"
         />
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={control}
           name="unit_of_measure"

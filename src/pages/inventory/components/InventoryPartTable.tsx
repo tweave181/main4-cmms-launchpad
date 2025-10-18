@@ -50,6 +50,7 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
           <TableRow>
             <TableHead className="bg-gray-300">Part Name</TableHead>
             <TableHead className="bg-gray-300">SKU</TableHead>
+            <TableHead className="bg-gray-300">Type</TableHead>
             <TableHead className="bg-gray-300 text-center w-24">Stock Level</TableHead>
             <TableHead className="bg-gray-300">Category</TableHead>
             <TableHead className="bg-gray-300">Supplier</TableHead>
@@ -59,9 +60,18 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
         <TableBody>
           {parts.map(part => {
           const stockStatus = getStockStatus(part.quantity_in_stock, part.reorder_threshold);
+          const inventoryTypeLabel = {
+            spare_parts: 'Spare Parts',
+            consumables: 'Consumables',
+            tools: 'Tools',
+            supplies: 'Supplies',
+            materials: 'Materials'
+          }[(part as any).inventory_type] || 'Spare Parts';
+          
           return <TableRow key={part.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleRowClick(part.id)}>
                 <TableCell className="font-medium">{part.name}</TableCell>
                 <TableCell>{part.sku}</TableCell>
+                <TableCell>{inventoryTypeLabel}</TableCell>
                 <TableCell className="text-center w-24">{part.quantity_in_stock}</TableCell>
                 <TableCell>{part.spare_parts_category?.name || 'Uncategorized'}</TableCell>
                 <TableCell>{part.supplier?.company_name || 'No Supplier'}</TableCell>
