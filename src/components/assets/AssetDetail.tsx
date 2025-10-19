@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AssetDetailHeader } from './AssetDetailHeader';
 import { AssetBasicInfo } from './AssetBasicInfo';
@@ -7,7 +7,6 @@ import { AssetDescriptionSection } from './AssetDescriptionSection';
 import { AssetRecordInfo } from './AssetRecordInfo';
 import { AssetDetailTabs } from './AssetDetailTabs';
 import { AssetBreadcrumb } from './AssetBreadcrumb';
-import { AssetForm } from './AssetForm';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import type { Asset } from './types';
 interface AssetDetailProps {
@@ -28,29 +27,6 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   onDuplicate,
   onUpdate
 }) => {
-  const [isChildFormOpen, setIsChildFormOpen] = useState(false);
-  const [childAssetData, setChildAssetData] = useState<Partial<Asset> | null>(null);
-
-  const handleAddChild = (parentId: string, childType: 'component' | 'consumable') => {
-    const assetLevel = childType === 'component' ? 2 : 3;
-    setChildAssetData({
-      parent_asset_id: parentId,
-      asset_type: childType,
-      asset_level: assetLevel,
-    } as Partial<Asset>);
-    setIsChildFormOpen(true);
-  };
-
-  const handleCloseChildForm = () => {
-    setIsChildFormOpen(false);
-    setChildAssetData(null);
-  };
-
-  const handleChildFormSuccess = () => {
-    handleCloseChildForm();
-    onUpdate?.();
-  };
-
   const handleViewChild = (child: Asset) => {
     // For now, we'll just close the current modal and let the parent handle navigation
     // In a more complex setup, you might open a nested modal or navigate to the child
@@ -83,7 +59,6 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                     <AssetDetailTabs 
                       asset={asset} 
                       onUpdate={onUpdate}
-                      onAddChild={handleAddChild}
                       onViewChild={handleViewChild}
                       onEditChild={handleEditChild}
                     />
@@ -100,14 +75,6 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Child Asset Form */}
-      <AssetForm
-        asset={childAssetData as Asset}
-        isOpen={isChildFormOpen}
-        onClose={handleCloseChildForm}
-        onSuccess={handleChildFormSuccess}
-      />
     </>
   );
 };

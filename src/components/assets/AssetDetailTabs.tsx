@@ -9,7 +9,6 @@ import type { Asset } from './types';
 interface AssetDetailTabsProps {
   asset: Asset;
   onUpdate?: () => void;
-  onAddChild: (parentId: string, childType: 'component' | 'consumable') => void;
   onViewChild: (child: Asset) => void;
   onEditChild: (child: Asset) => void;
 }
@@ -17,7 +16,6 @@ interface AssetDetailTabsProps {
 export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({ 
   asset, 
   onUpdate,
-  onAddChild,
   onViewChild,
   onEditChild
 }) => {
@@ -50,7 +48,6 @@ export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({
             asset={asset}
             onViewChild={onViewChild}
             onEditChild={onEditChild}
-            onAddChild={onAddChild}
           />
         );
       default:

@@ -8,6 +8,11 @@ interface AssetBreadcrumbProps {
 }
 
 export const AssetBreadcrumb: React.FC<AssetBreadcrumbProps> = ({ asset }) => {
+  // Only show breadcrumb if asset has a parent
+  if (!asset.parent) {
+    return null;
+  }
+
   const buildPath = (currentAsset: Asset): Asset[] => {
     const path: Asset[] = [currentAsset];
     let current = currentAsset;
@@ -35,10 +40,6 @@ export const AssetBreadcrumb: React.FC<AssetBreadcrumbProps> = ({ asset }) => {
   };
 
   const path = buildPath(asset);
-
-  if (path.length <= 1) {
-    return null;
-  }
 
   return (
     <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg mb-4">

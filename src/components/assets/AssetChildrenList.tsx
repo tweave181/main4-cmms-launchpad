@@ -9,14 +9,12 @@ interface AssetChildrenListProps {
   asset: Asset;
   onViewChild: (child: Asset) => void;
   onEditChild: (child: Asset) => void;
-  onAddChild: (parentId: string, childType: 'component' | 'consumable') => void;
 }
 
-export const AssetChildrenList: React.FC<AssetChildrenListProps> = ({
-  asset,
-  onViewChild,
-  onEditChild,
-  onAddChild
+export const AssetChildrenList: React.FC<AssetChildrenListProps> = ({ 
+  asset, 
+  onViewChild, 
+  onEditChild
 }) => {
   const children = asset.children || [];
   const canHaveChildren = asset.asset_type !== 'consumable';
@@ -38,25 +36,16 @@ export const AssetChildrenList: React.FC<AssetChildrenListProps> = ({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">
-            {childTypeLabel}s ({children.length})
-          </CardTitle>
-          <Button
-            size="sm"
-            onClick={() => onAddChild(asset.id, childType)}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Add {childTypeLabel}
-          </Button>
-        </div>
+        <CardTitle className="text-lg">
+          {childTypeLabel}s ({children.length})
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {children.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="text-sm">No {childTypeLabel.toLowerCase()}s added yet</p>
+            <p className="text-sm">No {childTypeLabel.toLowerCase()}s linked yet</p>
             <p className="text-xs mt-1">
-              Click "Add {childTypeLabel}" to get started
+              Create a {childTypeLabel.toLowerCase()} asset and link it by setting its parent
             </p>
           </div>
         ) : (
