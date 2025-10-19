@@ -16,14 +16,14 @@ type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'] & {
 type InventoryPartInsert = Database['public']['Tables']['inventory_parts']['Insert'];
 type InventoryPartUpdate = Database['public']['Tables']['inventory_parts']['Update'];
 
-export const useInventoryParts = () => {
+export const useInventoryParts = (inventoryType?: 'spare_parts' | 'consumables') => {
   const { userProfile } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: parts, isLoading, refetch } = useQuery({
-    queryKey: ['inventory-parts', userProfile?.tenant_id],
+    queryKey: ['inventory-parts', userProfile?.tenant_id, inventoryType],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('inventory_parts')
         .select(`
           *,
@@ -35,8 +35,13 @@ export const useInventoryParts = () => {
               company_name
             )
           )
-        `)
-        .order('name');
+        `);
+      
+      if (inventoryType) {
+        query = query.eq('inventory_type', inventoryType);
+      }
+      
+      const { data, error } = await query.order('name');
 
       if (error) throw error;
       

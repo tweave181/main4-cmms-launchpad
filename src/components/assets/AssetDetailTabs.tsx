@@ -3,6 +3,7 @@ import { AssetServiceContractInfo } from './AssetServiceContractInfo';
 import { AssetWorkOrders } from './AssetWorkOrders';
 import { AssetMaintenanceTab } from './AssetMaintenanceTab';
 import { AssetSparePartsList } from './AssetSparePartsList';
+import { AssetConsumablesList } from './AssetConsumablesList';
 import { AssetChildrenList } from './AssetChildrenList';
 import type { Asset } from './types';
 
@@ -25,10 +26,11 @@ export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({
     { id: 'service-contract', label: 'Service Contract' },
     { id: 'work-orders', label: 'Work Orders' },
     { id: 'maintenance', label: 'Maintenance' },
-    { id: 'spare-parts', label: 'Spare Parts List' },
-    ...(asset.asset_type !== 'consumable' ? [{ 
+    { id: 'spare-parts', label: 'Spare Parts' },
+    { id: 'consumables', label: 'Consumables' },
+    ...(asset.asset_type === 'unit' ? [{ 
       id: 'children', 
-      label: asset.asset_type === 'unit' ? 'Components' : 'Consumables' 
+      label: 'Components' 
     }] : []),
   ];
 
@@ -42,6 +44,8 @@ export const AssetDetailTabs: React.FC<AssetDetailTabsProps> = ({
         return <AssetMaintenanceTab assetId={asset.id} />;
       case 'spare-parts':
         return <AssetSparePartsList assetId={asset.id} />;
+      case 'consumables':
+        return <AssetConsumablesList assetId={asset.id} />;
       case 'children':
         return (
           <AssetChildrenList

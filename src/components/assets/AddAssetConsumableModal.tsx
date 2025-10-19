@@ -11,14 +11,14 @@ import { useInventoryParts } from '@/pages/inventory/hooks/useInventoryParts';
 import { useAddAssetSparePart } from '@/hooks/queries/useAssetSpareParts';
 import { useToast } from '@/hooks/use-toast';
 
-interface AddAssetPartModalProps {
+interface AddAssetConsumableModalProps {
   isOpen: boolean;
   onClose: () => void;
   assetId: string;
   onPartAdded: () => void;
 }
 
-export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
+export const AddAssetConsumableModal: React.FC<AddAssetConsumableModalProps> = ({
   isOpen,
   onClose,
   assetId,
@@ -30,7 +30,7 @@ export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const { parts } = useInventoryParts('spare_parts');
+  const { parts } = useInventoryParts('consumables');
   const addPartMutation = useAddAssetSparePart();
 
   const selectedPart = parts?.find(p => p.id === selectedPartId);
@@ -41,7 +41,7 @@ export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
     if (!selectedPartId || quantityRequired < 1) {
       toast({
         title: "Validation Error",
-        description: "Please select a part and enter a valid quantity",
+        description: "Please select a consumable and enter a valid quantity",
         variant: "destructive"
       });
       return;
@@ -58,8 +58,8 @@ export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
       toast({
         title: "Success",
         description: selectedPart 
-          ? `${selectedPart.name} added to asset spare parts`
-          : "Spare part added successfully"
+          ? `${selectedPart.name} added to asset consumables`
+          : "Consumable added successfully"
       });
       
       onPartAdded();
@@ -67,15 +67,15 @@ export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
     } catch (error: any) {
       if (error.message?.includes('already exists')) {
         toast({
-          title: "Part Already Linked",
-          description: "This part is already linked to the asset. The quantity has been updated instead.",
+          title: "Consumable Already Linked",
+          description: "This consumable is already linked to the asset. The quantity has been updated instead.",
         });
         onPartAdded();
         handleClose();
       } else {
         toast({
           title: "Error",
-          description: "Failed to add spare part. Please try again.",
+          description: "Failed to add consumable. Please try again.",
           variant: "destructive"
         });
       }
@@ -95,11 +95,11 @@ export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Spare Part</DialogTitle>
+          <DialogTitle>Add Consumable</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="part-picker">Part</Label>
+            <Label htmlFor="part-picker">Consumable</Label>
             <Popover open={partPickerOpen} onOpenChange={setPartPickerOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -113,16 +113,16 @@ export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
                       {selectedPart.name} ({selectedPart.sku})
                     </span>
                   ) : (
-                    "Search and select a part..."
+                    "Search and select a consumable..."
                   )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
-                  <CommandInput placeholder="Search parts by name or SKU..." />
+                  <CommandInput placeholder="Search consumables by name or SKU..." />
                   <CommandList>
-                    <CommandEmpty>No parts found.</CommandEmpty>
+                    <CommandEmpty>No consumables found.</CommandEmpty>
                     <CommandGroup>
                       {parts?.map((part) => (
                         <CommandItem
@@ -174,7 +174,7 @@ export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
               type="submit" 
               disabled={!selectedPartId || isSubmitting}
             >
-              {isSubmitting ? 'Adding...' : 'Add Part'}
+              {isSubmitting ? 'Adding...' : 'Add Consumable'}
             </Button>
           </div>
         </form>

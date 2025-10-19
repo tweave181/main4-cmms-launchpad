@@ -4,50 +4,48 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
 import { useAssetSpareParts, useDeleteAssetSparePart } from '@/hooks/queries/useAssetSpareParts';
-import { AddAssetPartModal } from './AddAssetPartModal';
-import { EditAssetPartModal } from './EditAssetPartModal';
+import { AddAssetConsumableModal } from './AddAssetConsumableModal';
+import { EditAssetConsumableModal } from './EditAssetConsumableModal';
 import { useToast } from '@/hooks/use-toast';
-import type { Database } from '@/integrations/supabase/types';
 
-type AssetSparePart = {
+type AssetConsumable = {
   part_id: string;
   name: string;
   sku: string;
   quantity_required: number;
   unit_of_measure?: string;
-  inventory_type?: string;
 };
 
-interface AssetSparePartsListProps {
+interface AssetConsumablesListProps {
   assetId: string;
 }
 
-export const AssetSparePartsList: React.FC<AssetSparePartsListProps> = ({ assetId }) => {
+export const AssetConsumablesList: React.FC<AssetConsumablesListProps> = ({ assetId }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingPart, setEditingPart] = useState<AssetSparePart | null>(null);
+  const [editingPart, setEditingPart] = useState<AssetConsumable | null>(null);
   const { toast } = useToast();
 
   const { data: spareParts, isLoading, refetch } = useAssetSpareParts(assetId);
   const deletePartMutation = useDeleteAssetSparePart();
 
-  // Filter to only show spare parts
-  const sparePartsFiltered = spareParts?.filter(part => 
-    part.inventory_type === 'spare_parts'
+  // Filter to only show consumables
+  const consumables = spareParts?.filter(part => 
+    part.inventory_type === 'consumables'
   ) || [];
 
   const handleDeletePart = async (partId: string) => {
-    if (confirm('Are you sure you want to remove this spare part from the asset?')) {
+    if (confirm('Are you sure you want to remove this consumable from the asset?')) {
       try {
         await deletePartMutation.mutateAsync({ assetId, partId });
         toast({
           title: "Success",
-          description: "Spare part removed successfully",
+          description: "Consumable removed successfully",
         });
         refetch();
       } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to remove spare part",
+          description: "Failed to remove consumable",
           variant: "destructive"
         });
       }
@@ -73,7 +71,7 @@ export const AssetSparePartsList: React.FC<AssetSparePartsListProps> = ({ assetI
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-center h-32">
-            <div className="animate-pulse text-muted-foreground">Loading spare parts...</div>
+            <div className="animate-pulse text-muted-foreground">Loading consumables...</div>
           </div>
         </CardContent>
       </Card>
@@ -84,26 +82,26 @@ export const AssetSparePartsList: React.FC<AssetSparePartsListProps> = ({ assetI
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-lg font-semibold">Spare Parts List</CardTitle>
+          <CardTitle className="text-lg font-semibold">Consumables</CardTitle>
           <Button onClick={() => setIsAddModalOpen(true)} size="sm">
             <Plus className="h-4 w-4 mr-2" />
-            Add Part
+            Add Consumable
           </Button>
         </CardHeader>
         <CardContent>
-          {sparePartsFiltered.length === 0 ? (
+          {consumables.length === 0 ? (
             <div className="text-center py-8 space-y-4">
               <div className="text-muted-foreground">
-                No spare parts linked to this asset yet.
+                No consumables linked to this asset yet.
               </div>
               <Button onClick={() => setIsAddModalOpen(true)} variant="outline">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Your First Part
+                Add Your First Consumable
               </Button>
             </div>
           ) : (
             <div className="space-y-3">
-              {sparePartsFiltered.map((part) => (
+              {consumables.map((part) => (
                 <div
                   key={part.part_id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -150,7 +148,7 @@ export const AssetSparePartsList: React.FC<AssetSparePartsListProps> = ({ assetI
         </CardContent>
       </Card>
 
-      <AddAssetPartModal
+      <AddAssetConsumableModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         assetId={assetId}
@@ -158,7 +156,7 @@ export const AssetSparePartsList: React.FC<AssetSparePartsListProps> = ({ assetI
       />
 
       {editingPart && (
-        <EditAssetPartModal
+        <EditAssetConsumableModal
           isOpen={true}
           onClose={() => setEditingPart(null)}
           assetId={assetId}

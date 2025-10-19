@@ -9,6 +9,7 @@ type AssetSparePart = {
   sku: string;
   quantity_required: number;
   unit_of_measure?: string;
+  inventory_type?: string;
 };
 
 type AddAssetPartData = {
@@ -47,7 +48,8 @@ export const useAssetSpareParts = (assetId: string) => {
           inventory_parts!fk_part_asset_associations_part_id (
             name,
             sku,
-            unit_of_measure
+            unit_of_measure,
+            inventory_type
           )
         `)
         .eq('asset_id', assetId);
@@ -62,7 +64,8 @@ export const useAssetSpareParts = (assetId: string) => {
         name: (item.inventory_parts as any).name,
         sku: (item.inventory_parts as any).sku,
         quantity_required: item.quantity_required,
-        unit_of_measure: (item.inventory_parts as any).unit_of_measure
+        unit_of_measure: (item.inventory_parts as any).unit_of_measure,
+        inventory_type: (item.inventory_parts as any).inventory_type
       })) || [];
     },
     enabled: !!userProfile?.tenant_id && !!assetId,
