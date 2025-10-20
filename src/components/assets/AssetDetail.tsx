@@ -11,6 +11,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/componen
 import type { Asset } from './types';
 interface AssetDetailProps {
   asset: Asset;
+  allAssets: Asset[];
   isOpen: boolean;
   onClose: () => void;
   onEdit: () => void;
@@ -20,6 +21,7 @@ interface AssetDetailProps {
 }
 export const AssetDetail: React.FC<AssetDetailProps> = ({
   asset,
+  allAssets,
   isOpen,
   onClose,
   onEdit,
@@ -47,7 +49,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           <AssetDetailHeader asset={asset} onEdit={onEdit} onDelete={onDelete} onDuplicate={onDuplicate} />
 
           <div className="space-y-6">
-            <AssetBreadcrumb asset={asset} />
+            <AssetBreadcrumb asset={asset} allAssets={allAssets} />
             <AssetBasicInfo asset={asset} />
             <AssetDescriptionSection asset={asset} />
             <AssetFinancialInfo asset={asset} />

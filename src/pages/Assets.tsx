@@ -241,7 +241,7 @@ const Assets: React.FC = () => {
       refetch();
     }} />}
 
-      {isDetailOpen && selectedAsset && <AssetDetail asset={selectedAsset} isOpen={isDetailOpen} onClose={() => {
+      {isDetailOpen && selectedAsset && <AssetDetail asset={selectedAsset} allAssets={assets} isOpen={isDetailOpen} onClose={() => {
       setIsDetailOpen(false);
       setSelectedAsset(null);
     }} onEdit={() => {

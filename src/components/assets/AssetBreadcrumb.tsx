@@ -1,45 +1,22 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { AssetLevelBadge } from './AssetLevelBadge';
+import { getAssetPath } from '@/utils/assetHierarchyUtils';
 import type { Asset } from './types';
 
 interface AssetBreadcrumbProps {
   asset: Asset;
+  allAssets: Asset[];
 }
 
-export const AssetBreadcrumb: React.FC<AssetBreadcrumbProps> = ({ asset }) => {
+export const AssetBreadcrumb: React.FC<AssetBreadcrumbProps> = ({ asset, allAssets }) => {
   // Only show breadcrumb if asset has a parent
-  if (!asset.parent) {
+  if (!asset.parent_asset_id) {
     return null;
   }
 
-  const buildPath = (currentAsset: Asset): Asset[] => {
-    const path: Asset[] = [currentAsset];
-    let current = currentAsset;
-    
-    while (current.parent) {
-      // Create a minimal asset object from parent data
-      const parentAsset: Asset = {
-        id: current.parent.id,
-        name: current.parent.name,
-        asset_tag: current.parent.asset_tag,
-        tenant_id: current.tenant_id,
-        status: 'active',
-        priority: 'medium',
-        asset_level: current.asset_level > 1 ? (current.asset_level - 1) as 1 | 2 | 3 : 1,
-        asset_type: current.asset_type === 'component' ? 'unit' : 'component',
-        created_at: '',
-        updated_at: '',
-        parent: null
-      };
-      path.unshift(parentAsset);
-      current = parentAsset;
-    }
-    
-    return path;
-  };
-
-  const path = buildPath(asset);
+  // Use the utility function to build the full path
+  const path = getAssetPath(asset.id, allAssets);
 
   return (
     <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg mb-4">
