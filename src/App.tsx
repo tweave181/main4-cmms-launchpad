@@ -44,6 +44,7 @@ import SystemAuditLog from "./pages/SystemAuditLog";
 import AdminSettings from "./pages/AdminSettings";
 import Preferences from "./pages/Preferences";
 import AddressCardTest from "./pages/AddressCardTest";
+import ChecklistLibrary from "./pages/ChecklistLibrary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ function App() {
               <Route path="/maintenance/:jobId" element={<MaintenanceJobDetail />} />
               <Route path="/pm/new" element={<PMScheduleDetail />} />
               <Route path="/pm/:id" element={<PMScheduleDetail />} />
+              <Route path="/admin/checklist-library" element={<ChecklistLibrary />} />
                  <Route path="/inventory" element={<Inventory />} />
                  <Route path="/inventory/:id" element={<InventoryPartDetail />} />
                  <Route path="/inventory/:id/edit" element={<InventoryPartDetail />} />
