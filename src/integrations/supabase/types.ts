@@ -466,7 +466,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id: string
-          ip: unknown | null
+          ip: unknown
           tenant_id: string
           user_agent: string | null
           user_id: string
@@ -478,7 +478,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id?: string
-          ip?: unknown | null
+          ip?: unknown
           tenant_id?: string
           user_agent?: string | null
           user_id: string
@@ -490,7 +490,7 @@ export type Database = {
           entity_id?: string
           entity_type?: string
           id?: string
-          ip?: unknown | null
+          ip?: unknown
           tenant_id?: string
           user_agent?: string | null
           user_id?: string
@@ -523,6 +523,63 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      checklist_item_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          item_text: string
+          item_type: string
+          safety_critical: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          item_text: string
+          item_type: string
+          safety_critical?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          item_text?: string
+          item_type?: string
+          safety_critical?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_item_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_item_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       comment_status_options: {
         Row: {
@@ -1633,6 +1690,45 @@ export type Database = {
           },
         ]
       }
+      pm_schedule_template_items: {
+        Row: {
+          created_at: string
+          id: string
+          pm_schedule_id: string
+          sort_order: number
+          template_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pm_schedule_id: string
+          sort_order?: number
+          template_item_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pm_schedule_id?: string
+          sort_order?: number
+          template_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pm_schedule_template_items_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "preventive_maintenance_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedule_template_items_template_item_id_fkey"
+            columns: ["template_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_item_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preventive_maintenance_schedules: {
         Row: {
           assigned_to: string | null
@@ -2371,14 +2467,8 @@ export type Database = {
       }
     }
     Functions: {
-      accept_invitation: {
-        Args: { invitation_token: string }
-        Returns: string
-      }
-      check_contract_reminders: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      accept_invitation: { Args: { invitation_token: string }; Returns: string }
+      check_contract_reminders: { Args: never; Returns: undefined }
       create_tenant_and_admin: {
         Args: {
           first_name?: string
@@ -2394,26 +2484,17 @@ export type Database = {
         Args: { p_existing_code?: string; p_name: string; p_tenant_id: string }
         Returns: string
       }
-      fix_missing_profiles: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      fix_missing_profiles: { Args: never; Returns: undefined }
       generate_location_code: {
         Args: { location_name: string }
         Returns: string
       }
       generate_maintenance_jobs_from_pm_schedules: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: undefined
       }
-      generate_work_order_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_current_user_tenant_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_work_order_number: { Args: never; Returns: string }
+      get_current_user_tenant_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2425,26 +2506,11 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_in_tenant: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_current_user_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_system_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      trigger_contract_reminder_emails: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_admin_in_tenant: { Args: never; Returns: boolean }
+      is_current_user_admin: { Args: never; Returns: boolean }
+      is_system_admin: { Args: never; Returns: boolean }
+      trigger_contract_reminder_emails: { Args: never; Returns: Json }
       user_has_any_permission: {
         Args: { _permissions: Json; _user_id: string }
         Returns: boolean
