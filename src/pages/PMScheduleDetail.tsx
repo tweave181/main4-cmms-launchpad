@@ -39,8 +39,12 @@ import {
   useUsers 
 } from '@/hooks/usePreventiveMaintenance';
 import { FrequencyControl, type FrequencyValue } from '@/components/maintenance/FrequencyControl';
-import { PMChecklistEditor } from '@/components/maintenance/PMChecklistEditor';
+import { SelectChecklistFromLibrary } from '@/components/maintenance/SelectChecklistFromLibrary';
+import { SelectedChecklistItems } from '@/components/maintenance/SelectedChecklistItems';
+import { ChecklistTypeBadge } from '@/components/checklist-library/ChecklistTypeIcons';
 import { AssetSingleSelector } from '@/components/maintenance/AssetSingleSelector';
+import { usePMScheduleTemplateItems, useAddTemplateItemsToSchedule, useRemoveTemplateItemFromSchedule, useReorderTemplateItems } from '@/hooks/usePMScheduleTemplateItems';
+import type { PMScheduleTemplateItem, ChecklistItemTemplate } from '@/types/checklistTemplate';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,11 +70,6 @@ const pmScheduleSchema = z.object({
   asset_ids: z.array(z.string()).min(1, 'At least one asset must be selected'),
   assigned_to: z.string().optional(),
   is_active: z.boolean(),
-  checklist_items: z.array(z.object({
-    item_text: z.string().min(1, 'Item text is required'),
-    item_type: z.enum(['checkbox', 'value']),
-    sort_order: z.number(),
-  })).optional(),
 });
 
 type FormData = z.infer<typeof pmScheduleSchema>;
@@ -98,6 +97,24 @@ const PMScheduleDetail: React.FC = () => {
   // Asset selector state
   const [assetSelectorOpen, setAssetSelectorOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<{id: string; name: string; asset_tag?: string} | null>(null);
+  
+  // Checklist library state
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [selectedTemplateItems, setSelectedTemplateItems] = useState<PMScheduleTemplateItem[]>([]);
+  const [checklistError, setChecklistError] = useState<string>('');
+  
+  // Fetch template items
+  const { data: existingTemplateItems } = usePMScheduleTemplateItems(isNew ? '' : (id || ''));
+  const addTemplateItems = useAddTemplateItemsToSchedule();
+  const removeTemplateItem = useRemoveTemplateItemFromSchedule();
+  const reorderItems = useReorderTemplateItems();
+
+  // Load existing template items
+  useEffect(() => {
+    if (existingTemplateItems && !isNew) {
+      setSelectedTemplateItems(existingTemplateItems);
+    }
+  }, [existingTemplateItems, isNew]);
 
   // Form setup
   const form = useForm<FormData>({
@@ -113,7 +130,6 @@ const PMScheduleDetail: React.FC = () => {
       asset_ids: [],
       assigned_to: '',
       is_active: true,
-      checklist_items: [],
     },
   });
 
@@ -144,11 +160,6 @@ const PMScheduleDetail: React.FC = () => {
         asset_ids: assetIds,
         assigned_to: schedule.assigned_to || '',
         is_active: schedule.is_active,
-        checklist_items: schedule.checklist_items?.map(item => ({
-          item_text: item.item_text,
-          item_type: item.item_type,
-          sort_order: item.sort_order,
-        })) || [],
       });
       
       // Set selected asset for display
@@ -236,8 +247,18 @@ const PMScheduleDetail: React.FC = () => {
   };
 
   const handleSave = (data: FormData) => {
-    console.log('handleSave called with data:', data);
-    console.log('Current mode:', mode);
+    // Validate checklist items
+    if (selectedTemplateItems.length === 0) {
+      setChecklistError('Please add at least one checklist item from the library');
+      toast({
+        title: "Validation Error",
+        description: "Please add at least one checklist item",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setChecklistError('');
     
     // Transform data to match PMScheduleFormData
     const pmData: PMScheduleFormData = {
@@ -251,31 +272,37 @@ const PMScheduleDetail: React.FC = () => {
       asset_ids: data.asset_ids,
       assigned_to: data.assigned_to === 'unassigned' ? '' : data.assigned_to,
       is_active: data.is_active,
-      checklist_items: (data.checklist_items || []).filter(item => 
-        item.item_text && item.item_text.trim().length > 0
-      ).map(item => ({
-        item_text: item.item_text!,
-        item_type: item.item_type!,
-        sort_order: item.sort_order!,
-      })),
+      checklist_items: [], // Not used anymore
     };
 
-    console.log('Transformed pmData:', pmData);
-
     if (mode === 'create') {
-      console.log('About to call createMutation.mutate');
       createMutation.mutate(pmData, {
         onSuccess: (newSchedule) => {
-          console.log('Create success:', newSchedule);
-          toast({
-            title: "Success",
-            description: "Preventive maintenance schedule created successfully",
-          });
-          navigate(`/pm/${newSchedule.id}`);
-          setMode('view');
+          // Add template items to the new schedule
+          const templateIds = selectedTemplateItems.map(item => item.template_item_id);
+          
+          addTemplateItems.mutate(
+            { scheduleId: newSchedule.id, templateIds },
+            {
+              onSuccess: () => {
+                toast({
+                  title: "Success",
+                  description: "Preventive maintenance schedule created successfully",
+                });
+                navigate(`/pm/${newSchedule.id}`);
+                setMode('view');
+              },
+              onError: () => {
+                toast({
+                  title: "Warning",
+                  description: "Schedule created but failed to add checklist items",
+                  variant: "destructive"
+                });
+              }
+            }
+          );
         },
         onError: (error) => {
-          console.error('Create error:', error);
           toast({
             title: "Error",
             description: "Failed to create PM schedule. Please try again.",
@@ -286,11 +313,31 @@ const PMScheduleDetail: React.FC = () => {
     } else {
       updateMutation.mutate({ id: id!, data: pmData }, {
         onSuccess: () => {
-          toast({
-            title: "Success", 
-            description: "Preventive maintenance schedule updated successfully",
-          });
-          setMode('view');
+          // Sync template items - only add new ones
+          const newItemsToAdd = selectedTemplateItems
+            .filter(item => item.id.startsWith('temp-'))
+            .map(item => item.template_item_id);
+          
+          if (newItemsToAdd.length > 0) {
+            addTemplateItems.mutate(
+              { scheduleId: id!, templateIds: newItemsToAdd },
+              {
+                onSuccess: () => {
+                  toast({
+                    title: "Success",
+                    description: "Preventive maintenance schedule updated successfully",
+                  });
+                  setMode('view');
+                }
+              }
+            );
+          } else {
+            toast({
+              title: "Success",
+              description: "Preventive maintenance schedule updated successfully",
+            });
+            setMode('view');
+          }
         }
       });
     }
@@ -317,6 +364,32 @@ const PMScheduleDetail: React.FC = () => {
     setSelectedAsset(null);
     form.setValue('asset_ids', [], { shouldDirty: true });
   };
+
+  const handleSelectFromLibrary = (templates: ChecklistItemTemplate[]) => {
+    const newItems: PMScheduleTemplateItem[] = templates.map((template, index) => ({
+      id: `temp-${Date.now()}-${index}`,
+      pm_schedule_id: id || '',
+      template_item_id: template.id,
+      sort_order: selectedTemplateItems.length + index + 1,
+      created_at: new Date().toISOString(),
+      template: template,
+    }));
+    
+    setSelectedTemplateItems([...selectedTemplateItems, ...newItems]);
+    setChecklistError('');
+  };
+
+  const handleRemoveTemplateItem = (itemId: string) => {
+    setSelectedTemplateItems(items => items.filter(i => i.id !== itemId));
+  };
+
+  const handleReorderTemplateItems = (reorderedItems: PMScheduleTemplateItem[]) => {
+    setSelectedTemplateItems(reorderedItems);
+  };
+
+  const safetyCriticalCount = selectedTemplateItems.filter(
+    item => item.template?.safety_critical
+  ).length;
 
   // Loading state
   if (isLoading && !isNew) {
@@ -692,53 +765,106 @@ const PMScheduleDetail: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                {/* Checklist Items */}
-                {mode === 'view' ? (
-                  formData.checklist_items && formData.checklist_items.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Checklist Items</CardTitle>
-                      </CardHeader>
-                      <CardContent>
+                {/* Maintenance Checklist */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Maintenance Checklist</CardTitle>
+                      {mode !== 'view' && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setLibraryOpen(true)}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add from Library
+                        </Button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {mode === 'view' ? (
+                      selectedTemplateItems.length > 0 ? (
                         <div className="space-y-3">
-                          {formData.checklist_items.map((item, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                                {index + 1}
+                          <div className="text-xs text-muted-foreground mb-3">
+                            {selectedTemplateItems.length} item{selectedTemplateItems.length !== 1 ? 's' : ''}
+                            {safetyCriticalCount > 0 && (
+                              <span className="text-destructive font-medium ml-1">
+                                ({safetyCriticalCount} safety-critical)
+                              </span>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            {selectedTemplateItems.map((item, index) => (
+                              <div key={item.id} className="flex items-start space-x-3 p-3 border rounded-lg">
+                                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                                  {index + 1}
+                                </div>
+                                {item.template?.image_url && (
+                                  <img 
+                                    src={item.template.image_url} 
+                                    alt=""
+                                    className="w-12 h-12 object-cover rounded"
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <p className="text-sm font-medium">{item.template?.item_text}</p>
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      <ChecklistTypeBadge type={item.template?.item_type || 'checkbox'} />
+                                      {item.template?.safety_critical && (
+                                        <Badge variant="destructive" className="text-xs">Safety Critical</Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {item.template?.description && (
+                                    <p className="text-xs text-muted-foreground mt-1">{item.template.description}</p>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex-1">
-                                <p className="text-sm">{item.item_text}</p>
-                                <Badge variant="outline" className="text-xs mt-1">
-                                  {item.item_type === 'checkbox' ? 'Checkbox' : 'Value Entry'}
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  )
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name="checklist_items"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <PMChecklistEditor
-                            items={(field.value || []).map(item => ({
-                              item_text: item.item_text || '',
-                              item_type: item.item_type || 'checkbox',
-                              sort_order: item.sort_order || 0,
-                            }))}
-                            onChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No checklist items added yet.
+                        </p>
+                      )
+                    ) : (
+                      <div className="space-y-3">
+                        {checklistError && (
+                          <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                            <p className="text-sm text-destructive">{checklistError}</p>
+                          </div>
+                        )}
+                        {selectedTemplateItems.length > 0 ? (
+                          <>
+                            <div className="text-xs text-muted-foreground">
+                              {selectedTemplateItems.length} item{selectedTemplateItems.length !== 1 ? 's' : ''} selected
+                              {safetyCriticalCount > 0 && (
+                                <span className="text-destructive font-medium ml-1">
+                                  ({safetyCriticalCount} safety-critical)
+                                </span>
+                              )}
+                            </div>
+                            <SelectedChecklistItems
+                              items={selectedTemplateItems}
+                              onRemove={handleRemoveTemplateItem}
+                              onReorder={handleReorderTemplateItems}
+                            />
+                          </>
+                        ) : (
+                          <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                            <p className="text-sm text-muted-foreground">
+                              No checklist items selected. Click "Add from Library" to get started.
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     )}
-                  />
-                )}
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Assigned Asset */}
@@ -860,6 +986,14 @@ const PMScheduleDetail: React.FC = () => {
         onClose={() => setAssetSelectorOpen(false)}
         onSelect={handleAssetSelect}
         selectedAssetId={selectedAsset?.id}
+      />
+
+      {/* Checklist Library Modal */}
+      <SelectChecklistFromLibrary
+        open={libraryOpen}
+        onOpenChange={setLibraryOpen}
+        onSelect={handleSelectFromLibrary}
+        excludeIds={selectedTemplateItems.map(item => item.template_item_id)}
       />
     </>
   );

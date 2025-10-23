@@ -49,7 +49,7 @@ export interface PMScheduleFormData {
     item_text: string;
     item_type: 'checkbox' | 'value';
     sort_order: number;
-  }>;
+  }>; // Deprecated - kept for backward compatibility
 }
 
 export interface PMScheduleWithAssets extends PreventiveMaintenanceSchedule {
@@ -63,5 +63,11 @@ export interface PMScheduleWithAssets extends PreventiveMaintenanceSchedule {
     name: string;
     email: string;
   };
-  checklist_items?: PMScheduleChecklistItem[];
+  checklist_items?: PMScheduleChecklistItem[]; // Deprecated
+  template_items?: Array<{
+    id: string;
+    template_item_id: string;
+    sort_order: number;
+    template?: any;
+  }>;
 }

@@ -21,7 +21,9 @@ export const CreatePMModal: React.FC<CreatePMModalProps> = ({
 }) => {
   const createMutation = useCreatePMSchedule();
 
-  const handleSubmit = (data: PMScheduleFormData) => {
+  const handleSubmit = (data: PMScheduleFormData, templateItemIds: string[]) => {
+    // For now, we'll just pass the data through
+    // Template items will be handled separately after schedule creation
     createMutation.mutate(data, {
       onSuccess: () => {
         onOpenChange(false);

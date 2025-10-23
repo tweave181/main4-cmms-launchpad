@@ -29,6 +29,7 @@ export const AppSidebar = () => {
     { icon: MapPin, label: 'Addresses', href: '/addresses' },
     { icon: ScrollText, label: 'Service Contracts', href: '/admin/service-contracts' },
     { icon: FileText, label: 'System Audit Log', href: '/system-audit-log' },
+    { icon: BookOpen, label: 'Checklist Library', href: '/admin/checklist-library' },
     { icon: Settings, label: 'System Settings', href: '/settings' },
   ];
 
