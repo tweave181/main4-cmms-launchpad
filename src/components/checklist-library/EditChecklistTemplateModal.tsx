@@ -27,6 +27,7 @@ const formSchema = z.object({
   description: z.string().max(500, 'Description must be 500 characters or less').optional(),
   item_type: z.enum(['safety_note', 'checkbox', 'to_do', 'reading'] as const),
   safety_critical: z.boolean(),
+  image_name: z.string().max(100, 'Image name must be 100 characters or less').regex(/^[^/\\:*?"<>|]*$/, 'Image name contains invalid characters').optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -58,6 +59,7 @@ export const EditChecklistTemplateModal: React.FC<EditChecklistTemplateModalProp
       description: '',
       item_type: 'checkbox',
       safety_critical: false,
+      image_name: '',
     },
   });
 
@@ -68,6 +70,7 @@ export const EditChecklistTemplateModal: React.FC<EditChecklistTemplateModalProp
         description: template.description || '',
         item_type: template.item_type,
         safety_critical: template.safety_critical,
+        image_name: template.image_name || '',
       });
       setImagePreview(template.image_url || null);
     }
@@ -98,7 +101,12 @@ export const EditChecklistTemplateModal: React.FC<EditChecklistTemplateModalProp
     updateMutation.mutate(
       {
         id: templateId,
-        data: { ...data, image_file: imageFile || undefined, image_url: imagePreview || undefined },
+        data: { 
+          ...data, 
+          image_file: imageFile || undefined, 
+          image_url: imagePreview || undefined,
+          image_name: data.image_name || template?.item_text
+        },
       },
       {
         onSuccess: () => {
@@ -255,6 +263,29 @@ export const EditChecklistTemplateModal: React.FC<EditChecklistTemplateModalProp
                   )}
                 </div>
               </div>
+
+              {imagePreview && (
+                <FormField
+                  control={form.control}
+                  name="image_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Image Name (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="e.g., Wear Protected Glasses"
+                          maxLength={100}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Custom name for the image file. Defaults to item text if not provided.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <div className="flex justify-between">
                 <Button

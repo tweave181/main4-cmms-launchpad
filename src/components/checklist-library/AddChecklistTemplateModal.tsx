@@ -25,6 +25,7 @@ const formSchema = z.object({
   description: z.string().max(500, 'Description must be 500 characters or less').optional(),
   item_type: z.enum(['safety_note', 'checkbox', 'to_do', 'reading'] as const),
   safety_critical: z.boolean(),
+  image_name: z.string().max(100, 'Image name must be 100 characters or less').regex(/^[^/\\:*?"<>|]*$/, 'Image name contains invalid characters').optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -49,6 +50,7 @@ export const AddChecklistTemplateModal: React.FC<AddChecklistTemplateModalProps>
       description: '',
       item_type: 'checkbox',
       safety_critical: false,
+      image_name: '',
     },
   });
 
@@ -94,6 +96,7 @@ export const AddChecklistTemplateModal: React.FC<AddChecklistTemplateModalProps>
       item_type: data.item_type,
       safety_critical: data.safety_critical,
       image_file: imageFile || undefined,
+      image_name: data.image_name || data.item_text,
     };
     
     createMutation.mutate(submitData, {
@@ -249,6 +252,29 @@ export const AddChecklistTemplateModal: React.FC<AddChecklistTemplateModalProps>
                 )}
               </div>
             </div>
+
+            {imageFile && (
+              <FormField
+                control={form.control}
+                name="image_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image Name (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="e.g., Wear Protected Glasses"
+                        maxLength={100}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Custom name for the image file. Defaults to item text if not provided.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {form.formState.errors.root && (
               <Alert variant="destructive">

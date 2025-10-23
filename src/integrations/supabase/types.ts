@@ -530,6 +530,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          image_name: string | null
           image_url: string | null
           is_active: boolean
           item_text: string
@@ -543,6 +544,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          image_name?: string | null
           image_url?: string | null
           is_active?: boolean
           item_text: string
@@ -556,6 +558,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          image_name?: string | null
           image_url?: string | null
           is_active?: boolean
           item_text?: string

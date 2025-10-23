@@ -8,6 +8,7 @@ export interface ChecklistItemTemplate {
   item_type: ChecklistItemType;
   safety_critical: boolean;
   image_url?: string;
+  image_name?: string;
   is_active: boolean;
   created_by?: string;
   created_at: string;
@@ -30,6 +31,7 @@ export interface ChecklistTemplateFormData {
   safety_critical: boolean;
   image_file?: File;
   image_url?: string;
+  image_name?: string;
 }
 
 export interface ChecklistTemplateFilters {

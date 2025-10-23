@@ -120,6 +120,7 @@ export const useCreateChecklistTemplate = () => {
           item_type: data.item_type,
           safety_critical: data.safety_critical,
           image_url: imageUrl,
+          image_name: data.image_name || data.item_text,
           created_by: user.id,
         })
         .select()
@@ -202,6 +203,7 @@ export const useUpdateChecklistTemplate = () => {
       if (data.item_type) updateData.item_type = data.item_type;
       if (data.safety_critical !== undefined) updateData.safety_critical = data.safety_critical;
       if (imageUrl) updateData.image_url = imageUrl;
+      if (data.image_name !== undefined) updateData.image_name = data.image_name;
 
       const { data: template, error } = await supabase
         .from('checklist_item_templates')
@@ -262,6 +264,36 @@ export const useDeleteChecklistTemplate = () => {
       toast({
         title: 'Success',
         description: 'Checklist item deleted successfully',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+export const useUpdateImageName = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, image_name }: { id: string; image_name: string }) => {
+      const { error } = await supabase
+        .from('checklist_item_templates')
+        .update({ image_name })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['checklist-template'] });
+      toast({
+        title: 'Success',
+        description: 'Image name updated successfully',
       });
     },
     onError: (error: Error) => {
