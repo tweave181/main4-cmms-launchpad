@@ -11,8 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { Edit2, Trash2, User, Mail, Phone, Calendar, Building } from 'lucide-react';
+import { Edit2, Trash2, User, Mail, Phone, Calendar, Building, Clock } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/auth';
@@ -22,6 +23,7 @@ import { useDepartments } from '@/hooks/useDepartments';
 import { useJobTitles } from '@/hooks/queries/useJobTitles';
 import { UserRoleBadge } from './UserRoleBadge';
 import { UserEmploymentBadge } from './UserEmploymentBadge';
+import { UserTimeRecordsList } from '../time-records/UserTimeRecordsList';
 import { userFormSchema, type UserFormData } from './userFormSchema';
 import { toast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
@@ -192,18 +194,28 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
             </div>
           </DialogHeader>
 
-          <Form {...form}>
-            <div className="space-y-6">
-              {/* Status and Role Badges */}
-              {!isEdit && (
-                <div className="flex flex-wrap gap-3">
-                  <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                    {user.status === 'active' ? 'Active' : 'Inactive'}
-                  </Badge>
-                  <UserRoleBadge role={user.role} />
-                  <UserEmploymentBadge employmentStatus={user.employment_status || undefined} />
-                </div>
-              )}
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="time-records" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Time Records
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="space-y-6 mt-6">
+              <Form {...form}>
+                <div className="space-y-6">
+                  {/* Status and Role Badges */}
+                  {!isEdit && (
+                    <div className="flex flex-wrap gap-3">
+                      <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
+                        {user.status === 'active' ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <UserRoleBadge role={user.role} />
+                      <UserEmploymentBadge employmentStatus={user.employment_status || undefined} />
+                    </div>
+                  )}
 
               {/* Contact Information */}
               <Card>
@@ -432,16 +444,22 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
                 </CardContent>
               </Card>
 
-              {/* Record Information */}
-              <div className="text-sm text-muted-foreground">
-                <span className="inline-flex flex-wrap items-center gap-x-6 gap-y-2">
-                  <span>Record Information</span>
-                  <span>Created At: {formatDate(user.created_at)}</span>
-                  <span>Last Updated: {formatDate(user.updated_at)}</span>
-                </span>
-              </div>
-            </div>
-          </Form>
+                  {/* Record Information */}
+                  <div className="text-sm text-muted-foreground">
+                    <span className="inline-flex flex-wrap items-center gap-x-6 gap-y-2">
+                      <span>Record Information</span>
+                      <span>Created At: {formatDate(user.created_at)}</span>
+                      <span>Last Updated: {formatDate(user.updated_at)}</span>
+                    </span>
+                  </div>
+                </div>
+              </Form>
+            </TabsContent>
+
+            <TabsContent value="time-records" className="mt-6">
+              <UserTimeRecordsList userId={user.id} />
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

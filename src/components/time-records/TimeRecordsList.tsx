@@ -24,6 +24,7 @@ interface TimeRecordsListProps {
   workOrderId?: string;
   pmScheduleId?: string;
   maintenanceJobId?: string;
+  userId?: string;  // For filtering by user
   showUserColumn?: boolean;
 }
 
@@ -31,6 +32,7 @@ export const TimeRecordsList: React.FC<TimeRecordsListProps> = ({
   workOrderId,
   pmScheduleId,
   maintenanceJobId,
+  userId,
   showUserColumn = true,
 }) => {
   const { formatDate } = useGlobalSettings();
@@ -39,6 +41,7 @@ export const TimeRecordsList: React.FC<TimeRecordsListProps> = ({
     work_order_id: workOrderId,
     pm_schedule_id: pmScheduleId,
     maintenance_job_id: maintenanceJobId,
+    user_id: userId,
   });
   const deleteMutation = useDeleteTimeRecord();
   

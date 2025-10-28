@@ -8,12 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useUpdateTimeRecord } from '@/hooks/useTimeRecords';
+import { useAuth } from '@/contexts/auth';
+import { useUsers } from '@/hooks/queries/useUsers';
 import type { TimeRecord } from '@/types/timeRecord';
 
 const timeRecordSchema = z.object({
@@ -28,6 +31,7 @@ const timeRecordSchema = z.object({
   end_time: z.string().optional(),
   description: z.string().min(1, 'Description is required'),
   work_type: z.string().optional(),
+  user_id: z.string().uuid().optional(),  // Admin can reassign
 });
 
 interface EditTimeRecordModalProps {
@@ -41,8 +45,13 @@ export const EditTimeRecordModal: React.FC<EditTimeRecordModalProps> = ({
   open,
   onOpenChange,
 }) => {
+  const { userProfile } = useAuth();
   const updateMutation = useUpdateTimeRecord();
+  const { data: users = [] } = useUsers();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  const isAdmin = userProfile?.role === 'admin';
+  const activeUsers = users.filter(u => u.status === 'active');
 
   const form = useForm<z.infer<typeof timeRecordSchema>>({
     resolver: zodResolver(timeRecordSchema),
@@ -53,6 +62,7 @@ export const EditTimeRecordModal: React.FC<EditTimeRecordModalProps> = ({
       end_time: timeRecord.end_time || '',
       description: timeRecord.description,
       work_type: timeRecord.work_type || '',
+      user_id: timeRecord.user_id,
     },
   });
 
@@ -65,8 +75,14 @@ export const EditTimeRecordModal: React.FC<EditTimeRecordModalProps> = ({
       end_time: timeRecord.end_time || '',
       description: timeRecord.description,
       work_type: timeRecord.work_type || '',
+      user_id: timeRecord.user_id,
     });
   }, [timeRecord, form]);
+
+  const selectedUserId = form.watch('user_id');
+  const selectedUser = activeUsers.find(u => u.id === selectedUserId);
+  const originalUser = timeRecord.user;
+  const isReassigning = isAdmin && selectedUserId !== timeRecord.user_id;
 
   const onSubmit = async (data: z.infer<typeof timeRecordSchema>) => {
     await updateMutation.mutateAsync({
@@ -85,6 +101,59 @@ export const EditTimeRecordModal: React.FC<EditTimeRecordModalProps> = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* User Display/Selector */}
+            {isAdmin ? (
+              <FormField
+                control={form.control}
+                name="user_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Time Record For
+                    </FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select user" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {activeUsers.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name || user.email}
+                            {user.id === userProfile?.id && ' (You)'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Admins can reassign time records to different users
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">Time record for:</p>
+                <p className="font-medium">{originalUser?.name || originalUser?.email || 'Unknown User'}</p>
+              </div>
+            )}
+
+            {/* Admin Reassignment Warning */}
+            {isReassigning && (
+              <Alert>
+                <AlertDescription className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Reassigning from <strong>{originalUser?.name}</strong> to <strong>{selectedUser?.name}</strong>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Date Picker */}
             <FormField
               control={form.control}

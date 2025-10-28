@@ -8,12 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useCreateTimeRecord } from '@/hooks/useTimeRecords';
+import { useAuth } from '@/contexts/auth';
+import { useUsers } from '@/hooks/queries/useUsers';
 import type { TimeRecordFormData } from '@/types/timeRecord';
 
 const timeRecordSchema = z.object({
@@ -28,6 +31,7 @@ const timeRecordSchema = z.object({
   end_time: z.string().optional(),
   description: z.string().min(1, 'Description is required'),
   work_type: z.string().optional(),
+  user_id: z.string().uuid().optional(),  // Admin only
 });
 
 interface AddTimeRecordModalProps {
@@ -47,8 +51,13 @@ export const AddTimeRecordModal: React.FC<AddTimeRecordModalProps> = ({
   maintenanceJobId,
   assetId,
 }) => {
+  const { userProfile } = useAuth();
   const createMutation = useCreateTimeRecord();
+  const { data: users = [] } = useUsers();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  const isAdmin = userProfile?.role === 'admin';
+  const activeUsers = users.filter(u => u.status === 'active');
 
   const form = useForm<z.infer<typeof timeRecordSchema>>({
     resolver: zodResolver(timeRecordSchema),
@@ -59,11 +68,16 @@ export const AddTimeRecordModal: React.FC<AddTimeRecordModalProps> = ({
       end_time: '',
       description: '',
       work_type: '',
+      user_id: userProfile?.id || '',
     },
   });
 
+  const selectedUserId = form.watch('user_id');
+  const selectedUser = activeUsers.find(u => u.id === selectedUserId);
+  const isLoggingForOther = isAdmin && selectedUserId !== userProfile?.id;
+
   const onSubmit = async (data: z.infer<typeof timeRecordSchema>) => {
-    const formData: TimeRecordFormData = {
+    const formData: TimeRecordFormData & { user_id_override?: string } = {
       work_date: data.work_date,
       hours_worked: data.hours_worked,
       start_time: data.start_time,
@@ -75,6 +89,11 @@ export const AddTimeRecordModal: React.FC<AddTimeRecordModalProps> = ({
       maintenance_job_id: maintenanceJobId,
       asset_id: assetId,
     };
+
+    // Add user_id_override if admin is logging for someone else
+    if (isAdmin && data.user_id && data.user_id !== userProfile?.id) {
+      formData.user_id_override = data.user_id;
+    }
 
     await createMutation.mutateAsync(formData);
     form.reset();
@@ -90,6 +109,63 @@ export const AddTimeRecordModal: React.FC<AddTimeRecordModalProps> = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* User Selector (Admin Only) */}
+            {isAdmin && (
+              <FormField
+                control={form.control}
+                name="user_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Logging Time For
+                    </FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      defaultValue={userProfile?.id}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select user" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {activeUsers.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name || user.email}
+                            {user.id === userProfile?.id && ' (You)'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Select which user this time record is for
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Admin Warning */}
+            {isLoggingForOther && (
+              <Alert>
+                <AlertDescription className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  You are logging time for: <strong>{selectedUser?.name || selectedUser?.email}</strong>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Non-Admin User Display */}
+            {!isAdmin && (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">Logging time for:</p>
+                <p className="font-medium">{userProfile?.name || userProfile?.email}</p>
+              </div>
+            )}
+
             {/* Date Picker */}
             <FormField
               control={form.control}

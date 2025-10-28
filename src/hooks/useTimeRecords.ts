@@ -71,14 +71,14 @@ export const useTimeRecords = (filters?: TimeRecordFilters) => {
 };
 
 /**
- * Create a new time record
+ * Create a new time record (supports admin override for user_id)
  */
 export const useCreateTimeRecord = () => {
   const queryClient = useQueryClient();
   const { userProfile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: TimeRecordFormData) => {
+    mutationFn: async (data: TimeRecordFormData & { user_id_override?: string }) => {
       if (!userProfile?.tenant_id || !userProfile?.id) {
         throw new Error('User not authenticated');
       }
@@ -88,14 +88,20 @@ export const useCreateTimeRecord = () => {
         throw new Error('Must specify at least one parent entity (Work Order, PM Schedule, or Maintenance Job)');
       }
 
+      const isAdmin = userProfile.role === 'admin';
+      const targetUserId = isAdmin && data.user_id_override 
+        ? data.user_id_override 
+        : userProfile.id;
+
       const timeRecordData = {
         ...data,
         tenant_id: userProfile.tenant_id,
-        user_id: userProfile.id,
-        created_by: userProfile.id,
+        user_id: targetUserId,  // Use admin-selected or current user
+        created_by: userProfile.id,  // Always track who created it
         hours_worked: typeof data.hours_worked === 'string' 
           ? parseFloat(data.hours_worked) 
           : data.hours_worked,
+        user_id_override: undefined,  // Remove from insert data
       };
 
       const { data: result, error } = await supabase
@@ -111,12 +117,18 @@ export const useCreateTimeRecord = () => {
 
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['time-records'] });
       queryClient.invalidateQueries({ queryKey: ['work-orders'] });
+      
+      const isLoggingForOther = variables.user_id_override && 
+                                variables.user_id_override !== userProfile?.id;
+      
       toast({
         title: "Success",
-        description: "Time record logged successfully",
+        description: isLoggingForOther 
+          ? "Time record logged for selected user" 
+          : "Time record logged successfully",
       });
     },
     onError: (error: any) => {
@@ -131,13 +143,14 @@ export const useCreateTimeRecord = () => {
 };
 
 /**
- * Update an existing time record
+ * Update an existing time record (supports admin user reassignment)
  */
 export const useUpdateTimeRecord = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<TimeRecordFormData> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<TimeRecordFormData> & { user_id?: string } }) => {
       const updateData = {
         ...data,
         hours_worked: data.hours_worked 
@@ -159,12 +172,17 @@ export const useUpdateTimeRecord = () => {
 
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['time-records'] });
       queryClient.invalidateQueries({ queryKey: ['work-orders'] });
+      
+      const isReassigned = variables.data.user_id && userProfile?.role === 'admin';
+      
       toast({
         title: "Success",
-        description: "Time record updated successfully",
+        description: isReassigned 
+          ? "Time record reassigned successfully" 
+          : "Time record updated successfully",
       });
     },
     onError: (error: any) => {
