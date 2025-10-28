@@ -2087,6 +2087,113 @@ export type Database = {
         }
         Relationships: []
       }
+      time_records: {
+        Row: {
+          asset_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          end_time: string | null
+          hours_worked: number
+          id: string
+          maintenance_job_id: string | null
+          pm_schedule_id: string | null
+          start_time: string | null
+          tenant_id: string
+          updated_at: string
+          user_id: string
+          work_date: string
+          work_order_id: string | null
+          work_type: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          end_time?: string | null
+          hours_worked: number
+          id?: string
+          maintenance_job_id?: string | null
+          pm_schedule_id?: string | null
+          start_time?: string | null
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+          work_date?: string
+          work_order_id?: string | null
+          work_type?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          end_time?: string | null
+          hours_worked?: number
+          id?: string
+          maintenance_job_id?: string | null
+          pm_schedule_id?: string | null
+          start_time?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+          work_date?: string
+          work_order_id?: string | null
+          work_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_records_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_records_maintenance_job_id_fkey"
+            columns: ["maintenance_job_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_records_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "preventive_maintenance_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_records_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_invitations: {
         Row: {
           accepted_at: string | null

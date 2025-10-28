@@ -27,6 +27,8 @@ import {
   AlertTriangle,
   ExternalLink
 } from 'lucide-react';
+import { TimeRecordsList } from '@/components/time-records/TimeRecordsList';
+import { QuickTimeLogButton } from '@/components/time-records/QuickTimeLogButton';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -866,6 +868,26 @@ const PMScheduleDetail: React.FC = () => {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Time Tracking (View Mode Only) */}
+              {mode === 'view' && schedule && (
+                <div>
+                  <Card className="rounded-2xl">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center space-x-2">
+                          <Clock className="h-5 w-5 text-primary" />
+                          <span>Time Tracking</span>
+                        </CardTitle>
+                        <QuickTimeLogButton pmScheduleId={schedule.id} variant="outline" size="sm" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <TimeRecordsList pmScheduleId={schedule.id} />
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
               {/* Assigned Asset */}
               <div>

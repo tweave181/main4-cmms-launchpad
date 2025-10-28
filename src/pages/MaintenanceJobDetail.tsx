@@ -8,6 +8,8 @@ import { ArrowLeft, Calendar, Clock, User, ExternalLink, Building, Settings } fr
 import { useMaintenanceJob, useUpdateMaintenanceJob } from '@/hooks/useMaintenanceJobs';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { TimeRecordsList } from '@/components/time-records/TimeRecordsList';
+import { QuickTimeLogButton } from '@/components/time-records/QuickTimeLogButton';
 
 const MaintenanceJobDetail: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
@@ -279,6 +281,22 @@ const MaintenanceJobDetail: React.FC = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Time Tracking */}
+          <Card className="rounded-2xl">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <span>Time Tracking</span>
+                </CardTitle>
+                <QuickTimeLogButton maintenanceJobId={job.id} assetId={job.asset?.id} variant="outline" size="sm" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <TimeRecordsList maintenanceJobId={job.id} />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

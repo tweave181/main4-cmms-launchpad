@@ -7,6 +7,8 @@ import { Calendar, Clock, User, Wrench, DollarSign, Edit, Trash2 } from 'lucide-
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { useAuth } from '@/contexts/auth';
 import { ActivityLog } from './ActivityLog';
+import { TimeRecordsList } from '@/components/time-records/TimeRecordsList';
+import { QuickTimeLogButton } from '@/components/time-records/QuickTimeLogButton';
 import type { WorkOrder } from '@/types/workOrder';
 interface WorkOrderDetailProps {
   workOrder: WorkOrder & {
@@ -210,6 +212,22 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
               </CardContent>
             </Card>
           </div>
+
+          {/* Time Tracking */}
+          <Card className="rounded-2xl">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <span>Time Tracking</span>
+                </CardTitle>
+                <QuickTimeLogButton workOrderId={workOrder.id} variant="outline" size="sm" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <TimeRecordsList workOrderId={workOrder.id} />
+            </CardContent>
+          </Card>
 
           {/* Record Information */}
           <div className="text-sm text-muted-foreground">
