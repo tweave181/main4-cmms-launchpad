@@ -51,7 +51,8 @@ export const EditTimeRecordModal: React.FC<EditTimeRecordModalProps> = ({
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const isAdmin = userProfile?.role === 'admin';
-  const activeUsers = users.filter(u => u.status === 'active');
+  // Filter active users who are available for time tracking
+  const activeUsers = users.filter(u => u.status === 'active' && u.available_for_time_tracking === true);
 
   const form = useForm<z.infer<typeof timeRecordSchema>>({
     resolver: zodResolver(timeRecordSchema),

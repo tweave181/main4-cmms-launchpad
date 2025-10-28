@@ -85,6 +85,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, trigger })
               job_title_id: user.job_title_id || undefined,
               phone_number: user.phone_number || undefined,
               status: user.status as 'active' | 'inactive',
+              available_for_time_tracking: user.available_for_time_tracking ?? true,
             }}
             isLoading={updateUserMutation.isPending}
             submitLabel="Update User"

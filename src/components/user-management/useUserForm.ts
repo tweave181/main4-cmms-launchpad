@@ -20,6 +20,7 @@ export const useUserForm = ({ initialData, onSubmit }: UseUserFormProps) => {
       job_title_id: initialData?.job_title_id || 'none',
       phone_number: initialData?.phone_number || '',
       status: initialData?.status || 'active',
+      available_for_time_tracking: initialData?.available_for_time_tracking ?? true,
     },
   });
 
@@ -31,6 +32,7 @@ export const useUserForm = ({ initialData, onSubmit }: UseUserFormProps) => {
       job_title_id: data.job_title_id === 'none' ? undefined : data.job_title_id,
       phone_number: data.phone_number === '' ? undefined : data.phone_number,
       employment_status: data.employment_status || 'Full Time',
+      available_for_time_tracking: data.available_for_time_tracking ?? true,
     };
     onSubmit(cleanedData);
   };

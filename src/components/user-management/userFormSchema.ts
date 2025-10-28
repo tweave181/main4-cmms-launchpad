@@ -10,6 +10,7 @@ export const userFormSchema = z.object({
   job_title_id: z.string().optional(),
   phone_number: z.string().optional(),
   status: z.enum(['active', 'inactive']).default('active'),
+  available_for_time_tracking: z.boolean().default(true),
 });
 
 export type UserFormData = z.infer<typeof userFormSchema>;

@@ -11,6 +11,7 @@ export const UserTableHeader: React.FC = () => {
         <TableHead>Job Title</TableHead>
         <TableHead>Phone</TableHead>
         <TableHead>Status</TableHead>
+        <TableHead>Time Tracking</TableHead>
         <TableHead>Last Login</TableHead>
         <TableHead>Joined</TableHead>
         

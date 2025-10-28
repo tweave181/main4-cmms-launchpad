@@ -7,6 +7,7 @@ import { UserBasicFields } from './UserBasicFields';
 import { UserRoleFields } from './UserRoleFields';
 import { UserDepartmentField } from './UserDepartmentField';
 import { UserJobTitleField } from './UserJobTitleField';
+import { UserTimeTrackingField } from './UserTimeTrackingField';
 import type { UserFormData } from './userFormSchema';
 
 interface UserFormProps {
@@ -35,6 +36,8 @@ export const UserForm: React.FC<UserFormProps> = ({
           <UserDepartmentField control={form.control} />
           <UserJobTitleField control={form.control} />
         </div>
+
+        <UserTimeTrackingField control={form.control} />
 
         <div className="flex justify-start space-x-2">
           {onCancel && (

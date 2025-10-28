@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { Phone, Shield } from 'lucide-react';
+import { Phone, Shield, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { UserRoleBadge } from './UserRoleBadge';
 import { UserEmploymentBadge } from './UserEmploymentBadge';
@@ -65,6 +65,13 @@ export const UserTableRow: React.FC<UserTableRowProps> = ({
         <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
           {user.status === 'active' ? 'Active' : 'Inactive'}
         </Badge>
+      </TableCell>
+      <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
+        {user.available_for_time_tracking ? (
+          <Check className="h-4 w-4 text-green-600" />
+        ) : (
+          <X className="h-4 w-4 text-gray-400" />
+        )}
       </TableCell>
       <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         {user.last_login 

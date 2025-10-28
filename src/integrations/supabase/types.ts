@@ -2320,6 +2320,7 @@ export type Database = {
       }
       users: {
         Row: {
+          available_for_time_tracking: boolean
           created_at: string
           department_id: string | null
           email: string
@@ -2337,6 +2338,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          available_for_time_tracking?: boolean
           created_at?: string
           department_id?: string | null
           email: string
@@ -2354,6 +2356,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          available_for_time_tracking?: boolean
           created_at?: string
           department_id?: string | null
           email?: string
