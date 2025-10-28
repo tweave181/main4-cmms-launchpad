@@ -24,6 +24,7 @@ import { useJobTitles } from '@/hooks/queries/useJobTitles';
 import { UserRoleBadge } from './UserRoleBadge';
 import { UserEmploymentBadge } from './UserEmploymentBadge';
 import { UserTimeRecordsList } from '../time-records/UserTimeRecordsList';
+import { UserTimeTrackingField } from './UserTimeTrackingField';
 import { userFormSchema, type UserFormData } from './userFormSchema';
 import { toast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
@@ -70,6 +71,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
       job_title_id: user.job_title_id || undefined,
       phone_number: user.phone_number || undefined,
       status: user.status as UserFormData['status'],
+      available_for_time_tracking: user.available_for_time_tracking ?? true,
     },
   });
 
@@ -87,6 +89,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
         job_title_id: user.job_title_id || undefined,
         phone_number: user.phone_number || undefined,
         status: user.status as UserFormData['status'],
+        available_for_time_tracking: user.available_for_time_tracking ?? true,
       });
     }
   }, [user, isEdit, form]);
@@ -416,6 +419,35 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
                   />
                 </CardContent>
               </Card>
+
+              {/* Time Tracking Availability */}
+              {isEdit ? (
+                <UserTimeTrackingField control={form.control} />
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-primary" />
+                      Time Tracking Availability
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      {user.available_for_time_tracking !== false ? (
+                        <>
+                          <span className="text-green-600">✓</span>
+                          <span className="text-sm">Available for time tracking</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-muted-foreground">✗</span>
+                          <span className="text-sm text-muted-foreground">Not available for time tracking</span>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Activity Information */}
               <Card>
