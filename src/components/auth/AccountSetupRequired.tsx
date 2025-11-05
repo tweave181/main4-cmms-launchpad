@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/auth';
 import { AlertCircle, LogOut, RefreshCw, HelpCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { handleError } from '@/utils/errorHandling';
 
 interface AccountSetupRequiredProps {
   reason: 'missing' | 'error';
@@ -28,11 +29,10 @@ const AccountSetupRequired: React.FC<AccountSetupRequiredProps> = ({
         title: "Signed out",
         description: "You have been signed out successfully",
       });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'SignOut', {
+        showToast: true,
+        toastTitle: 'Sign Out Failed',
       });
     }
   };
@@ -42,11 +42,10 @@ const AccountSetupRequired: React.FC<AccountSetupRequiredProps> = ({
       setIsRetrying(true);
       try {
         await onRetry();
-      } catch (error: any) {
-        toast({
-          title: "Retry Failed",
-          description: error.message || "Unable to load your profile. Please try again later.",
-          variant: "destructive",
+      } catch (error) {
+        handleError(error, 'RetryProfileLoad', {
+          showToast: true,
+          toastTitle: 'Retry Failed',
         });
       } finally {
         setIsRetrying(false);

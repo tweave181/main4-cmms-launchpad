@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { handleError } from '@/utils/errorHandling';
 
 interface ForgotPasswordDialogProps {
   open: boolean;
@@ -43,11 +44,10 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ open, onOpe
       
       onOpenChange(false);
       setEmail('');
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'PasswordReset', {
+        showToast: true,
+        toastTitle: 'Password Reset Failed',
       });
     } finally {
       setLoading(false);

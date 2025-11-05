@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/components/ui/use-toast';
+import { handleError } from '@/utils/errorHandling';
 
 interface RegisterFormProps {
   onToggleMode: () => void;
@@ -79,11 +80,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
         title: "Success",
         description: "Account created successfully! Please check your email to verify your account.",
       });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'Registration', {
+        showToast: true,
+        toastTitle: 'Registration Failed',
       });
     } finally {
       setLoading(false);

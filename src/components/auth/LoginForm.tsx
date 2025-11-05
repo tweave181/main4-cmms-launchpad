@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/components/ui/use-toast';
+import { handleError } from '@/utils/errorHandling';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
@@ -47,11 +48,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
       setTimeout(() => {
         navigate('/');
       }, 1500);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'Login', {
+        showToast: true,
+        toastTitle: 'Login Failed',
       });
       setLoading(false);
     }
