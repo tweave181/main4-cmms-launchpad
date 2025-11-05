@@ -10,6 +10,7 @@ import { ContractDetailModal } from '@/components/contracts/ContractDetailModal'
 import { ServiceContractSelectorModal } from '@/components/contracts/ServiceContractSelectorModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { handleError } from '@/utils/errorHandling';
 import type { Asset } from './types';
 
 interface AssetServiceContractInfoProps {

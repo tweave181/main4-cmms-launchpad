@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
+import { logError } from '@/utils/errorHandling';
 
 interface AssetTagPrefix {
   id: string;
@@ -164,7 +165,7 @@ export const useAssetTagGeneration = () => {
       onTagSelect(generatedTag);
       return true;
     } catch (error) {
-      console.error('Error validating asset tag:', error);
+      logError(error, 'useAssetTagGeneration:validate', { tag: generatedTag });
       setValidationError('Error validating asset tag. Please try again.');
       return false;
     }

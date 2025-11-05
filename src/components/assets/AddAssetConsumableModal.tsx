@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useInventoryParts } from '@/pages/inventory/hooks/useInventoryParts';
 import { useAddAssetSparePart } from '@/hooks/queries/useAssetSpareParts';
 import { useToast } from '@/hooks/use-toast';
+import { handleError, getErrorMessage } from '@/utils/errorHandling';
 
 interface AddAssetConsumableModalProps {
   isOpen: boolean;
@@ -64,8 +65,9 @@ export const AddAssetConsumableModal: React.FC<AddAssetConsumableModalProps> = (
       
       onPartAdded();
       handleClose();
-    } catch (error: any) {
-      if (error.message?.includes('already exists')) {
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes('already exists')) {
         toast({
           title: "Consumable Already Linked",
           description: "This consumable is already linked to the asset. The quantity has been updated instead.",
@@ -73,10 +75,10 @@ export const AddAssetConsumableModal: React.FC<AddAssetConsumableModalProps> = (
         onPartAdded();
         handleClose();
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to add consumable. Please try again.",
-          variant: "destructive"
+        handleError(error, 'AddAssetConsumableModal', {
+          showToast: true,
+          toastTitle: "Failed to Add Consumable",
+          additionalData: { assetId, sparePartId: selectedPartId },
         });
       }
     } finally {

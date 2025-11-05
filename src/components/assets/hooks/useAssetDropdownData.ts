@@ -2,7 +2,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { normalizeDropdownData, handleDropdownError, type DropdownState } from '../utils/dropdownHelpers';
+import { normalizeDropdownData, type DropdownState } from '../utils/dropdownHelpers';
+import { logError } from '@/utils/errorHandling';
 
 export const useAssetDropdownData = () => {
   const { userProfile } = useAuth();
@@ -19,7 +20,7 @@ export const useAssetDropdownData = () => {
         if (error) throw error;
         return normalizeDropdownData(data || []);
       } catch (error) {
-        handleDropdownError(error, 'Departments');
+        logError(error, 'useAssetDropdownData:Departments');
         return [];
       }
     },
@@ -39,7 +40,7 @@ export const useAssetDropdownData = () => {
         if (error) throw error;
         return normalizeDropdownData(data || []);
       } catch (error) {
-        handleDropdownError(error, 'Locations');
+        logError(error, 'useAssetDropdownData:Locations');
         return [];
       }
     },
@@ -63,7 +64,7 @@ export const useAssetDropdownData = () => {
           name: item.contract_title,
         })) || []);
       } catch (error) {
-        handleDropdownError(error, 'Service Contracts');
+        logError(error, 'useAssetDropdownData:ServiceContracts');
         return [];
       }
     },
@@ -94,7 +95,7 @@ export const useAssetDropdownData = () => {
           name: item.company_name,
         })) || []);
       } catch (error) {
-        handleDropdownError(error, 'Manufacturers');
+        logError(error, 'useAssetDropdownData:Manufacturers');
         return [];
       }
     },

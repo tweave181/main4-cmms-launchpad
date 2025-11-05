@@ -7,6 +7,7 @@ import { useAssetSpareParts, useDeleteAssetSparePart } from '@/hooks/queries/use
 import { AddAssetConsumableModal } from './AddAssetConsumableModal';
 import { EditAssetConsumableModal } from './EditAssetConsumableModal';
 import { useToast } from '@/hooks/use-toast';
+import { handleError } from '@/utils/errorHandling';
 
 type AssetConsumable = {
   part_id: string;
@@ -43,10 +44,10 @@ export const AssetConsumablesList: React.FC<AssetConsumablesListProps> = ({ asse
         });
         refetch();
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to remove consumable",
-          variant: "destructive"
+        handleError(error, 'AssetConsumablesList', {
+          showToast: true,
+          toastTitle: "Failed to Remove Consumable",
+          additionalData: { assetId, partId: partId },
         });
       }
     }

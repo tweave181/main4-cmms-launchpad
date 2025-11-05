@@ -8,6 +8,7 @@ import { AddAssetPartModal } from './AddAssetPartModal';
 import { EditAssetPartModal } from './EditAssetPartModal';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
+import { handleError } from '@/utils/errorHandling';
 
 type AssetSparePart = {
   part_id: string;
@@ -45,10 +46,10 @@ export const AssetSparePartsList: React.FC<AssetSparePartsListProps> = ({ assetI
         });
         refetch();
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to remove spare part",
-          variant: "destructive"
+        handleError(error, 'AssetSparePartsList', {
+          showToast: true,
+          toastTitle: "Failed to Remove Spare Part",
+          additionalData: { assetId, partId: partId },
         });
       }
     }

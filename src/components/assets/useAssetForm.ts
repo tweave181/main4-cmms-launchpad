@@ -90,11 +90,11 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
         
         console.log('Asset operation completed successfully');
         onSuccess();
-      } catch (dbError: any) {
+      } catch (dbError) {
         console.error('Database operation failed:', dbError);
         throw dbError;
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Asset form submission failed:', error);
       logError(error, data, userProfile);
       showErrorToast(error);

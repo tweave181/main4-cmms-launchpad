@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
+import { handleError } from '@/utils/errorHandling';
 import type { Database } from '@/integrations/supabase/types';
 
 type AssetTagPrefix = Database['public']['Tables']['asset_tag_prefixes']['Row'];
@@ -97,11 +98,10 @@ export const useAssetPrefixes = () => {
 
       refetch();
     } catch (error) {
-      console.error('Error deleting asset prefix:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete asset tag prefix',
-        variant: 'destructive',
+      handleError(error, 'useAssetPrefixes:deletePrefix', {
+        showToast: true,
+        toastTitle: "Failed to Delete Prefix",
+        additionalData: { prefixId: id },
       });
     }
   };

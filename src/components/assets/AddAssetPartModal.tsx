@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useInventoryParts } from '@/pages/inventory/hooks/useInventoryParts';
 import { useAddAssetSparePart } from '@/hooks/queries/useAssetSpareParts';
 import { useToast } from '@/hooks/use-toast';
+import { handleError, getErrorMessage } from '@/utils/errorHandling';
 
 interface AddAssetPartModalProps {
   isOpen: boolean;
@@ -64,8 +65,9 @@ export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
       
       onPartAdded();
       handleClose();
-    } catch (error: any) {
-      if (error.message?.includes('already exists')) {
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes('already exists')) {
         toast({
           title: "Part Already Linked",
           description: "This part is already linked to the asset. The quantity has been updated instead.",
@@ -73,10 +75,10 @@ export const AddAssetPartModal: React.FC<AddAssetPartModalProps> = ({
         onPartAdded();
         handleClose();
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to add spare part. Please try again.",
-          variant: "destructive"
+        handleError(error, 'AddAssetPartModal', {
+          showToast: true,
+          toastTitle: "Failed to Add Spare Part",
+          additionalData: { assetId, sparePartId: selectedPartId },
         });
       }
     } finally {

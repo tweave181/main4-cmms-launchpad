@@ -2,8 +2,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import type { Asset } from '@/components/assets/types';
+import { handleError, getErrorMessage } from '@/utils/errorHandling';
 
 export const useAssets = () => {
   const { userProfile } = useAuth();
@@ -49,20 +50,20 @@ export const useAssets = () => {
           asset_type: asset.asset_type as 'unit' | 'component' | 'consumable',
           children: Array.isArray(asset.children) ? asset.children : (asset.children ? [asset.children] : [])
         })) as Asset[];
-      } catch (err: any) {
+      } catch (err) {
         throw err;
       }
     },
     enabled: !!userProfile?.tenant_id,
-    // Optionally: retry only specific errors
-    retry: (failureCount, err: any) => {
+    retry: (failureCount, err: unknown) => {
+      const errorMessage = getErrorMessage(err);
       if (
-        err?.message &&
+        errorMessage &&
         (
-          err.message.includes("expired") ||
-          err.message.includes("sign in") ||
-          err.message.includes("401") ||
-          err.message.includes("forbidden")
+          errorMessage.includes("expired") ||
+          errorMessage.includes("sign in") ||
+          errorMessage.includes("401") ||
+          errorMessage.includes("forbidden")
         )
       ) {
         return false;
@@ -87,14 +88,11 @@ export const useAssets = () => {
         description: "Asset deleted successfully",
       });
       refetch();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.message === "Session expired. Please sign in again."
-            ? "Your session expired. Please sign in again."
-            : error.message,
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'useAssets:deleteAsset', {
+        showToast: true,
+        toastTitle: "Failed to Delete Asset",
+        additionalData: { assetId },
       });
     }
   };
@@ -107,4 +105,3 @@ export const useAssets = () => {
     error,
   };
 };
-

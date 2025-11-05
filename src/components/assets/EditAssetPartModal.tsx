@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUpdateAssetSparePart } from '@/hooks/queries/useAssetSpareParts';
 import { useToast } from '@/hooks/use-toast';
+import { handleError } from '@/utils/errorHandling';
 
 interface AssetSparePart {
   part_id: string;
@@ -66,10 +67,10 @@ export const EditAssetPartModal: React.FC<EditAssetPartModalProps> = ({
       
       onPartUpdated();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update spare part quantity. Please try again.",
-        variant: "destructive"
+      handleError(error, 'EditAssetPartModal', {
+        showToast: true,
+        toastTitle: "Failed to Update Quantity",
+        additionalData: { assetId, partId: part.part_id, quantityRequired },
       });
     } finally {
       setIsSubmitting(false);
