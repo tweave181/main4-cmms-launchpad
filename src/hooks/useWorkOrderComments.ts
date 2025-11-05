@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/hooks/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 
 export interface CommentStatusOption {
   id: string;
@@ -46,10 +46,7 @@ export const useWorkOrderComments = (workOrderId: string) => {
         .eq('work_order_id', workOrderId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching work order comments:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return data as WorkOrderComment[];
     },
@@ -67,10 +64,7 @@ export const useCommentStatusOptions = () => {
         .eq('is_active', true)
         .order('sort_order');
 
-      if (error) {
-        console.error('Error fetching comment status options:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return data as CommentStatusOption[];
     },
@@ -96,27 +90,16 @@ export const useCreateWorkOrderComment = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating work order comment:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['work-order-comments', result.work_order_id] });
-      toast({
-        title: "Success",
-        description: "Comment added successfully",
-      });
+      showSuccessToast("Comment added successfully");
     },
-    onError: (error: any) => {
-      console.error('Create comment error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add comment",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Add Failed', context: 'Comment' });
     },
   });
 };

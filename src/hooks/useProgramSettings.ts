@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/hooks/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 
 export interface ProgramSettings {
   id: string;
@@ -63,10 +63,7 @@ export const useProgramSettings = () => {
         .eq('tenant_id', userProfile.tenant_id)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching program settings:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return data as ProgramSettings | null;
     },
@@ -93,27 +90,16 @@ export const useCreateProgramSettings = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating program settings:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['program-settings'] });
-      toast({
-        title: 'Settings created',
-        description: 'Program settings have been successfully created.',
-      });
+      showSuccessToast('Program settings have been successfully created.', { title: 'Settings created' });
     },
-    onError: (error: any) => {
-      console.error('Failed to create program settings:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create program settings. Please try again.',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Create Failed', context: 'Program Settings' });
     },
   });
 };
@@ -132,27 +118,16 @@ export const useUpdateProgramSettings = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating program settings:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['program-settings'] });
-      toast({
-        title: 'Settings updated',
-        description: 'Program settings have been successfully updated.',
-      });
+      showSuccessToast('Program settings have been successfully updated.', { title: 'Settings updated' });
     },
-    onError: (error: any) => {
-      console.error('Failed to update program settings:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update program settings. Please try again.',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'Program Settings' });
     },
   });
 };

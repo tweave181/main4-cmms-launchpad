@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/components/ui/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 import type { TimeRecord, TimeRecordFormData, TimeRecordFilters } from '@/types/timeRecord';
 
 /**
@@ -59,10 +59,7 @@ export const useTimeRecords = (filters?: TimeRecordFilters) => {
 
       const { data, error } = await query;
 
-      if (error) {
-        console.error('Error fetching time records:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return data as TimeRecord[];
     },
@@ -110,10 +107,7 @@ export const useCreateTimeRecord = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating time record:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
@@ -124,20 +118,14 @@ export const useCreateTimeRecord = () => {
       const isLoggingForOther = variables.user_id_override && 
                                 variables.user_id_override !== userProfile?.id;
       
-      toast({
-        title: "Success",
-        description: isLoggingForOther 
+      showSuccessToast(
+        isLoggingForOther 
           ? "Time record logged for selected user" 
-          : "Time record logged successfully",
-      });
+          : "Time record logged successfully"
+      );
     },
-    onError: (error: any) => {
-      console.error('Create time record error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to log time record",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Create Failed', context: 'Time Record' });
     },
   });
 };
@@ -165,10 +153,7 @@ export const useUpdateTimeRecord = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating time record:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
@@ -178,20 +163,14 @@ export const useUpdateTimeRecord = () => {
       
       const isReassigned = variables.data.user_id && userProfile?.role === 'admin';
       
-      toast({
-        title: "Success",
-        description: isReassigned 
+      showSuccessToast(
+        isReassigned 
           ? "Time record reassigned successfully" 
-          : "Time record updated successfully",
-      });
+          : "Time record updated successfully"
+      );
     },
-    onError: (error: any) => {
-      console.error('Update time record error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update time record",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'Time Record' });
     },
   });
 };
@@ -209,26 +188,15 @@ export const useDeleteTimeRecord = () => {
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Error deleting time record:', error);
-        throw error;
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['time-records'] });
       queryClient.invalidateQueries({ queryKey: ['work-orders'] });
-      toast({
-        title: "Success",
-        description: "Time record deleted successfully",
-      });
+      showSuccessToast("Time record deleted successfully");
     },
-    onError: (error: any) => {
-      console.error('Delete time record error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete time record",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Delete Failed', context: 'Time Record' });
     },
   });
 };

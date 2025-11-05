@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/hooks/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 
 export interface NotificationSettings {
   id: string;
@@ -87,18 +87,10 @@ export const useUpdateNotificationSettings = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notification-settings'] });
-      toast({
-        title: 'Settings updated',
-        description: 'Notification settings have been successfully updated.',
-      });
+      showSuccessToast('Notification settings have been successfully updated.', { title: 'Settings updated' });
     },
-    onError: (error: any) => {
-      console.error('Failed to update notification settings:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update notification settings. Please try again.',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'Notification Settings' });
     },
   });
 };
@@ -135,18 +127,10 @@ export const useCreateNotificationSettings = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notification-settings'] });
-      toast({
-        title: 'Settings created',
-        description: 'Notification settings have been successfully created.',
-      });
+      showSuccessToast('Notification settings have been successfully created.', { title: 'Settings created' });
     },
-    onError: (error: any) => {
-      console.error('Failed to create notification settings:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create notification settings. Please try again.',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Create Failed', context: 'Notification Settings' });
     },
   });
 };
