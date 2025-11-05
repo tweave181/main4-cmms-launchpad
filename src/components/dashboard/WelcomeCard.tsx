@@ -59,7 +59,7 @@ export const WelcomeCard: React.FC = () => {
     <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
       <CardHeader className="p-0 mb-6">
         <CardTitle className="text-2xl font-semibold">
-          Welcome back, {userProfile?.name || 'User'}!
+          Welcome back, {userProfile?.name?.split(' ')[0] || 'User'}!
         </CardTitle>
         <CardDescription>
           Your multi-tenant Computerized Maintenance Management System
