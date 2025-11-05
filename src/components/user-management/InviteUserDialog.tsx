@@ -31,7 +31,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useCreateInvitation } from '@/hooks/mutations/useCreateInvitation';
 import { useFormDialog } from '@/hooks/useFormDialog';
-import { toast } from '@/components/ui/use-toast';
+import { handleError, showSuccessToast } from '@/utils/errorHandling';
 
 const inviteUserSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -64,17 +64,14 @@ export const InviteUserDialog: React.FC = () => {
         email: data.email,
         role: data.role,
       });
-      toast({
-        title: "Success",
-        description: "Invitation sent successfully",
-      });
+      showSuccessToast("Invitation sent successfully");
       form.reset();
       setOpen(false);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send invitation",
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'InviteUserDialog', {
+        showToast: true,
+        toastTitle: 'Invitation Failed',
+        additionalData: { email: data.email, role: data.role }
       });
     }
   };

@@ -35,12 +35,8 @@ export const useCreateInvitation = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating invitation:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Invitation created successfully:', data);
       return data;
     },
     onSuccess: () => {

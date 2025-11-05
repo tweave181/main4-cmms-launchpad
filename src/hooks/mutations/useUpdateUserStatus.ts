@@ -1,6 +1,6 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logWarning } from '@/utils/errorHandling';
 
 interface UpdateUserStatusParams {
   userId: string;
@@ -24,10 +24,7 @@ export const useUpdateUserStatus = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating user status:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       console.log('User status updated successfully:', data);
 
@@ -41,7 +38,7 @@ export const useUpdateUserStatus = () => {
           changes: { status: { before: undefined, after: status } },
         });
       } catch (e) {
-        console.warn('Audit log insert failed (status change)', e);
+        logWarning('Audit log insert failed (status change)', 'useUpdateUserStatus', { error: e, userId });
       }
 
       return data;

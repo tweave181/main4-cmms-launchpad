@@ -1,6 +1,6 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logWarning } from '@/utils/errorHandling';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserUpdate = Partial<Database['public']['Tables']['users']['Update']>;
@@ -29,9 +29,7 @@ export const useUpdateUser = () => {
         .select()
         .single();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       try {
         const { data: auth } = await supabase.auth.getUser();
@@ -47,7 +45,7 @@ export const useUpdateUser = () => {
           changes,
         });
       } catch (e) {
-        console.warn('Audit log insert failed (profile.update)', e);
+        logWarning('Audit log insert failed (profile.update)', 'useUpdateUser', { error: e, userId });
       }
 
       return data;

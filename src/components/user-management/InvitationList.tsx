@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useInvitations } from '@/hooks/queries/useInvitations';
 import { useDeleteInvitation } from '@/hooks/mutations/useDeleteInvitation';
-import { toast } from '@/components/ui/use-toast';
+import { handleError, showSuccessToast } from '@/utils/errorHandling';
 import { format } from 'date-fns';
 
 const getRoleIcon = (role: string) => {
@@ -60,15 +60,12 @@ export const InvitationList: React.FC = () => {
   const handleDeleteInvitation = async (invitationId: string) => {
     try {
       await deleteInvitationMutation.mutateAsync(invitationId);
-      toast({
-        title: "Success",
-        description: "Invitation deleted successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete invitation",
-        variant: "destructive",
+      showSuccessToast("Invitation deleted successfully");
+    } catch (error) {
+      handleError(error, 'InvitationList.handleDeleteInvitation', {
+        showToast: true,
+        toastTitle: 'Delete Failed',
+        additionalData: { invitationId }
       });
     }
   };
@@ -76,10 +73,7 @@ export const InvitationList: React.FC = () => {
   const handleCopyInvitationLink = (token: string) => {
     const inviteUrl = `${window.location.origin}/invite/${token}`;
     navigator.clipboard.writeText(inviteUrl);
-    toast({
-      title: "Success",
-      description: "Invitation link copied to clipboard",
-    });
+    showSuccessToast("Invitation link copied to clipboard");
   };
 
   const getStatusBadge = (invitation: any) => {

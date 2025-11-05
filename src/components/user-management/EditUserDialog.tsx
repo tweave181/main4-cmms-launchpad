@@ -14,7 +14,7 @@ import { Edit } from 'lucide-react';
 import { UserForm } from './UserForm';
 import { useUpdateUser } from '@/hooks/mutations/useUpdateUser';
 import { useFormDialog } from '@/hooks/useFormDialog';
-import { toast } from '@/components/ui/use-toast';
+import { handleError, showSuccessToast } from '@/utils/errorHandling';
 import type { Database } from '@/integrations/supabase/types';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -38,16 +38,13 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, trigger })
         userId: user.id,
         updates: data,
       });
-      toast({
-        title: "Success",
-        description: "User updated successfully",
-      });
+      showSuccessToast("User updated successfully");
       setOpen(false);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update user",
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'EditUserDialog', {
+        showToast: true,
+        toastTitle: 'Update Failed',
+        additionalData: { userId: user.id, updates: data }
       });
     }
   };
