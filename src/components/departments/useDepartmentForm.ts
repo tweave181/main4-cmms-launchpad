@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/components/ui/use-toast';
+import { handleError } from '@/utils/errorHandling';
 import type { Database } from '@/integrations/supabase/types';
 
 type Department = Database['public']['Tables']['departments']['Row'];
@@ -72,12 +73,11 @@ export const useDepartmentForm = ({ department, onSuccess }: UseDepartmentFormPr
       }
 
       onSuccess();
-    } catch (error: any) {
-      console.error('Department operation error:', error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'DepartmentForm', {
+        showToast: true,
+        toastTitle: department ? 'Update Failed' : 'Creation Failed',
+        additionalData: { departmentId: department?.id, isUpdate: !!department }
       });
     }
   };

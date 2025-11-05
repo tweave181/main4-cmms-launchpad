@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { logError } from '@/utils/errorHandling';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,7 +56,8 @@ export const LocationDetailModal: React.FC<LocationDetailModalProps> = ({
       setShowDeleteDialog(false);
       onClose();
     } catch (error) {
-      // Error handling is done in the mutation
+      logError(error, 'DeleteLocation', { locationId: location.id });
+      // Error toast is shown by the mutation
     }
   };
 

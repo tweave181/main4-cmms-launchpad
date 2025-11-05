@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit2, Trash2, Building2, Mail, Phone, Calendar } from 'lucide-react';
+import { logError } from '@/utils/errorHandling';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { CompanyForm } from './CompanyForm';
@@ -40,7 +41,8 @@ export const CompanyDetailModal: React.FC<CompanyDetailModalProps> = ({
       setShowDeleteDialog(false);
       onClose();
     } catch (error) {
-      // Error handling is done in the mutation
+      logError(error, 'DeleteCompany', { companyId: company.id });
+      // Error toast is shown by the mutation
     }
   };
   const handleEditSuccess = () => {

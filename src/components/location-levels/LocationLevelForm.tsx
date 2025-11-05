@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { logError } from '@/utils/errorHandling';
 import {
   Dialog,
   DialogContent,
@@ -77,7 +78,8 @@ export const LocationLevelForm: React.FC<LocationLevelFormProps> = ({
       }
       handleClose();
     } catch (error) {
-      // Error handling is done in the hooks
+      logError(error, 'LocationLevelForm', { locationLevelId: locationLevel?.id, isUpdate: !!locationLevel });
+      // Error toast is shown by the hooks
     }
   };
 

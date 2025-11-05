@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
+import { handleError } from '@/utils/errorHandling';
 import {
   Dialog,
   DialogContent,
@@ -121,12 +122,10 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
       }
       onSuccess();
     } catch (error) {
-      console.error('Form submission error:', error);
-      const errorMessage = error?.message || 'Failed to save company. Please try again.';
-      toast({ 
-        title: "Error", 
-        description: errorMessage,
-        variant: "destructive" 
+      handleError(error, 'CompanyForm', {
+        showToast: true,
+        toastTitle: company ? 'Update Failed' : 'Creation Failed',
+        additionalData: { companyId: company?.id, isUpdate: !!company }
       });
     }
   };

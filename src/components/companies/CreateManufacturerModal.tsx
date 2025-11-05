@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { logError } from '@/utils/errorHandling';
 import {
   Dialog,
   DialogContent,
@@ -72,7 +73,8 @@ export const CreateManufacturerModal: React.FC<CreateManufacturerModalProps> = (
       form.reset();
       onClose();
     } catch (error) {
-      console.error('Error creating manufacturer:', error);
+      logError(error, 'CreateManufacturer', { manufacturerData: data });
+      // Error toast is shown by the mutation
     }
   };
 

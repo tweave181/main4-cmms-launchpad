@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { logError } from '@/utils/errorHandling';
 import {
   Dialog,
   DialogContent,
@@ -92,7 +93,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
       onClose();
       form.reset();
     } catch (error) {
-      // Error handling is done in the hooks
+      logError(error, 'LocationForm', { locationId: location?.id, isUpdate: !!location });
+      // Error toast is shown by the hooks
     }
   };
 
