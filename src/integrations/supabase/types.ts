@@ -1992,6 +1992,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          tenant_id: string
           updated_at: string
         }
         Insert: {
@@ -2001,6 +2002,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          tenant_id: string
           updated_at?: string
         }
         Update: {
@@ -2010,6 +2012,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          tenant_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -2018,6 +2021,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spare_parts_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
