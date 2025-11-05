@@ -4,7 +4,7 @@ import { toast } from '@/hooks/use-toast';
 export interface DropdownOption {
   id: string;
   name: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export interface DropdownState {
@@ -19,11 +19,14 @@ export const createEmptyDropdownState = (): DropdownState => ({
   error: null,
 });
 
-export const handleDropdownError = (error: any, dropdownName: string): void => {
+export const handleDropdownError = (error: unknown, dropdownName: string): void => {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  const errorStack = error instanceof Error ? error.stack : undefined;
+  
   console.error(`Error loading ${dropdownName}:`, {
     error,
-    message: error?.message,
-    stack: error?.stack,
+    message: errorMessage,
+    stack: errorStack,
   });
   
   toast({
@@ -33,23 +36,32 @@ export const handleDropdownError = (error: any, dropdownName: string): void => {
   });
 };
 
-export const getSafeDropdownValue = (value: any): string => {
+export const getSafeDropdownValue = (value: string | number | null | undefined): string => {
   if (!value || value === '') return 'none';
   return String(value);
 };
 
-export const getDropdownDisplayValue = (value: any, placeholder: string): string => {
+export const getDropdownDisplayValue = (value: string | number | null | undefined, placeholder: string): string => {
   if (!value || value === '' || value === 'none') return placeholder;
   return String(value);
 };
 
-export const normalizeDropdownData = (data: any[]): DropdownOption[] => {
+interface RawDropdownItem {
+  id?: string;
+  value?: string;
+  name?: string;
+  title?: string;
+  label?: string;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+export const normalizeDropdownData = (data: unknown): DropdownOption[] => {
   if (!Array.isArray(data)) {
     console.warn('Dropdown data is not an array:', data);
     return [];
   }
   
-  return data.map((item) => ({
+  return data.map((item: RawDropdownItem) => ({
     id: item.id || item.value || '',
     name: item.name || item.title || item.label || item.id || '',
     ...item,

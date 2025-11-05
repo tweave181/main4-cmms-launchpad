@@ -29,7 +29,7 @@ export const useOfflineWorkOrders = (filters?: WorkOrderFilters) => {
     }
   }, [onlineQuery.data, offlineMode]);
 
-  const data = offlineMode ? storage.getCachedWorkOrders() : onlineQuery.data;
+  const data = offlineMode ? storage.getCachedWorkOrders<WorkOrder>() : onlineQuery.data;
   const isLoading = offlineMode ? false : onlineQuery.isLoading;
 
   return {

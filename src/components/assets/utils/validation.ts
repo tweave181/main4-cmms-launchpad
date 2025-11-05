@@ -41,8 +41,16 @@ export const validateFormData = (data: AssetFormData): boolean => {
   return true;
 };
 
-export const validateAssetForEditing = (asset: any): boolean => {
-  if (!asset || !asset.id) {
+interface AssetForValidation {
+  id?: string;
+  asset_type?: string;
+  children?: unknown[];
+}
+
+export const validateAssetForEditing = (asset: unknown): asset is AssetForValidation & { id: string } => {
+  const typedAsset = asset as AssetForValidation;
+  
+  if (!typedAsset || !typedAsset.id) {
     console.error('Cannot edit asset: asset or asset.id is missing:', asset);
     toast({
       title: "Error",
@@ -55,9 +63,9 @@ export const validateAssetForEditing = (asset: any): boolean => {
   return true;
 };
 
-export const validateAssetTypeChange = (asset: any, newType: string): boolean => {
+export const validateAssetTypeChange = (asset: AssetForValidation, newType: string): boolean => {
   // Check if asset has children
-  if (asset?.children && asset.children.length > 0) {
+  if (asset?.children && Array.isArray(asset.children) && asset.children.length > 0) {
     console.error('Cannot change asset type: asset has children:', asset);
     toast({
       title: "Cannot Change Type",

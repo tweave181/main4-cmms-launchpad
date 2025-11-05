@@ -4,6 +4,8 @@ import { useAssets } from '@/pages/assets/hooks/useAssets';
 import { OfflineStorageManager } from '@/utils/offlineStorage';
 import { NetworkManager } from '@/utils/networkManager';
 
+import { Asset } from '@/components/assets/types';
+
 export const useOfflineAssets = () => {
   const [offlineMode, setOfflineMode] = useState(!navigator.onLine);
   const onlineQuery = useAssets();
@@ -28,7 +30,7 @@ export const useOfflineAssets = () => {
     }
   }, [onlineQuery.assets, offlineMode]);
 
-  const assets = offlineMode ? storage.getCachedAssets() : onlineQuery.assets;
+  const assets = offlineMode ? storage.getCachedAssets<Asset>() : onlineQuery.assets;
   const isLoading = offlineMode ? false : onlineQuery.isLoading;
 
   return {

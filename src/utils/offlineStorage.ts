@@ -1,7 +1,10 @@
 
+// Generic cached data types - flexible to accept any structured object
+export type CachedItem = Record<string, unknown> & { id: string };
+
 export interface OfflineWorkOrder {
   id: string;
-  data: any;
+  data: Record<string, unknown>;
   timestamp: number;
   action: 'create' | 'update' | 'status_change';
   synced: boolean;
@@ -9,7 +12,7 @@ export interface OfflineWorkOrder {
 
 export interface OfflineAsset {
   id: string;
-  data: any;
+  data: Record<string, unknown>;
   timestamp: number;
   synced: boolean;
 }
@@ -50,31 +53,31 @@ export class OfflineStorageManager {
   }
 
   // Cached Work Orders for offline viewing
-  cacheWorkOrders(workOrders: any[]): void {
+  cacheWorkOrders(workOrders: unknown[]): void {
     localStorage.setItem('cached_work_orders', JSON.stringify(workOrders));
   }
 
-  getCachedWorkOrders(): any[] {
+  getCachedWorkOrders<T = unknown>(): T[] {
     const data = localStorage.getItem('cached_work_orders');
     return data ? JSON.parse(data) : [];
   }
 
   // Assets
-  cacheAssets(assets: any[]): void {
+  cacheAssets(assets: unknown[]): void {
     localStorage.setItem('cached_assets', JSON.stringify(assets));
   }
 
-  getCachedAssets(): any[] {
+  getCachedAssets<T = unknown>(): T[] {
     const data = localStorage.getItem('cached_assets');
     return data ? JSON.parse(data) : [];
   }
 
   // PM Tasks
-  cachePMTasks(tasks: any[]): void {
+  cachePMTasks(tasks: unknown[]): void {
     localStorage.setItem('cached_pm_tasks', JSON.stringify(tasks));
   }
 
-  getCachedPMTasks(): any[] {
+  getCachedPMTasks<T = unknown>(): T[] {
     const data = localStorage.getItem('cached_pm_tasks');
     return data ? JSON.parse(data) : [];
   }

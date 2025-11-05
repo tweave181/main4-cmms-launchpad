@@ -56,9 +56,9 @@ export class NetworkManager {
     for (const workOrder of offlineWorkOrders) {
       try {
         if (workOrder.action === 'create') {
-          await supabase.from('work_orders').insert(workOrder.data);
+          await supabase.from('work_orders').insert(workOrder.data as never);
         } else if (workOrder.action === 'update') {
-          await supabase.from('work_orders').update(workOrder.data).eq('id', workOrder.id);
+          await supabase.from('work_orders').update(workOrder.data as never).eq('id', workOrder.id);
         }
         storage.markWorkOrderSynced(workOrder.id);
       } catch (error) {

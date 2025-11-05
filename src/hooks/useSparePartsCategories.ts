@@ -44,10 +44,22 @@ export const useSparePartsCategories = () => {
 
   const createCategory = useMutation({
     mutationFn: async (categoryData: { name: string; description?: string; is_active?: boolean }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!userProfile?.tenant_id) throw new Error('Tenant not found');
+
       const { data, error } = await supabase
         .from('spare_parts_categories')
         .insert({
           ...categoryData,
+          tenant_id: userProfile.tenant_id,
           is_active: categoryData.is_active ?? true
         })
         .select()
@@ -121,9 +133,25 @@ export const useSparePartsCategories = () => {
 
   const importCategories = useMutation({
     mutationFn: async (categories: Array<{ name: string; description?: string; is_active?: boolean }>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!userProfile?.tenant_id) throw new Error('Tenant not found');
+
+      const categoriesWithTenant = categories.map(cat => ({
+        ...cat,
+        tenant_id: userProfile.tenant_id
+      }));
+
       const { data, error } = await supabase
         .from('spare_parts_categories')
-        .insert(categories)
+        .insert(categoriesWithTenant)
         .select();
       
       if (error) throw error;
