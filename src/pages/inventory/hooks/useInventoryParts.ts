@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/components/ui/use-toast';
+import { showSuccessToast, showErrorToast } from '@/utils/errorHandling';
 import type { Database } from '@/integrations/supabase/types';
 
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'] & {
@@ -75,17 +75,10 @@ export const useInventoryParts = (inventoryType?: 'spare_parts' | 'consumables')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-parts'] });
-      toast({
-        title: "Success",
-        description: "Part created successfully",
-      });
+      showSuccessToast("Part created successfully");
     },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Create Failed', context: 'Inventory Part' });
     },
   });
 
@@ -103,17 +96,10 @@ export const useInventoryParts = (inventoryType?: 'spare_parts' | 'consumables')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-parts'] });
-      toast({
-        title: "Success",
-        description: "Part updated successfully",
-      });
+      showSuccessToast("Part updated successfully");
     },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'Inventory Part' });
     },
   });
 
@@ -130,17 +116,10 @@ export const useInventoryParts = (inventoryType?: 'spare_parts' | 'consumables')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-parts'] });
-      toast({
-        title: "Success",
-        description: "Part deleted successfully",
-      });
+      showSuccessToast("Part deleted successfully");
     },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Delete Failed', context: 'Inventory Part' });
     },
   });
 
@@ -176,17 +155,10 @@ export const useInventoryParts = (inventoryType?: 'spare_parts' | 'consumables')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-parts'] });
-      toast({
-        title: "Success",
-        description: "Stock updated successfully",
-      });
+      showSuccessToast("Stock updated successfully");
     },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Stock Update Failed', context: 'Inventory' });
     },
   });
 

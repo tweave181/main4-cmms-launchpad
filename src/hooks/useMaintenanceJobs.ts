@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/hooks/use-toast';
+import { showSuccessToast, showErrorToast } from '@/utils/errorHandling';
 import type { MaintenanceJob, MaintenanceJobFilters, MaintenanceJobFormData } from '@/types/maintenanceJob';
 
 export const useMaintenanceJobs = (filters?: MaintenanceJobFilters) => {
@@ -50,10 +50,7 @@ export const useMaintenanceJobs = (filters?: MaintenanceJobFilters) => {
 
       const { data, error } = await query;
 
-      if (error) {
-        console.error('Error fetching maintenance jobs:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return data as MaintenanceJob[];
     },
@@ -115,17 +112,10 @@ export const useCreateMaintenanceJob = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['maintenance-jobs'] });
-      toast({
-        title: 'Success',
-        description: 'Maintenance job created successfully',
-      });
+      showSuccessToast('Maintenance job created successfully');
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create maintenance job',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Create Failed', context: 'Maintenance Job' });
     },
   });
 };
@@ -151,17 +141,10 @@ export const useUpdateMaintenanceJob = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['maintenance-jobs'] });
       queryClient.invalidateQueries({ queryKey: ['maintenance-job', data.id] });
-      toast({
-        title: 'Success',
-        description: 'Maintenance job updated successfully',
-      });
+      showSuccessToast('Maintenance job updated successfully');
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update maintenance job',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'Maintenance Job' });
     },
   });
 };
@@ -182,17 +165,10 @@ export const useDeleteMaintenanceJob = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['maintenance-jobs'] });
-      toast({
-        title: 'Success',
-        description: 'Maintenance job deleted successfully',
-      });
+      showSuccessToast('Maintenance job deleted successfully');
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete maintenance job',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Delete Failed', context: 'Maintenance Job' });
     },
   });
 };
