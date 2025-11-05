@@ -16,6 +16,7 @@ import { useCommentStatusOptions } from '@/hooks/useWorkOrderComments';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { handleError } from '@/utils/errorHandling';
 
 const editCommentSchema = z.object({
   comment: z.string().min(1, 'Comment cannot be empty'),
@@ -94,11 +95,10 @@ export const EditCommentModal: React.FC<EditCommentModalProps> = ({
       
       onClose();
     } catch (error) {
-      console.error('Failed to update comment:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update comment',
-        variant: 'destructive',
+      handleError(error, 'EditCommentModal', {
+        showToast: true,
+        toastTitle: "Failed to Update Comment",
+        additionalData: { commentId: comment.id, updateData: data },
       });
     }
   };

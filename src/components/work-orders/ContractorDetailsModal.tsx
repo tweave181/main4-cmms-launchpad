@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/auth';
 import { useQuery } from '@tanstack/react-query';
 import type { CompanyDetails } from '@/types/company';
 import type { Database } from '@/integrations/supabase/types';
+import { logWarning } from '@/utils/errorHandling';
 
 import type { WorkOrder, WorkOrderFormData, WorkOrderFilters } from '@/types/workOrder';
 import type { Location } from '@/types/location';
@@ -122,7 +123,12 @@ export const ContractorDetailsModal: React.FC<ContractorDetailsModalProps> = ({
         comment_type: 'contact_event'
       });
     } catch (error) {
-      console.error('Failed to log communication event:', error);
+      logWarning('Failed to log communication event', 'ContractorDetailsModal', {
+        error,
+        method,
+        contractorId: contractor.company_name,
+        workOrderId: workOrder.id,
+      });
       // Don't block the user action if logging fails
     }
   };

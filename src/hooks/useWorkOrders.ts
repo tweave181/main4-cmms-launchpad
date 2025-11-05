@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/components/ui/use-toast';
 import type { WorkOrder, WorkOrderFormData, WorkOrderFilters } from '@/types/workOrder';
+import { getUserFriendlyErrorMessage } from '@/utils/errorHandling';
 
 export const useWorkOrders = (filters?: WorkOrderFilters) => {
   const { userProfile } = useAuth();
@@ -123,11 +124,11 @@ export const useCreateWorkOrder = () => {
         description: "Work order created successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Create work order error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create work order",
+        description: getUserFriendlyErrorMessage(error, 'Work Order'),
         variant: "destructive",
       });
     },
@@ -166,11 +167,11 @@ export const useUpdateWorkOrder = () => {
         description: "Work order updated successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Update work order error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to update work order",
+        description: getUserFriendlyErrorMessage(error, 'Work Order'),
         variant: "destructive",
       });
     },

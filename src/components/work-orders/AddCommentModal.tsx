@@ -18,6 +18,7 @@ import { useCreateWorkOrderComment, useCommentStatusOptions } from '@/hooks/useW
 import { MessageSquarePlus, Calendar, Clock, Hash } from 'lucide-react';
 import { format } from 'date-fns';
 import type { WorkOrder } from '@/types/workOrder';
+import { handleError } from '@/utils/errorHandling';
 
 const commentSchema = z.object({
   comment: z.string().min(1, 'Comment cannot be empty'),
@@ -64,7 +65,11 @@ export const AddCommentModal: React.FC<AddCommentModalProps> = ({
       reset();
       onClose();
     } catch (error) {
-      console.error('Failed to add comment:', error);
+      handleError(error, 'AddCommentModal', {
+        showToast: true,
+        toastTitle: "Failed to Add Comment",
+        additionalData: { workOrderId: workOrder.id, commentData: data },
+      });
     }
   };
 

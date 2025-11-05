@@ -9,6 +9,7 @@ import {
 import { WorkOrderForm } from './WorkOrderForm';
 import { useUpdateWorkOrder } from '@/hooks/useWorkOrders';
 import type { WorkOrder, WorkOrderFormData } from '@/types/workOrder';
+import { handleError } from '@/utils/errorHandling';
 
 interface EditWorkOrderModalProps {
   workOrder: WorkOrder;
@@ -33,7 +34,11 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
       });
       onClose();
     } catch (error) {
-      console.error('Failed to update work order:', error);
+      handleError(error, 'EditWorkOrderModal', {
+        showToast: true,
+        toastTitle: "Failed to Update Work Order",
+        additionalData: { workOrderId: workOrder.id, updateData: data },
+      });
     }
   };
 

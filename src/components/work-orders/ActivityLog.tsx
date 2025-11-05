@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/auth';
 import { EditCommentModal } from './EditCommentModal';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { handleError } from '@/utils/errorHandling';
 
 interface ActivityLogProps {
   workOrderId: string;
@@ -105,11 +106,10 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ workOrderId }) => {
         description: 'Comment deleted successfully',
       });
     } catch (error) {
-      console.error('Failed to delete comment:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete comment',
-        variant: 'destructive',
+      handleError(error, 'ActivityLog:deleteComment', {
+        showToast: true,
+        toastTitle: "Failed to Delete Comment",
+        additionalData: { workOrderId, commentId },
       });
     }
   };
