@@ -8,6 +8,7 @@ This project uses a centralized, type-safe error handling system located in `src
 
 - [Why Centralized Error Handling?](#why-centralized-error-handling)
 - [Core Concepts](#core-concepts)
+- [Decision Flowchart](#decision-flowchart)
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
 - [Usage Patterns](#usage-patterns)
@@ -91,6 +92,108 @@ The system automatically translates technical errors into user-friendly messages
 | `network error` | "Network error. Please check your connection and try again." |
 | `timeout` | "The request took too long. Please try again." |
 | Contains `tenant_id` | "There was an issue with your account permissions. Please try logging out and back in." |
+
+---
+
+## Decision Flowchart
+
+Use this flowchart to quickly determine which error handling function to use in different scenarios:
+
+```mermaid
+flowchart TD
+    Start([Error Occurred]) --> Question1{Do you need to<br/>wrap an async<br/>function?}
+    
+    Question1 -->|Yes| Question2{Is this a reusable<br/>utility function?}
+    Question1 -->|No| Question3{Are you in a<br/>try-catch block?}
+    
+    Question2 -->|Yes| UseWith[Use withErrorHandling]
+    Question2 -->|No| Question3
+    
+    Question3 -->|Yes| Question4{Do you need to<br/>show a toast to<br/>the user?}
+    Question3 -->|No| Question5{Are you in React<br/>Query onError?}
+    
+    Question4 -->|Yes| Question6{Do you also need<br/>to log the error?}
+    Question4 -->|No| Question7{Do you need to<br/>log for debugging?}
+    
+    Question5 -->|Yes| Question8{Just show toast<br/>or also log?}
+    Question5 -->|No| Question9{Background operation<br/>or user-facing?}
+    
+    Question6 -->|Yes| UseHandle[Use handleError]
+    Question6 -->|No| UseToast[Use showErrorToast]
+    
+    Question7 -->|Yes| UseLog[Use logError]
+    Question7 -->|No| Nothing[Do nothing /<br/>custom handling]
+    
+    Question8 -->|Just toast| UseToast2[Use showErrorToast]
+    Question8 -->|Also log| UseHandle2[Use handleError with<br/>showToast: true]
+    
+    Question9 -->|Background| UseLog2[Use logError]
+    Question9 -->|User-facing| UseHandle3[Use handleError]
+    
+    %% Styling
+    classDef actionClass fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+    classDef questionClass fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
+    classDef startClass fill:#8b5cf6,stroke:#7c3aed,stroke-width:3px,color:#fff
+    
+    class UseHandle,UseToast,UseLog,UseWith,UseHandle2,UseToast2,UseLog2,UseHandle3 actionClass
+    class Question1,Question2,Question3,Question4,Question5,Question6,Question7,Question8,Question9 questionClass
+    class Start startClass
+```
+
+### Quick Decision Guide
+
+| Scenario | Function | Reason |
+|----------|----------|--------|
+| **Try-catch with user notification** | `handleError()` | Logs error + shows toast automatically |
+| **Try-catch, log only** | `logError()` | Just logs, no user notification |
+| **React Query `onError`** | `showErrorToast()` | Simple toast for user feedback |
+| **Wrapping async functions** | `withErrorHandling()` | Automatic error handling wrapper |
+| **Background operations** | `logError()` | Silent logging without user interruption |
+| **Form submissions** | `handleError()` | Full error handling with user feedback |
+| **Success notifications** | `showSuccessToast()` | Positive user feedback |
+| **Warning messages** | `showWarningToast()` | Non-critical user notifications |
+
+### Function Comparison
+
+| Feature | `handleError` | `showErrorToast` | `logError` | `withErrorHandling` |
+|---------|---------------|------------------|------------|---------------------|
+| Logs to console | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
+| Shows toast | ✅ Optional (default: yes) | ✅ Yes | ❌ No | ✅ Optional |
+| User-friendly messages | ✅ Yes | ✅ Yes | ❌ No | ✅ Yes |
+| Returns value | ❌ No (void) | ❌ No (void) | ❌ No (void) | ✅ Yes (Promise) |
+| Custom toast title | ✅ Yes | ✅ Yes | N/A | ✅ Yes |
+| Additional data logging | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
+| Error callback | ❌ No | ❌ No | ❌ No | ✅ Yes |
+| Best for | Try-catch blocks | React Query hooks | Background tasks | Reusable functions |
+
+### Visual Usage Examples
+
+```mermaid
+graph LR
+    subgraph "Try-Catch Block"
+        A[Error] --> B{Need toast?}
+        B -->|Yes| C[handleError]
+        B -->|No| D[logError]
+    end
+    
+    subgraph "React Query"
+        E[onError] --> F[showErrorToast]
+        G[onSuccess] --> H[showSuccessToast]
+    end
+    
+    subgraph "Async Wrapper"
+        I[Async Function] --> J[withErrorHandling]
+        J --> K{Success?}
+        K -->|Yes| L[Return value]
+        K -->|No| M[Return null]
+    end
+    
+    style C fill:#10b981,color:#fff
+    style D fill:#f59e0b,color:#fff
+    style F fill:#ef4444,color:#fff
+    style H fill:#10b981,color:#fff
+    style J fill:#8b5cf6,color:#fff
+```
 
 ---
 
