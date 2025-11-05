@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/components/ui/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 import type { Location, LocationFormData, LocationFilters } from '@/types/location';
 
 export const useLocations = (filters?: LocationFilters) => {
@@ -41,10 +41,7 @@ export const useLocations = (filters?: LocationFilters) => {
 
       const { data, error } = await query;
 
-      if (error) {
-        console.error('Error fetching locations:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return data as Location[];
     },
@@ -78,27 +75,16 @@ export const useCreateLocation = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating location:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
-      toast({
-        title: "Success",
-        description: "Location created successfully",
-      });
+      showSuccessToast("Location created successfully");
     },
-    onError: (error: any) => {
-      console.error('Create location error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create location",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Create Failed', context: 'Location' });
     },
   });
 };
@@ -115,27 +101,16 @@ export const useUpdateLocation = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating location:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
-      toast({
-        title: "Success",
-        description: "Location updated successfully",
-      });
+      showSuccessToast("Location updated successfully");
     },
-    onError: (error: any) => {
-      console.error('Update location error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update location",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'Location' });
     },
   });
 };
@@ -150,25 +125,14 @@ export const useDeleteLocation = () => {
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Error deleting location:', error);
-        throw error;
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
-      toast({
-        title: "Success",
-        description: "Location deleted successfully",
-      });
+      showSuccessToast("Location deleted successfully");
     },
-    onError: (error: any) => {
-      console.error('Delete location error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete location",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Delete Failed', context: 'Location' });
     },
   });
 };

@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/components/ui/use-toast';
+import { handleError, showSuccessToast } from '@/utils/errorHandling';
 import type { Database } from '@/integrations/supabase/types';
 
 type Department = Database['public']['Tables']['departments']['Row'];
@@ -35,16 +35,13 @@ export const useDepartments = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Department deleted successfully",
-      });
+      showSuccessToast("Department deleted successfully");
       refetch();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'useDepartments.deleteDepartment', {
+        showToast: true,
+        toastTitle: 'Delete Failed',
+        additionalData: { departmentId }
       });
     }
   };

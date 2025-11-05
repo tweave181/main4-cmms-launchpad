@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/components/ui/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 import type { Address, AddressFormData } from '@/types/address';
 
 export const useAddresses = (search?: string) => {
@@ -32,10 +32,7 @@ export const useAddresses = (search?: string) => {
 
       const { data, error } = await query;
 
-      if (error) {
-        console.error('Error fetching addresses:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return data as unknown as (Address & { company_details?: { id: string; company_name: string } | null })[];
     },
@@ -60,10 +57,7 @@ export const useCheckAddressDuplicates = () => {
         .filter('town_or_city', 'ilike', data.town_or_city || '')
         .filter('postcode', 'ilike', data.postcode || '');
 
-      if (error) {
-        console.error('Error checking duplicates:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return duplicates as Address[];
     },
@@ -89,7 +83,7 @@ export const useCreateAddress = () => {
           .ilike('address_line_1', data.address_line_1);
 
         if (duplicateError) {
-          console.error('Error checking duplicates:', duplicateError);
+          logError(duplicateError, 'useCreateAddress.checkDuplicates', { data });
         } else if (duplicates && duplicates.length > 0) {
           // Filter for exact matches on key fields (case-insensitive)
           const exactDuplicates = duplicates.filter(addr => 
@@ -130,29 +124,18 @@ export const useCreateAddress = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating address:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['addresses'] });
-      toast({
-        title: "Success",
-        description: "Address created successfully",
-      });
+      showSuccessToast("Address created successfully");
     },
-    onError: (error: any) => {
+    onError: (error) => {
       // Don't show toast for duplicate errors - let the component handle it
       if (!error.message?.startsWith('DUPLICATE_ADDRESS:')) {
-        console.error('Create address error:', error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to create address",
-          variant: "destructive",
-        });
+        showErrorToast(error, { title: 'Create Failed', context: 'Address' });
       }
     },
   });
@@ -176,27 +159,16 @@ export const useUpdateAddress = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating address:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['addresses'] });
-      toast({
-        title: "Success",
-        description: "Address updated successfully",
-      });
+      showSuccessToast("Address updated successfully");
     },
-    onError: (error: any) => {
-      console.error('Update address error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update address",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'Address' });
     },
   });
 };
@@ -211,25 +183,14 @@ export const useDeleteAddress = () => {
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Error deleting address:', error);
-        throw error;
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['addresses'] });
-      toast({
-        title: "Success",
-        description: "Address deleted successfully",
-      });
+      showSuccessToast("Address deleted successfully");
     },
-    onError: (error: any) => {
-      console.error('Delete address error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete address",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Delete Failed', context: 'Address' });
     },
   });
 };
@@ -257,10 +218,7 @@ export const useAddress = (id: string) => {
         .eq('tenant_id', userProfile.tenant_id)
         .single();
 
-      if (error) {
-        console.error('Error fetching address:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return data as unknown as Address & { company_details?: { id: string; company_name: string } | null };
     },

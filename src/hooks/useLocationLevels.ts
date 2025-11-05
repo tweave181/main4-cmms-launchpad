@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
-import { useToast } from "@/hooks/use-toast";
+import { showSuccessToast, showErrorToast, showWarningToast, logError } from "@/utils/errorHandling";
 import type { LocationLevel, LocationLevelFormData, LocationLevelFilters } from "@/types/location";
 
 export const useLocationLevels = (filters?: LocationLevelFilters) => {
@@ -26,10 +26,7 @@ export const useLocationLevels = (filters?: LocationLevelFilters) => {
           `)
           .eq("tenant_id", userProfile.tenant_id);
           
-        if (error) {
-          console.error("Error fetching location levels with usage:", error);
-          throw error;
-        }
+        if (error) throw error;
 
         // Transform the data to include usage_count
         const transformedData = await Promise.all(
@@ -66,10 +63,7 @@ export const useLocationLevels = (filters?: LocationLevelFilters) => {
 
         const { data, error } = await query;
 
-        if (error) {
-          console.error("Error fetching location levels:", error);
-          throw error;
-        }
+        if (error) throw error;
 
         return data as LocationLevel[];
       }
@@ -80,7 +74,6 @@ export const useLocationLevels = (filters?: LocationLevelFilters) => {
 
 export const useCreateLocationLevel = () => {
   const { userProfile } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -105,24 +98,15 @@ export const useCreateLocationLevel = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["location-levels"] });
-      toast({
-        title: "Success",
-        description: "Location level created successfully",
-      });
+      showSuccessToast("Location level created successfully");
     },
     onError: (error) => {
-      console.error("Error creating location level:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create location level",
-        variant: "destructive",
-      });
+      showErrorToast(error, { title: 'Create Failed', context: 'Location Level' });
     },
   });
 };
 
 export const useUpdateLocationLevel = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -139,24 +123,15 @@ export const useUpdateLocationLevel = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["location-levels"] });
-      toast({
-        title: "Success",
-        description: "Location level updated successfully",
-      });
+      showSuccessToast("Location level updated successfully");
     },
     onError: (error) => {
-      console.error("Error updating location level:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update location level",
-        variant: "destructive",
-      });
+      showErrorToast(error, { title: 'Update Failed', context: 'Location Level' });
     },
   });
 };
 
 export const useDeleteLocationLevel = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -183,27 +158,16 @@ export const useDeleteLocationLevel = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["location-levels"] });
-      toast({
-        title: "Success",
-        description: "Location level deleted successfully",
-      });
+      showSuccessToast("Location level deleted successfully");
     },
     onError: (error) => {
-      console.error("Error deleting location level:", error);
-      
       if (error.message.startsWith("LEVEL_IN_USE:")) {
         const usageCount = error.message.split(":")[1];
-        toast({
-          title: "Cannot Delete",
-          description: `This level is used by ${usageCount} locations. Deactivate it instead.`,
-          variant: "destructive",
+        showWarningToast(`This level is used by ${usageCount} locations. Deactivate it instead.`, {
+          title: "Cannot Delete"
         });
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete location level",
-          variant: "destructive",
-        });
+        showErrorToast(error, { title: 'Delete Failed', context: 'Location Level' });
       }
     },
   });

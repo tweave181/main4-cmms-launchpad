@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/components/ui/use-toast';
+import { handleError, showSuccessToast, showWarningToast, logError } from '@/utils/errorHandling';
 import type { Database } from '@/integrations/supabase/types';
 
 type JobTitle = Database['public']['Tables']['job_titles']['Row'];
@@ -32,7 +32,7 @@ export const useJobTitles = () => {
       .limit(1);
 
     if (error) {
-      console.error('Error checking job title usage:', error);
+      logError(error, 'useJobTitles.checkJobTitleUsage', { jobTitleId });
       return true; // Assume it's in use if we can't check
     }
 
@@ -45,10 +45,8 @@ export const useJobTitles = () => {
       const isInUse = await checkJobTitleUsage(jobTitleId);
       
       if (isInUse) {
-        toast({
-          title: "Cannot Delete",
-          description: "This job title is currently assigned to users and cannot be deleted.",
-          variant: "destructive",
+        showWarningToast("This job title is currently assigned to users and cannot be deleted.", {
+          title: "Cannot Delete"
         });
         return;
       }
@@ -62,16 +60,13 @@ export const useJobTitles = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Job title deleted successfully",
-      });
+      showSuccessToast("Job title deleted successfully");
       refetch();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+    } catch (error) {
+      handleError(error, 'useJobTitles.deleteJobTitle', {
+        showToast: true,
+        toastTitle: 'Delete Failed',
+        additionalData: { jobTitleId }
       });
     }
   };

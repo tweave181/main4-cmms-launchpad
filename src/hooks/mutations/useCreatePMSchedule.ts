@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/hooks/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 import type { PMScheduleFormData } from '@/types/preventiveMaintenance';
 
 export const useCreatePMSchedule = () => {
@@ -36,10 +36,7 @@ export const useCreatePMSchedule = () => {
         .select()
         .single();
 
-      if (scheduleError) {
-        console.error('Error creating PM schedule:', scheduleError);
-        throw scheduleError;
-      }
+      if (scheduleError) throw scheduleError;
 
       console.log('PM schedule created:', schedule);
 
@@ -54,10 +51,7 @@ export const useCreatePMSchedule = () => {
           .from('pm_schedule_assets')
           .insert(assetLinks);
 
-        if (linkError) {
-          console.error('Error linking assets to PM schedule:', linkError);
-          throw linkError;
-        }
+        if (linkError) throw linkError;
 
         console.log('Assets linked to PM schedule successfully');
       }
@@ -75,10 +69,7 @@ export const useCreatePMSchedule = () => {
           .from('pm_schedule_checklist_items')
           .insert(checklistItems);
 
-        if (checklistError) {
-          console.error('Error creating checklist items:', checklistError);
-          throw checklistError;
-        }
+        if (checklistError) throw checklistError;
 
         console.log('Checklist items created successfully');
       }
@@ -86,20 +77,12 @@ export const useCreatePMSchedule = () => {
       return schedule;
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Preventive maintenance schedule created successfully",
-      });
+      showSuccessToast("Preventive maintenance schedule created successfully");
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
       queryClient.invalidateQueries({ queryKey: ['pm-schedules-calendar'] });
     },
-    onError: (error: any) => {
-      console.error('PM schedule creation error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create PM schedule",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Create Failed', context: 'PM Schedule' });
     },
   });
 };

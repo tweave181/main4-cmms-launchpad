@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { showSuccessToast, showErrorToast } from '@/utils/errorHandling';
 import type { ChecklistItemTemplate, ChecklistTemplateFilters, ChecklistTemplateFormData } from '@/types/checklistTemplate';
 
 export const useChecklistTemplates = (filters?: ChecklistTemplateFilters) => {
@@ -131,17 +131,10 @@ export const useCreateChecklistTemplate = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
-      toast({
-        title: 'Success',
-        description: 'Checklist item created successfully',
-      });
+      showSuccessToast('Checklist item created successfully');
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Create Failed', context: 'Checklist Template' });
     },
   });
 };
@@ -218,17 +211,10 @@ export const useUpdateChecklistTemplate = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
       queryClient.invalidateQueries({ queryKey: ['checklist-template'] });
-      toast({
-        title: 'Success',
-        description: 'Checklist item updated successfully',
-      });
+      showSuccessToast('Checklist item updated successfully');
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'Checklist Template' });
     },
   });
 };
@@ -261,17 +247,10 @@ export const useDeleteChecklistTemplate = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
-      toast({
-        title: 'Success',
-        description: 'Checklist item deleted successfully',
-      });
+      showSuccessToast('Checklist item deleted successfully');
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Delete Failed', context: 'Checklist Template' });
     },
   });
 };
@@ -291,17 +270,10 @@ export const useUpdateImageName = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
       queryClient.invalidateQueries({ queryKey: ['checklist-template'] });
-      toast({
-        title: 'Success',
-        description: 'Image name updated successfully',
-      });
+      showSuccessToast('Image name updated successfully');
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'Image Name' });
     },
   });
 };

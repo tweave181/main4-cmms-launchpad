@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/components/ui/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 import type { CompanyDetails, CompanyFormData } from '@/types/company';
 
 export const useCompanies = (type?: string) => {
@@ -32,10 +32,7 @@ export const useCompanies = (type?: string) => {
 
       const { data, error } = await query;
 
-      if (error) {
-        console.error('Error fetching companies:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       // Transform data to include aggregated types
       const companiesWithTypes = data?.map(company => {
@@ -113,23 +110,17 @@ export const useCreateCompany = () => {
         `)
         .single();
 
-      if (error) {
-        console.error('Error creating company:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
-      toast({
-        title: "Success",
-        description: "Company created successfully",
-      });
+      showSuccessToast("Company created successfully");
     },
-    onError: (error: any) => {
-      console.error('Create company error:', error);
+    onError: (error) => {
       // Don't show toast here since CompanyForm handles it
+      logError(error, 'useCreateCompany', { showToast: false });
     },
   });
 };
@@ -162,23 +153,17 @@ export const useUpdateCompany = () => {
         `)
         .single();
 
-      if (error) {
-        console.error('Error updating company:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
-      toast({
-        title: "Success",
-        description: "Company updated successfully",
-      });
+      showSuccessToast("Company updated successfully");
     },
-    onError: (error: any) => {
-      console.error('Update company error:', error);
+    onError: (error) => {
       // Don't show toast here since CompanyForm handles it
+      logError(error, 'useUpdateCompany', { showToast: false });
     },
   });
 };
@@ -193,25 +178,14 @@ export const useDeleteCompany = () => {
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Error deleting company:', error);
-        throw error;
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
-      toast({
-        title: "Success",
-        description: "Company deleted successfully",
-      });
+      showSuccessToast("Company deleted successfully");
     },
-    onError: (error: any) => {
-      console.error('Delete company error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete company",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Delete Failed', context: 'Company' });
     },
   });
 };

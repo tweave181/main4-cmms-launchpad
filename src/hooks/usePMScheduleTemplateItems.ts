@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { showSuccessToast, showErrorToast } from '@/utils/errorHandling';
 import type { PMScheduleTemplateItem } from '@/types/checklistTemplate';
 
 export const usePMScheduleTemplateItems = (scheduleId: string) => {
@@ -53,17 +53,10 @@ export const useAddTemplateItemsToSchedule = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pm-schedule-template-items', variables.scheduleId] });
       queryClient.invalidateQueries({ queryKey: ['pm-schedule', variables.scheduleId] });
-      toast({
-        title: 'Success',
-        description: 'Checklist items added to schedule',
-      });
+      showSuccessToast('Checklist items added to schedule');
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Add Failed', context: 'Checklist Items' });
     },
   });
 };
@@ -83,17 +76,10 @@ export const useRemoveTemplateItemFromSchedule = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pm-schedule-template-items', variables.scheduleId] });
       queryClient.invalidateQueries({ queryKey: ['pm-schedule', variables.scheduleId] });
-      toast({
-        title: 'Success',
-        description: 'Checklist item removed from schedule',
-      });
+      showSuccessToast('Checklist item removed from schedule');
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Remove Failed', context: 'Checklist Item' });
     },
   });
 };
@@ -115,12 +101,8 @@ export const useReorderTemplateItems = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pm-schedule-template-items', variables.scheduleId] });
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: 'Failed to reorder items',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Reorder Failed', context: 'Checklist Items' });
     },
   });
 };

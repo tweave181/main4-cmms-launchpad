@@ -1,7 +1,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 import type { PMScheduleFormData } from '@/types/preventiveMaintenance';
 
 export const useUpdatePMSchedule = () => {
@@ -26,10 +26,7 @@ export const useUpdatePMSchedule = () => {
         })
         .eq('id', id);
 
-      if (error) {
-        console.error('Error updating PM schedule:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       // Update asset links if provided
       if (data.asset_ids) {
@@ -50,10 +47,7 @@ export const useUpdatePMSchedule = () => {
             .from('pm_schedule_assets')
             .insert(assetLinks);
 
-          if (linkError) {
-            console.error('Error updating asset links:', linkError);
-            throw linkError;
-          }
+          if (linkError) throw linkError;
         }
       }
 
@@ -78,30 +72,19 @@ export const useUpdatePMSchedule = () => {
             .from('pm_schedule_checklist_items')
             .insert(checklistItems);
 
-          if (checklistError) {
-            console.error('Error updating checklist items:', checklistError);
-            throw checklistError;
-          }
+          if (checklistError) throw checklistError;
         }
       }
 
       console.log('PM schedule updated successfully');
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Preventive maintenance schedule updated successfully",
-      });
+      showSuccessToast("Preventive maintenance schedule updated successfully");
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
       queryClient.invalidateQueries({ queryKey: ['pm-schedules-calendar'] });
     },
-    onError: (error: any) => {
-      console.error('PM schedule update error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update PM schedule",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      showErrorToast(error, { title: 'Update Failed', context: 'PM Schedule' });
     },
   });
 };

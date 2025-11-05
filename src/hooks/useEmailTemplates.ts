@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
-import { toast } from '@/hooks/use-toast';
+import { showSuccessToast, showErrorToast, logError } from '@/utils/errorHandling';
 
 export interface EmailTemplate {
   id: string;
@@ -77,18 +77,11 @@ export const useCreateEmailTemplate = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['email-templates'] });
-      toast({
-        title: 'Template created',
-        description: 'Email template has been successfully created.',
-      });
+      showSuccessToast('Email template has been successfully created.', { title: 'Template created' });
     },
-    onError: (error: any) => {
-      console.error('Failed to create email template:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create email template. Please try again.',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      logError(error, 'useCreateEmailTemplate');
+      showErrorToast(error, { title: 'Failed to create template', context: 'Email Template' });
     },
   });
 };
@@ -110,18 +103,11 @@ export const useUpdateEmailTemplate = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['email-templates'] });
-      toast({
-        title: 'Template updated',
-        description: 'Email template has been successfully updated.',
-      });
+      showSuccessToast('Email template has been successfully updated.', { title: 'Template updated' });
     },
-    onError: (error: any) => {
-      console.error('Failed to update email template:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update email template. Please try again.',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      logError(error, 'useUpdateEmailTemplate');
+      showErrorToast(error, { title: 'Failed to update template', context: 'Email Template' });
     },
   });
 };
@@ -140,18 +126,11 @@ export const useDeleteEmailTemplate = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['email-templates'] });
-      toast({
-        title: 'Template deleted',
-        description: 'Email template has been successfully deleted.',
-      });
+      showSuccessToast('Email template has been successfully deleted.', { title: 'Template deleted' });
     },
-    onError: (error: any) => {
-      console.error('Failed to delete email template:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete email template. Please try again.',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      logError(error, 'useDeleteEmailTemplate');
+      showErrorToast(error, { title: 'Failed to delete template', context: 'Email Template' });
     },
   });
 };
