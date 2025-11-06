@@ -1,8 +1,23 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider, useMutation, useQuery } from '@tanstack/react-query';
 import React from 'react';
 import { showSuccessToast, showErrorToast, handleError } from '@/utils/errorHandling';
+
+// Simple waitFor utility for tests
+const waitForRTL = async (callback: () => void | boolean, timeout = 5000) => {
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeout) {
+    try {
+      const result = callback();
+      if (result !== false) return;
+    } catch (error) {
+      // Continue waiting
+    }
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  callback(); // Final attempt that will throw if still failing
+};
 import {
   supabaseTest,
   setupTestUser,
@@ -85,7 +100,7 @@ describe('React Query Integration Tests', () => {
 
       result.current.mutate('Mutation Test Asset');
 
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitForRTL(() => expect(result.current.isSuccess).toBe(true));
 
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -134,7 +149,7 @@ describe('React Query Integration Tests', () => {
 
       result.current.mutate();
 
-      await waitFor(() => expect(result.current.isError).toBe(true));
+      await waitForRTL(() => expect(result.current.isError).toBe(true));
 
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -175,7 +190,7 @@ describe('React Query Integration Tests', () => {
 
       result.current.mutate('Updated Name');
 
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitForRTL(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data?.name).toBe('Updated Name');
       expect(mockToast).toHaveBeenCalledWith(
@@ -191,7 +206,7 @@ describe('React Query Integration Tests', () => {
     });
 
     it('should handle delete mutation', async () => {
-      const asset = await createTestAsset();
+      const asset = await createTestAsset({});
       const tenantId = await getCurrentTenantId();
 
       const { result } = renderHook(
@@ -218,7 +233,7 @@ describe('React Query Integration Tests', () => {
 
       result.current.mutate(asset!.id);
 
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitForRTL(() => expect(result.current.isSuccess).toBe(true));
 
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -267,12 +282,12 @@ describe('React Query Integration Tests', () => {
 
       // First mutation
       result.current.mutate('Asset 1');
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitForRTL(() => expect(result.current.isSuccess).toBe(true));
       const asset1Id = result.current.data?.id;
 
       // Second mutation
       result.current.mutate('Asset 2');
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitForRTL(() => expect(result.current.isSuccess).toBe(true));
       const asset2Id = result.current.data?.id;
 
       expect(mockToast).toHaveBeenCalledTimes(2);
@@ -308,7 +323,7 @@ describe('React Query Integration Tests', () => {
         { wrapper: createWrapper() }
       );
 
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitForRTL(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data?.name).toBe('Query Test Asset');
 
@@ -341,7 +356,7 @@ describe('React Query Integration Tests', () => {
         { wrapper: createWrapper() }
       );
 
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitForRTL(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toBeNull();
     });
@@ -363,7 +378,7 @@ describe('React Query Integration Tests', () => {
         { wrapper: createWrapper() }
       );
 
-      await waitFor(() => expect(result.current.isError).toBe(true));
+      await waitForRTL(() => expect(result.current.isError).toBe(true));
 
       expect(result.current.error).toBeTruthy();
     });
@@ -394,7 +409,7 @@ describe('React Query Integration Tests', () => {
         { wrapper: createWrapper() }
       );
 
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitForRTL(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data?.length).toBeGreaterThanOrEqual(3);
 
@@ -440,7 +455,7 @@ describe('React Query Integration Tests', () => {
 
       result.current.mutate('New Name');
 
-      await waitFor(() => expect(result.current.isError).toBe(true));
+      await waitForRTL(() => expect(result.current.isError).toBe(true));
 
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({

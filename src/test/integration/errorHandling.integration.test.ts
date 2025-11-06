@@ -159,7 +159,7 @@ describe('Error Handling Integration Tests', () => {
       });
 
       it('should handle update with invalid foreign key', async () => {
-        const asset = await createTestAsset();
+        const asset = await createTestAsset({});
         const invalidDepartmentId = '00000000-0000-0000-0000-000000000000';
 
         try {
@@ -188,7 +188,7 @@ describe('Error Handling Integration Tests', () => {
 
     describe('Delete Operations', () => {
       it('should handle successful delete', async () => {
-        const asset = await createTestAsset();
+        const asset = await createTestAsset({});
         expect(asset).toBeTruthy();
 
         const { error } = await supabaseTest
@@ -274,7 +274,7 @@ describe('Error Handling Integration Tests', () => {
 
       it('should handle tenant isolation', async () => {
         const tenantId = await getCurrentTenantId();
-        const asset = await createTestAsset();
+        const asset = await createTestAsset({});
 
         // Query with correct tenant
         const { data: correctData } = await supabaseTest
