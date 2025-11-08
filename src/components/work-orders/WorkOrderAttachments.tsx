@@ -34,12 +34,24 @@ export const WorkOrderAttachments: React.FC<WorkOrderAttachmentsProps> = ({
     fileName: string;
     filePath: string;
   } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0 || !userProfile?.tenant_id) return;
+  const validateAndUploadFiles = async (files: FileList | File[]) => {
+    if (!userProfile?.tenant_id) return;
 
-    for (const file of Array.from(files)) {
+    const fileArray = Array.from(files);
+    const allowedTypes = ['image/', 'application/pdf', 'application/msword', 
+      'application/vnd.openxmlformats-officedocument', 'text/plain',
+      'application/vnd.ms-excel'];
+
+    for (const file of fileArray) {
+      // Validate file type
+      const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
+      if (!isAllowed) {
+        alert(`File ${file.name} is not a supported file type.`);
+        continue;
+      }
+
       // Check file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         alert(`File ${file.name} is too large. Maximum size is 10MB.`);
@@ -52,10 +64,49 @@ export const WorkOrderAttachments: React.FC<WorkOrderAttachmentsProps> = ({
         tenantId: userProfile.tenant_id,
       });
     }
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    await validateAndUploadFiles(files);
 
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set to false if leaving the drop zone completely
+    if (e.currentTarget === e.target) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      await validateAndUploadFiles(files);
     }
   };
 
@@ -126,14 +177,35 @@ export const WorkOrderAttachments: React.FC<WorkOrderAttachmentsProps> = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={isDragging ? 'border-2 border-dashed border-primary bg-primary/5 rounded-lg transition-colors' : ''}
+      >
+        {isDragging && (
+          <div className="border-2 border-dashed border-primary rounded-lg p-8 mb-4 bg-primary/5">
+            <div className="text-center">
+              <Upload className="h-12 w-12 mx-auto mb-3 text-primary animate-bounce" />
+              <p className="text-sm font-medium text-primary">Drop files here to upload</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Supports images, PDFs, documents (max 10MB each)
+              </p>
+            </div>
+          </div>
+        )}
+        
         {isLoading ? (
           <div className="text-sm text-muted-foreground">Loading attachments...</div>
         ) : attachments.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Paperclip className="h-12 w-12 mx-auto mb-3 opacity-20" />
-            <p className="text-sm">No attachments yet</p>
-            <p className="text-xs mt-1">Upload photos, documents, or other files</p>
+          <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+            <Upload className="h-12 w-12 mx-auto mb-3 opacity-20" />
+            <p className="text-sm font-medium">No attachments yet</p>
+            <p className="text-xs mt-1">Drag and drop files here or click Upload Files</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Supports images, PDFs, documents (max 10MB each)
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
