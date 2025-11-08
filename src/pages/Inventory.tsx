@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Boxes } from 'lucide-react';
+import { Boxes, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useInventoryParts } from './inventory/hooks/useInventoryParts';
 import { InventorySearchAndFilters } from './inventory/components/InventorySearchAndFilters';
@@ -128,11 +128,12 @@ const Inventory: React.FC = () => {
             {activeFiltersCount > 0 && (
               <Badge 
                 variant="secondary" 
-                className="ml-2 cursor-pointer hover:bg-secondary/80 transition-colors"
+                className="ml-2 cursor-pointer hover:bg-secondary/80 transition-colors flex items-center gap-1"
                 onClick={handleClearFilters}
                 title="Click to clear all filters"
               >
                 {activeFiltersCount} {activeFiltersCount === 1 ? 'Filter' : 'Filters'} Active
+                <X className="h-3 w-3" />
               </Badge>
             )}
           </CardTitle>
