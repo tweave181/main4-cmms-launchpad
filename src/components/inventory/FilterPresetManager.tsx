@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export interface FilterPreset {
@@ -57,7 +57,10 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [editingPreset, setEditingPreset] = useState<FilterPreset | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
   const { toast } = useToast();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
     if (!presetName.trim()) {
@@ -98,6 +101,105 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     setEditDialogOpen(true);
   };
 
+  const handleExport = () => {
+    if (presets.length === 0) {
+      toast({
+        title: 'No Presets to Export',
+        description: 'Create some presets first before exporting.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const dataStr = JSON.stringify(presets, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `inventory-filter-presets-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: 'Presets Exported',
+      description: `Successfully exported ${presets.length} preset${presets.length > 1 ? 's' : ''}.`,
+    });
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedPresets = JSON.parse(e.target?.result as string) as FilterPreset[];
+        
+        // Validate imported data
+        if (!Array.isArray(importedPresets)) {
+          throw new Error('Invalid format: expected an array of presets');
+        }
+
+        // Validate each preset has required fields
+        for (const preset of importedPresets) {
+          if (!preset.id || !preset.name || preset.searchTerm === undefined) {
+            throw new Error('Invalid preset format: missing required fields');
+          }
+        }
+
+        setImportDialogOpen(true);
+        // Store imported presets temporarily for confirmation
+        (window as any).__tempImportedPresets = importedPresets;
+      } catch (error) {
+        toast({
+          title: 'Import Failed',
+          description: error instanceof Error ? error.message : 'Invalid file format.',
+          variant: 'destructive',
+        });
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const confirmImport = () => {
+    const importedPresets = (window as any).__tempImportedPresets as FilterPreset[];
+    if (!importedPresets) return;
+
+    let finalPresets: FilterPreset[];
+    if (importMode === 'replace') {
+      finalPresets = importedPresets;
+    } else {
+      // Merge: keep existing, add new ones with unique IDs
+      const existingIds = new Set(presets.map(p => p.id));
+      const newPresets = importedPresets.filter(p => !existingIds.has(p.id));
+      finalPresets = [...presets, ...newPresets];
+    }
+
+    // Update presets through parent component
+    finalPresets.forEach(preset => {
+      if (!presets.find(p => p.id === preset.id)) {
+        onSavePreset(preset.name);
+        // Load the imported preset to trigger proper state update
+        setTimeout(() => onLoadPreset(preset), 0);
+      }
+    });
+
+    delete (window as any).__tempImportedPresets;
+    setImportDialogOpen(false);
+
+    toast({
+      title: 'Presets Imported',
+      description: `Successfully imported ${importedPresets.length} preset${importedPresets.length > 1 ? 's' : ''}.`,
+    });
+  };
+
   const getFilterSummary = (preset: FilterPreset) => {
     const parts: string[] = [];
     if (preset.searchTerm) parts.push(`Search: "${preset.searchTerm}"`);
@@ -122,7 +224,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-80 z-50 bg-background">
-          <div className="p-2">
+          <div className="p-2 space-y-2">
             <Button
               onClick={() => setSaveDialogOpen(true)}
               size="sm"
@@ -131,6 +233,34 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
               <Save className="h-4 w-4 mr-2" />
               Save Current Filters as Preset
             </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleExport}
+                size="sm"
+                variant="outline"
+                className="flex-1 justify-start"
+                disabled={presets.length === 0}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                size="sm"
+                variant="outline"
+                className="flex-1 justify-start"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Import
+              </Button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
           </div>
           {presets.length > 0 && (
             <>
@@ -282,6 +412,74 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
               Cancel
             </Button>
             <Button onClick={handleEdit}>Update</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Confirmation Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Filter Presets</DialogTitle>
+            <DialogDescription>
+              Choose how to import the presets from the file.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              <Label>Import Mode</Label>
+              <div className="space-y-2">
+                <div
+                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                    importMode === 'merge'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => setImportMode('merge')}
+                >
+                  <div className="font-medium">Merge with Existing</div>
+                  <div className="text-sm text-muted-foreground">
+                    Add imported presets to your current ones (duplicates will be skipped)
+                  </div>
+                </div>
+                <div
+                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                    importMode === 'replace'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => setImportMode('replace')}
+                >
+                  <div className="font-medium">Replace All</div>
+                  <div className="text-sm text-muted-foreground">
+                    Remove existing presets and replace with imported ones
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-sm">
+                <span className="font-medium">Importing:</span>{' '}
+                {(window as any).__tempImportedPresets?.length || 0} preset(s)
+              </p>
+              {presets.length > 0 && (
+                <p className="text-sm mt-1">
+                  <span className="font-medium">Current:</span> {presets.length} preset(s)
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                delete (window as any).__tempImportedPresets;
+                setImportDialogOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={confirmImport}>Import Presets</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
