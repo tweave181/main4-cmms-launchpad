@@ -8,6 +8,8 @@ type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
 
 interface InventoryValueBreakdownProps {
   parts: InventoryPart[];
+  currentFilter: string;
+  onFilterChange: (filter: string) => void;
 }
 
 const inventoryTypeConfig = {
@@ -45,6 +47,8 @@ const inventoryTypeConfig = {
 
 export const InventoryValueBreakdown: React.FC<InventoryValueBreakdownProps> = ({
   parts,
+  currentFilter,
+  onFilterChange,
 }) => {
   const { formatCurrency } = useGlobalSettings();
 
@@ -75,6 +79,15 @@ export const InventoryValueBreakdown: React.FC<InventoryValueBreakdownProps> = (
 
   if (breakdown.length === 0) return null;
 
+  const handleCardClick = (type: string) => {
+    // Toggle filter: if clicking the same type, reset to 'all', otherwise set to that type
+    if (currentFilter === type) {
+      onFilterChange('all');
+    } else {
+      onFilterChange(type);
+    }
+  };
+
   return (
     <div className="mb-6">
       <h3 className="text-sm font-medium text-muted-foreground mb-3">
@@ -84,12 +97,21 @@ export const InventoryValueBreakdown: React.FC<InventoryValueBreakdownProps> = (
         {breakdown.map((item) => {
           const Icon = item.config.icon;
           const percentage = totalValue > 0 ? (item.value / totalValue) * 100 : 0;
+          const isActive = currentFilter === item.type;
 
           return (
-            <Card key={item.type} className="rounded-xl overflow-hidden">
+            <Card 
+              key={item.type} 
+              className={`rounded-xl overflow-hidden cursor-pointer transition-all hover:shadow-md ${
+                isActive ? 'ring-2 ring-primary shadow-lg' : ''
+              }`}
+              onClick={() => handleCardClick(item.type)}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
-                  <div className={`p-2 rounded-lg ${item.config.bgColor}`}>
+                  <div className={`p-2 rounded-lg ${item.config.bgColor} ${
+                    isActive ? 'ring-2 ring-primary/50' : ''
+                  }`}>
                     <Icon className={`h-5 w-5 ${item.config.color}`} />
                   </div>
                   <span className="text-xs text-muted-foreground">

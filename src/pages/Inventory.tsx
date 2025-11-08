@@ -116,7 +116,11 @@ const Inventory: React.FC = () => {
             categories={categories}
           />
 
-          <InventoryValueBreakdown parts={filteredParts} />
+          <InventoryValueBreakdown 
+            parts={filteredParts} 
+            currentFilter={inventoryTypeFilter}
+            onFilterChange={setInventoryTypeFilter}
+          />
 
           {filteredParts.length === 0 ? (
             <InventoryEmptyState
