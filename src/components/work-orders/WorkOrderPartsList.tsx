@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Package, Plus, Trash2, Edit2, Check, X, Layers } from 'lucide-react';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import {
   useWorkOrderParts,
   useRemovePartFromWorkOrder,
@@ -28,6 +29,7 @@ export const WorkOrderPartsList: React.FC<WorkOrderPartsListProps> = ({
   workOrderId,
 }) => {
   const { userProfile } = useAuth();
+  const { formatCurrency } = useGlobalSettings();
   const { data: parts = [], isLoading } = useWorkOrderParts(workOrderId);
   const removeMutation = useRemovePartFromWorkOrder();
   const updateMutation = useUpdatePartUsage();
@@ -82,6 +84,12 @@ export const WorkOrderPartsList: React.FC<WorkOrderPartsListProps> = ({
       tenantId: userProfile.tenant_id,
     });
   };
+
+  const totalPartsCost = useMemo(() => {
+    return parts.reduce((sum, usage) => {
+      return sum + (usage.total_cost || 0);
+    }, 0);
+  }, [parts]);
 
   return (
     <>
@@ -142,6 +150,14 @@ export const WorkOrderPartsList: React.FC<WorkOrderPartsListProps> = ({
                         Current Stock: {usage.part?.quantity_in_stock}{' '}
                         {usage.part?.unit_of_measure}
                       </span>
+                      {usage.unit_cost_at_use && (
+                        <>
+                          <span>•</span>
+                          <span>
+                            Unit Cost: {formatCurrency(usage.unit_cost_at_use)}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -172,9 +188,16 @@ export const WorkOrderPartsList: React.FC<WorkOrderPartsListProps> = ({
                       </>
                     ) : (
                       <>
-                        <Badge variant="outline" className="font-mono">
-                          {usage.quantity_used} {usage.part?.unit_of_measure}
-                        </Badge>
+                        <div className="flex flex-col items-end space-y-1 mr-2">
+                          <Badge variant="outline" className="font-mono">
+                            {usage.quantity_used} {usage.part?.unit_of_measure}
+                          </Badge>
+                          {usage.total_cost !== null && (
+                            <span className="text-xs font-semibold text-muted-foreground">
+                              {formatCurrency(usage.total_cost)}
+                            </span>
+                          )}
+                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -197,6 +220,16 @@ export const WorkOrderPartsList: React.FC<WorkOrderPartsListProps> = ({
                   </div>
                 </div>
               ))}
+              {parts.length > 0 && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">Total Parts Cost:</span>
+                    <span className="text-lg font-bold">
+                      {formatCurrency(totalPartsCost)}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

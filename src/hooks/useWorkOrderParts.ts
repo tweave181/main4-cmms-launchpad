@@ -7,6 +7,8 @@ export interface WorkOrderPartUsage {
   work_order_id: string;
   part_id: string;
   quantity_used: number;
+  unit_cost_at_use: number | null;
+  total_cost: number | null;
   created_at: string;
   tenant_id: string;
   part?: {
@@ -15,6 +17,7 @@ export interface WorkOrderPartUsage {
     sku: string;
     quantity_in_stock: number;
     unit_of_measure: string;
+    unit_cost: number | null;
   };
 }
 
@@ -25,20 +28,28 @@ export const useWorkOrderParts = (workOrderId: string) => {
       const { data, error } = await supabase
         .from('part_work_order_usage')
         .select(`
-          *,
+          id,
+          work_order_id,
+          part_id,
+          quantity_used,
+          unit_cost_at_use,
+          total_cost,
+          created_at,
+          tenant_id,
           part:part_id(
             id,
             name,
             sku,
             quantity_in_stock,
-            unit_of_measure
+            unit_of_measure,
+            unit_cost
           )
         `)
         .eq('work_order_id', workOrderId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as WorkOrderPartUsage[];
+      return data as unknown as WorkOrderPartUsage[];
     },
   });
 };
