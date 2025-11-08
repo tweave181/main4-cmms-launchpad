@@ -6,6 +6,7 @@ import { useInventoryParts } from './inventory/hooks/useInventoryParts';
 import { InventorySearchAndFilters } from './inventory/components/InventorySearchAndFilters';
 import { InventoryPartTable } from './inventory/components/InventoryPartTable';
 import { InventoryEmptyState } from './inventory/components/InventoryEmptyState';
+import { InventoryValueBreakdown } from './inventory/components/InventoryValueBreakdown';
 import { CreatePartModal } from './inventory/components/CreatePartModal';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -114,6 +115,8 @@ const Inventory: React.FC = () => {
             onCreatePart={() => setCreateModalOpen(true)}
             categories={categories}
           />
+
+          <InventoryValueBreakdown parts={filteredParts} />
 
           {filteredParts.length === 0 ? (
             <InventoryEmptyState
