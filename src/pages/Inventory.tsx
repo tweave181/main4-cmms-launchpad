@@ -128,7 +128,7 @@ const Inventory: React.FC = () => {
             {activeFiltersCount > 0 && (
               <Badge 
                 variant="secondary" 
-                className="ml-2 cursor-pointer hover:bg-secondary/80 transition-colors flex items-center gap-1"
+                className="ml-2 cursor-pointer hover:bg-secondary/80 transition-colors flex items-center gap-1 hover-scale"
                 onClick={handleClearFilters}
                 title="Click to clear all filters"
               >
