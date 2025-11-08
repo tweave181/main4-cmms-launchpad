@@ -91,6 +91,19 @@ const Inventory: React.FC = () => {
     }
   }, [showSavedIndicator]);
 
+  // Keyboard shortcut for toggling filter persistence (Ctrl+S / Cmd+S)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        toggleFilterPersistence();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [filterPersistenceEnabled, searchTerm, categoryFilter, stockFilter, inventoryTypeFilter]);
+
   // Save filters to localStorage whenever they change (only if persistence is enabled)
   useEffect(() => {
     if (!filterPersistenceEnabled) return;
@@ -210,8 +223,8 @@ const Inventory: React.FC = () => {
     toast({
       title: newState ? 'Filter Saving Enabled' : 'Filter Saving Disabled',
       description: newState 
-        ? 'Your filter preferences will now be saved across sessions.' 
-        : 'Filter preferences will no longer be saved.',
+        ? 'Your filter preferences will now be saved across sessions. (Ctrl+S)' 
+        : 'Filter preferences will no longer be saved. (Ctrl+S)',
     });
   };
 
@@ -315,6 +328,9 @@ const Inventory: React.FC = () => {
                     {filterPersistenceEnabled 
                       ? "Your filter preferences are automatically saved and will persist across sessions. Click to disable."
                       : "Filter preferences will reset on page reload. Click to enable automatic saving across sessions."}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Keyboard shortcut: Ctrl+S (Cmd+S on Mac)
                   </p>
                 </TooltipContent>
               </Tooltip>
