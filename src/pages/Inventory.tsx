@@ -403,6 +403,47 @@ const Inventory: React.FC = () => {
     }
   };
 
+  // Check if current filters match any preset
+  const [matchedPreset, setMatchedPreset] = useState<FilterPreset | null>(null);
+  const [dismissedPresetId, setDismissedPresetId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Find exact match
+    const exactMatch = presets.find(
+      (preset) =>
+        preset.searchTerm === searchTerm &&
+        preset.categoryFilter === categoryFilter &&
+        preset.stockFilter === stockFilter &&
+        preset.inventoryTypeFilter === inventoryTypeFilter
+    );
+
+    // If we found a match and it's not dismissed, show notification
+    if (exactMatch && exactMatch.id !== dismissedPresetId) {
+      setMatchedPreset(exactMatch);
+    } else {
+      setMatchedPreset(null);
+    }
+  }, [
+    searchTerm,
+    categoryFilter,
+    stockFilter,
+    inventoryTypeFilter,
+    presets,
+    dismissedPresetId,
+  ]);
+
+  const handleDismissMatch = () => {
+    if (matchedPreset) {
+      setDismissedPresetId(matchedPreset.id);
+      setMatchedPreset(null);
+    }
+  };
+
+  // Reset dismissed state when filters change significantly
+  useEffect(() => {
+    setDismissedPresetId(null);
+  }, [searchTerm, categoryFilter, stockFilter, inventoryTypeFilter]);
+
   // Calculate active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -548,6 +589,8 @@ const Inventory: React.FC = () => {
                 onDeletePreset={deletePreset}
                 onUpdatePreset={updatePreset}
                 onResetUsageStats={resetUsageStats}
+                matchedPreset={matchedPreset}
+                onDismissMatch={handleDismissMatch}
               />
             </div>
           </div>

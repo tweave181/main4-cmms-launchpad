@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export interface FilterPreset {
@@ -54,6 +54,8 @@ interface FilterPresetManagerProps {
   onDeletePreset: (id: string) => void;
   onUpdatePreset: (id: string, name: string, category?: string) => void;
   onResetUsageStats: (id?: string) => void;
+  matchedPreset?: FilterPreset | null;
+  onDismissMatch?: () => void;
 }
 
 const DEFAULT_CATEGORIES = [
@@ -72,6 +74,8 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   onDeletePreset,
   onUpdatePreset,
   onResetUsageStats,
+  matchedPreset,
+  onDismissMatch,
 }) => {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -405,6 +409,41 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
 
   return (
     <>
+      {/* Preset Match Notification */}
+      {matchedPreset && (
+        <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+          <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground">
+              Current filters match "{matchedPreset.name}"
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {matchedPreset.category && `Category: ${matchedPreset.category} • `}
+              Used {matchedPreset.usageCount || 0} time{(matchedPreset.usageCount || 0) === 1 ? '' : 's'}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => {
+                onLoadPreset(matchedPreset);
+                onDismissMatch?.();
+              }}
+            >
+              Load Preset
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onDismissMatch}
+            >
+              Dismiss
+            </Button>
+          </div>
+        </div>
+      )}
+
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="flex items-center gap-2">
