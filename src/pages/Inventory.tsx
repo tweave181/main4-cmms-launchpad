@@ -119,7 +119,12 @@ const Inventory: React.FC = () => {
             <Boxes className="h-6 w-6 text-primary" />
             <span>Inventory</span>
             {activeFiltersCount > 0 && (
-              <Badge variant="secondary" className="ml-2">
+              <Badge 
+                variant="secondary" 
+                className="ml-2 cursor-pointer hover:bg-secondary/80 transition-colors"
+                onClick={handleClearFilters}
+                title="Click to clear all filters"
+              >
                 {activeFiltersCount} {activeFiltersCount === 1 ? 'Filter' : 'Filters'} Active
               </Badge>
             )}
