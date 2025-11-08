@@ -81,8 +81,12 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [duplicatingPreset, setDuplicatingPreset] = useState<FilterPreset | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const focusedItemRef = React.useRef<HTMLDivElement>(null);
 
   // Get all unique categories from existing presets
   const allCategories = React.useMemo(() => {
@@ -91,6 +95,62 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     ) as string[];
     return [...DEFAULT_CATEGORIES, ...customCategories.filter((c) => !DEFAULT_CATEGORIES.includes(c))];
   }, [presets]);
+
+  // Flatten presets for keyboard navigation
+  const flatPresets = React.useMemo(() => {
+    return presets;
+  }, [presets]);
+
+  // Reset focus when dropdown closes
+  React.useEffect(() => {
+    if (!dropdownOpen) {
+      setFocusedIndex(-1);
+    }
+  }, [dropdownOpen]);
+
+  // Scroll focused item into view
+  React.useEffect(() => {
+    if (focusedIndex >= 0 && focusedItemRef.current) {
+      focusedItemRef.current.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth',
+      });
+    }
+  }, [focusedIndex]);
+
+  // Keyboard navigation
+  React.useEffect(() => {
+    if (!dropdownOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusedIndex((prev) => {
+          const next = prev + 1;
+          return next >= flatPresets.length ? 0 : next;
+        });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedIndex((prev) => {
+          const next = prev - 1;
+          return next < 0 ? flatPresets.length - 1 : next;
+        });
+      } else if (e.key === 'Enter' && focusedIndex >= 0) {
+        e.preventDefault();
+        const preset = flatPresets[focusedIndex];
+        if (preset) {
+          onLoadPreset(preset);
+          setDropdownOpen(false);
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setDropdownOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [dropdownOpen, focusedIndex, flatPresets, onLoadPreset]);
 
   const handleSave = () => {
     if (!presetName.trim()) {
@@ -301,7 +361,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="flex items-center gap-2">
             <Bookmark className="h-4 w-4" />
@@ -313,7 +373,11 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-80 z-50 bg-background">
+        <DropdownMenuContent 
+          ref={dropdownRef}
+          align="start" 
+          className="w-80 z-50 bg-background border border-border shadow-lg"
+        >
           <div className="p-2 space-y-2">
             <Button
               onClick={() => setSaveDialogOpen(true)}
@@ -366,14 +430,24 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                     </div>
                     {categoryPresets.map((preset) => {
                       const globalIndex = presets.findIndex((p) => p.id === preset.id);
+                      const isFocused = focusedIndex === globalIndex;
                       return (
                         <div
                           key={preset.id}
-                          className="group hover:bg-accent p-2 cursor-pointer transition-colors"
+                          ref={isFocused ? focusedItemRef : null}
+                          className={`group p-2 cursor-pointer transition-colors ${
+                            isFocused 
+                              ? 'bg-accent border-l-2 border-primary' 
+                              : 'hover:bg-accent'
+                          }`}
                         >
                           <div
                             className="flex items-start justify-between"
-                            onClick={() => onLoadPreset(preset)}
+                            onClick={() => {
+                              onLoadPreset(preset);
+                              setDropdownOpen(false);
+                            }}
+                            onMouseEnter={() => setFocusedIndex(globalIndex)}
                           >
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
@@ -396,7 +470,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                                 {getFilterSummary(preset)}
                               </p>
                             </div>
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                            <div className={`flex gap-1 transition-opacity ml-2 ${
+                              isFocused ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            }`}>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -404,6 +480,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDuplicate(preset);
+                                  setDropdownOpen(false);
                                 }}
                               >
                                 <Copy className="h-3 w-3" />
@@ -415,6 +492,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openEditDialog(preset);
+                                  setDropdownOpen(false);
                                 }}
                               >
                                 <Edit2 className="h-3 w-3" />
@@ -438,6 +516,13 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                   </div>
                 ))}
               </div>
+              {presets.length > 0 && (
+                <div className="px-3 py-2 border-t border-border bg-muted/50">
+                  <p className="text-xs text-muted-foreground">
+                    Use ↑↓ arrows to navigate, Enter to load, Esc to close
+                  </p>
+                </div>
+              )}
             </>
           )}
           {presets.length === 0 && (
