@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export interface FilterPreset {
@@ -57,6 +57,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [editingPreset, setEditingPreset] = useState<FilterPreset | null>(null);
+  const [duplicatingPreset, setDuplicatingPreset] = useState<FilterPreset | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
   const { toast } = useToast();
@@ -83,6 +84,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
 
     onSavePreset(presetName);
     setPresetName('');
+    setDuplicatingPreset(null);
     setSaveDialogOpen(false);
   };
 
@@ -99,6 +101,15 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     setEditingPreset(preset);
     setPresetName(preset.name);
     setEditDialogOpen(true);
+  };
+
+  const handleDuplicate = (preset: FilterPreset) => {
+    // Load the preset's filters first
+    onLoadPreset(preset);
+    // Set duplicating state and open save dialog with pre-filled name
+    setDuplicatingPreset(preset);
+    setPresetName(`Copy of ${preset.name}`);
+    setSaveDialogOpen(true);
   };
 
   const handleExport = () => {
@@ -298,6 +309,17 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                           className="h-6 w-6 p-0"
                           onClick={(e) => {
                             e.stopPropagation();
+                            handleDuplicate(preset);
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
                             openEditDialog(preset);
                           }}
                         >
@@ -330,13 +352,22 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       </DropdownMenu>
 
       {/* Save Preset Dialog */}
-      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+      <Dialog open={saveDialogOpen} onOpenChange={(open) => {
+        setSaveDialogOpen(open);
+        if (!open) {
+          setDuplicatingPreset(null);
+          setPresetName('');
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save Filter Preset</DialogTitle>
+            <DialogTitle>
+              {duplicatingPreset ? 'Duplicate Filter Preset' : 'Save Filter Preset'}
+            </DialogTitle>
             <DialogDescription>
-              Give your filter preset a memorable name. You'll be able to quickly load it later
-              with keyboard shortcuts (Ctrl+1 through Ctrl+9).
+              {duplicatingPreset
+                ? 'Create a copy of the selected preset with a new name.'
+                : "Give your filter preset a memorable name. You'll be able to quickly load it later with keyboard shortcuts (Ctrl+1 through Ctrl+9)."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -355,7 +386,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
               />
             </div>
             <div className="p-3 bg-muted rounded-lg space-y-1">
-              <p className="text-sm font-medium">Current Filters:</p>
+              <p className="text-sm font-medium">
+                {duplicatingPreset ? 'Duplicated Filters:' : 'Current Filters:'}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {getFilterSummary({
                   ...currentFilters,
@@ -372,11 +405,15 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setSaveDialogOpen(false);
+              setDuplicatingPreset(null);
+              setPresetName('');
+            }}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={presets.length >= 9}>
-              Save Preset
+              {duplicatingPreset ? 'Duplicate Preset' : 'Save Preset'}
             </Button>
           </DialogFooter>
         </DialogContent>
