@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3 } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   BarChart, 
@@ -40,6 +40,7 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
+import jsPDF from 'jspdf';
 
 export interface FilterPreset {
   id: string;
@@ -306,6 +307,120 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     toast({
       title: 'Usage Statistics Reset',
       description: `Usage stats for "${presetName}" have been reset.`,
+    });
+  };
+
+  const handleExportAnalytics = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let yPosition = 20;
+
+    // Title
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Filter Preset Analytics Report', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+
+    // Date
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+
+    // Summary Stats
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary Statistics', 20, yPosition);
+    yPosition += 8;
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Presets: ${analyticsData.totalPresets}`, 20, yPosition);
+    yPosition += 6;
+    doc.text(`Total Usage: ${analyticsData.totalUsage}`, 20, yPosition);
+    yPosition += 6;
+    doc.text(`Active Presets: ${analyticsData.presetsWithUsage}`, 20, yPosition);
+    yPosition += 6;
+    doc.text(`Average Usage per Preset: ${analyticsData.avgUsage}`, 20, yPosition);
+    yPosition += 15;
+
+    // Most Popular Presets
+    if (analyticsData.mostPopular.length > 0) {
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Most Popular Presets', 20, yPosition);
+      yPosition += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      analyticsData.mostPopular.forEach((preset, index) => {
+        const fullPreset = presets.find(p => p.name.startsWith(preset.name.replace('...', '')));
+        const fullName = fullPreset?.name || preset.name;
+        doc.text(`${index + 1}. ${fullName}: ${preset.usage} uses`, 25, yPosition);
+        yPosition += 6;
+      });
+      yPosition += 10;
+    }
+
+    // Category Breakdown
+    if (analyticsData.categoryData.length > 0 && analyticsData.totalUsage > 0) {
+      if (yPosition > pageHeight - 60) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Usage by Category', 20, yPosition);
+      yPosition += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      analyticsData.categoryData.forEach((cat) => {
+        const percentage = ((cat.value / analyticsData.totalUsage) * 100).toFixed(1);
+        doc.text(`${cat.name}: ${cat.value} uses (${percentage}%)`, 25, yPosition);
+        yPosition += 6;
+      });
+      yPosition += 10;
+    }
+
+    // Unused Presets
+    if (analyticsData.totalPresets > analyticsData.presetsWithUsage) {
+      if (yPosition > pageHeight - 30) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Unused Presets', 20, yPosition);
+      yPosition += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const unusedCount = analyticsData.totalPresets - analyticsData.presetsWithUsage;
+      doc.text(`${unusedCount} preset${unusedCount === 1 ? '' : 's'} ${unusedCount === 1 ? 'has' : 'have'} never been used.`, 25, yPosition);
+      yPosition += 6;
+
+      const unusedPresets = presets.filter(p => !p.usageCount || p.usageCount === 0);
+      unusedPresets.forEach((preset) => {
+        if (yPosition > pageHeight - 20) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        doc.text(`- ${preset.name}${preset.category ? ` (${preset.category})` : ''}`, 30, yPosition);
+        yPosition += 5;
+      });
+    }
+
+    // Save PDF
+    const fileName = `preset-analytics-${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+
+    toast({
+      title: 'Analytics Exported',
+      description: `PDF report saved as ${fileName}`,
     });
   };
 
@@ -1210,6 +1325,10 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           </div>
 
           <DialogFooter>
+            <Button variant="outline" onClick={handleExportAnalytics}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Export as PDF
+            </Button>
             <Button onClick={() => setAnalyticsOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
