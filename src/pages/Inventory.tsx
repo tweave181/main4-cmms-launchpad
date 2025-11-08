@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Boxes, X } from 'lucide-react';
+import { Boxes, X, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useInventoryParts } from './inventory/hooks/useInventoryParts';
 import { InventorySearchAndFilters } from './inventory/components/InventorySearchAndFilters';
@@ -22,27 +22,48 @@ const Inventory: React.FC = () => {
     try {
       const saved = localStorage.getItem(FILTER_STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Check if there are any active filters
+        const hasActiveFilters = 
+          parsed.searchTerm !== '' || 
+          parsed.categoryFilter !== 'all' || 
+          parsed.stockFilter !== 'all' || 
+          parsed.inventoryTypeFilter !== 'all';
+        return { filters: parsed, wasLoaded: hasActiveFilters };
       }
     } catch (error) {
       console.error('Failed to load filters from localStorage:', error);
     }
     return {
-      searchTerm: '',
-      categoryFilter: 'all',
-      stockFilter: 'all',
-      inventoryTypeFilter: 'all',
+      filters: {
+        searchTerm: '',
+        categoryFilter: 'all',
+        stockFilter: 'all',
+        inventoryTypeFilter: 'all',
+      },
+      wasLoaded: false,
     };
   };
 
-  const initialFilters = loadFilters();
+  const { filters: initialFilters, wasLoaded } = loadFilters();
   
   const [searchTerm, setSearchTerm] = useState(initialFilters.searchTerm);
   const [categoryFilter, setCategoryFilter] = useState(initialFilters.categoryFilter);
   const [stockFilter, setStockFilter] = useState(initialFilters.stockFilter);
   const [inventoryTypeFilter, setInventoryTypeFilter] = useState(initialFilters.inventoryTypeFilter);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [showSavedIndicator, setShowSavedIndicator] = useState(wasLoaded);
   const { toast } = useToast();
+
+  // Hide saved indicator after 3 seconds
+  useEffect(() => {
+    if (showSavedIndicator) {
+      const timer = setTimeout(() => {
+        setShowSavedIndicator(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSavedIndicator]);
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -169,6 +190,15 @@ const Inventory: React.FC = () => {
           <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
             <Boxes className="h-6 w-6 text-primary" />
             <span>Inventory</span>
+            {showSavedIndicator && (
+              <Badge 
+                variant="outline" 
+                className="ml-2 animate-fade-in flex items-center gap-1 text-green-600 border-green-600"
+              >
+                <Check className="h-3 w-3" />
+                Saved filters applied
+              </Badge>
+            )}
             {activeFiltersCount > 0 && (
               <Badge 
                 variant="secondary" 
