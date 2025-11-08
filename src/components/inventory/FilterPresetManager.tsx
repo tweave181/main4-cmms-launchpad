@@ -14,16 +14,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export interface FilterPreset {
   id: string;
   name: string;
+  category?: string;
   searchTerm: string;
   categoryFilter: string;
   stockFilter: string;
@@ -39,11 +47,19 @@ interface FilterPresetManagerProps {
     inventoryTypeFilter: string;
   };
   presets: FilterPreset[];
-  onSavePreset: (name: string) => void;
+  onSavePreset: (name: string, category?: string) => void;
   onLoadPreset: (preset: FilterPreset) => void;
   onDeletePreset: (id: string) => void;
-  onUpdatePreset: (id: string, name: string) => void;
+  onUpdatePreset: (id: string, name: string, category?: string) => void;
 }
+
+const DEFAULT_CATEGORIES = [
+  'Low Stock',
+  'Critical Items',
+  'By Location',
+  'By Type',
+  'Custom Filters',
+];
 
 export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   currentFilters,
@@ -56,12 +72,23 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
+  const [presetCategory, setPresetCategory] = useState<string>('');
+  const [customCategoryInput, setCustomCategoryInput] = useState('');
+  const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
   const [editingPreset, setEditingPreset] = useState<FilterPreset | null>(null);
   const [duplicatingPreset, setDuplicatingPreset] = useState<FilterPreset | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Get all unique categories from existing presets
+  const allCategories = React.useMemo(() => {
+    const customCategories = Array.from(
+      new Set(presets.map((p) => p.category).filter(Boolean))
+    ) as string[];
+    return [...DEFAULT_CATEGORIES, ...customCategories.filter((c) => !DEFAULT_CATEGORIES.includes(c))];
+  }, [presets]);
 
   const handleSave = () => {
     if (!presetName.trim()) {
@@ -82,8 +109,15 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       return;
     }
 
-    onSavePreset(presetName);
+    const finalCategory = showCustomCategoryInput && customCategoryInput.trim()
+      ? customCategoryInput.trim()
+      : presetCategory || undefined;
+
+    onSavePreset(presetName, finalCategory);
     setPresetName('');
+    setPresetCategory('');
+    setCustomCategoryInput('');
+    setShowCustomCategoryInput(false);
     setDuplicatingPreset(null);
     setSaveDialogOpen(false);
   };
@@ -91,26 +125,52 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const handleEdit = () => {
     if (!editingPreset || !presetName.trim()) return;
 
-    onUpdatePreset(editingPreset.id, presetName);
+    const finalCategory = showCustomCategoryInput && customCategoryInput.trim()
+      ? customCategoryInput.trim()
+      : presetCategory || undefined;
+
+    onUpdatePreset(editingPreset.id, presetName, finalCategory);
     setEditingPreset(null);
     setPresetName('');
+    setPresetCategory('');
+    setCustomCategoryInput('');
+    setShowCustomCategoryInput(false);
     setEditDialogOpen(false);
   };
 
   const openEditDialog = (preset: FilterPreset) => {
     setEditingPreset(preset);
     setPresetName(preset.name);
+    setPresetCategory(preset.category || '');
+    setCustomCategoryInput('');
+    setShowCustomCategoryInput(false);
     setEditDialogOpen(true);
   };
 
   const handleDuplicate = (preset: FilterPreset) => {
     // Load the preset's filters first
     onLoadPreset(preset);
-    // Set duplicating state and open save dialog with pre-filled name
+    // Set duplicating state and open save dialog with pre-filled name and category
     setDuplicatingPreset(preset);
     setPresetName(`Copy of ${preset.name}`);
+    setPresetCategory(preset.category || '');
     setSaveDialogOpen(true);
   };
+
+  // Group presets by category
+  const groupedPresets = React.useMemo(() => {
+    const groups: Record<string, FilterPreset[]> = {};
+    
+    presets.forEach((preset) => {
+      const category = preset.category || 'Uncategorized';
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(preset);
+    });
+
+    return groups;
+  }, [presets]);
 
   const handleExport = () => {
     if (presets.length === 0) {
@@ -277,67 +337,80 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
             <>
               <DropdownMenuSeparator />
               <div className="max-h-[400px] overflow-y-auto">
-                {presets.map((preset, index) => (
-                  <div
-                    key={preset.id}
-                    className="group hover:bg-accent p-2 cursor-pointer transition-colors"
-                  >
-                    <div
-                      className="flex items-start justify-between"
-                      onClick={() => onLoadPreset(preset)}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Star className="h-3 w-3 text-yellow-500 flex-shrink-0" />
-                          <span className="font-medium text-sm truncate">
-                            {preset.name}
-                          </span>
-                          {index < 9 && (
-                            <Badge variant="outline" className="text-xs">
-                              Ctrl+{index + 1}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {getFilterSummary(preset)}
-                        </p>
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDuplicate(preset);
-                          }}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditDialog(preset);
-                          }}
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeletePreset(preset.id);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
+                {Object.entries(groupedPresets).map(([category, categoryPresets]) => (
+                  <div key={category} className="mb-2 last:mb-0">
+                    <div className="px-2 py-1.5 flex items-center gap-2">
+                      <Tag className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        {category}
+                      </span>
                     </div>
+                    {categoryPresets.map((preset) => {
+                      const globalIndex = presets.findIndex((p) => p.id === preset.id);
+                      return (
+                        <div
+                          key={preset.id}
+                          className="group hover:bg-accent p-2 cursor-pointer transition-colors"
+                        >
+                          <div
+                            className="flex items-start justify-between"
+                            onClick={() => onLoadPreset(preset)}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Star className="h-3 w-3 text-yellow-500 flex-shrink-0" />
+                                <span className="font-medium text-sm truncate">
+                                  {preset.name}
+                                </span>
+                                {globalIndex < 9 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Ctrl+{globalIndex + 1}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {getFilterSummary(preset)}
+                              </p>
+                            </div>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDuplicate(preset);
+                                }}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditDialog(preset);
+                                }}
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeletePreset(preset.id);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ))}
               </div>
@@ -357,6 +430,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
         if (!open) {
           setDuplicatingPreset(null);
           setPresetName('');
+          setPresetCategory('');
+          setCustomCategoryInput('');
+          setShowCustomCategoryInput(false);
         }
       }}>
         <DialogContent>
@@ -379,12 +455,57 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                 value={presetName}
                 onChange={(e) => setPresetName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === 'Enter' && !showCustomCategoryInput) {
                     handleSave();
                   }
                 }}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="preset-category">Category (Optional)</Label>
+              <Select
+                value={showCustomCategoryInput ? 'custom' : presetCategory}
+                onValueChange={(value) => {
+                  if (value === 'custom') {
+                    setShowCustomCategoryInput(true);
+                    setPresetCategory('');
+                  } else {
+                    setShowCustomCategoryInput(false);
+                    setPresetCategory(value);
+                  }
+                }}
+              >
+                <SelectTrigger id="preset-category">
+                  <SelectValue placeholder="Choose a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No Category</SelectItem>
+                  {allCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom">+ Create Custom Category</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {showCustomCategoryInput && (
+              <div className="space-y-2">
+                <Label htmlFor="custom-category">Custom Category Name</Label>
+                <Input
+                  id="custom-category"
+                  placeholder="e.g., Seasonal Items"
+                  value={customCategoryInput}
+                  onChange={(e) => setCustomCategoryInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSave();
+                    }
+                  }}
+                  autoFocus
+                />
+              </div>
+            )}
             <div className="p-3 bg-muted rounded-lg space-y-1">
               <p className="text-sm font-medium">
                 {duplicatingPreset ? 'Duplicated Filters:' : 'Current Filters:'}
@@ -409,6 +530,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
               setSaveDialogOpen(false);
               setDuplicatingPreset(null);
               setPresetName('');
+              setPresetCategory('');
+              setCustomCategoryInput('');
+              setShowCustomCategoryInput(false);
             }}>
               Cancel
             </Button>
@@ -420,12 +544,21 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       </Dialog>
 
       {/* Edit Preset Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+        setEditDialogOpen(open);
+        if (!open) {
+          setEditingPreset(null);
+          setPresetName('');
+          setPresetCategory('');
+          setCustomCategoryInput('');
+          setShowCustomCategoryInput(false);
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Preset Name</DialogTitle>
+            <DialogTitle>Edit Preset</DialogTitle>
             <DialogDescription>
-              Update the name of your filter preset.
+              Update the name and category of your filter preset.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -437,15 +570,67 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                 value={presetName}
                 onChange={(e) => setPresetName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === 'Enter' && !showCustomCategoryInput) {
                     handleEdit();
                   }
                 }}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-preset-category">Category (Optional)</Label>
+              <Select
+                value={showCustomCategoryInput ? 'custom' : presetCategory}
+                onValueChange={(value) => {
+                  if (value === 'custom') {
+                    setShowCustomCategoryInput(true);
+                    setPresetCategory('');
+                  } else {
+                    setShowCustomCategoryInput(false);
+                    setPresetCategory(value);
+                  }
+                }}
+              >
+                <SelectTrigger id="edit-preset-category">
+                  <SelectValue placeholder="Choose a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No Category</SelectItem>
+                  {allCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom">+ Create Custom Category</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {showCustomCategoryInput && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-custom-category">Custom Category Name</Label>
+                <Input
+                  id="edit-custom-category"
+                  placeholder="e.g., Seasonal Items"
+                  value={customCategoryInput}
+                  onChange={(e) => setCustomCategoryInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleEdit();
+                    }
+                  }}
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setEditDialogOpen(false);
+              setEditingPreset(null);
+              setPresetName('');
+              setPresetCategory('');
+              setCustomCategoryInput('');
+              setShowCustomCategoryInput(false);
+            }}>
               Cancel
             </Button>
             <Button onClick={handleEdit}>Update</Button>

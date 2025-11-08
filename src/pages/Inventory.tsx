@@ -317,10 +317,11 @@ const Inventory: React.FC = () => {
   };
 
   // Preset management functions
-  const savePreset = (name: string) => {
+  const savePreset = (name: string, category?: string) => {
     const newPreset: FilterPreset = {
       id: `preset-${Date.now()}`,
       name,
+      category,
       searchTerm,
       categoryFilter,
       stockFilter,
@@ -331,7 +332,7 @@ const Inventory: React.FC = () => {
     setPresets([...presets, newPreset]);
     toast({
       title: 'Preset Saved',
-      description: `"${name}" has been saved. Use Ctrl+${presets.length + 1} to load it quickly.`,
+      description: `"${name}" has been saved${category ? ` in category "${category}"` : ''}. Use Ctrl+${presets.length + 1} to load it quickly.`,
     });
   };
 
@@ -357,12 +358,12 @@ const Inventory: React.FC = () => {
     });
   };
 
-  const updatePreset = (id: string, name: string) => {
-    setPresets(presets.map(p => p.id === id ? { ...p, name } : p));
+  const updatePreset = (id: string, name: string, category?: string) => {
+    setPresets(presets.map(p => p.id === id ? { ...p, name, category } : p));
     
     toast({
       title: 'Preset Updated',
-      description: `Preset has been renamed to "${name}".`,
+      description: `Preset has been updated.`,
     });
   };
 
