@@ -44,6 +44,15 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
   const handleRowClick = (partId: string) => {
     navigate(`/inventory/${partId}`);
   };
+
+  const totalInventoryValue = React.useMemo(() => {
+    return parts.reduce((total, part) => {
+      const unitCost = (part as any).unit_cost || 0;
+      const quantity = part.quantity_in_stock || 0;
+      return total + (unitCost * quantity);
+    }, 0);
+  }, [parts]);
+
   return <div className="rounded-md border">
       <Table>
         <TableHeader>
@@ -89,5 +98,17 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
       {parts.length === 0 && <div className="text-center py-8 text-muted-foreground">
           No inventory parts found
         </div>}
+      {parts.length > 0 && (
+        <div className="border-t bg-muted/30 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-muted-foreground">
+              Total Inventory Value ({parts.length} {parts.length === 1 ? 'part' : 'parts'}):
+            </span>
+            <span className="text-lg font-bold">
+              {formatCurrency(totalInventoryValue)}
+            </span>
+          </div>
+        </div>
+      )}
     </div>;
 };
