@@ -192,3 +192,16 @@ export const useDownloadAttachment = () => {
     },
   });
 };
+
+export const useGetImageUrl = () => {
+  return useMutation({
+    mutationFn: async (filePath: string) => {
+      const { data, error } = await supabase.storage
+        .from('work-order-attachments')
+        .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+      if (error) throw error;
+      return data.signedUrl;
+    },
+  });
+};

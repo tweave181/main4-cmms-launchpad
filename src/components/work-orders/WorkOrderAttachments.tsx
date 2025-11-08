@@ -1,15 +1,17 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Paperclip, Download, Trash2, FileText, Image as ImageIcon } from 'lucide-react';
+import { Upload, Paperclip, Download, Trash2, FileText, Image as ImageIcon, Eye } from 'lucide-react';
 import {
   useWorkOrderAttachments,
   useUploadAttachment,
   useDeleteAttachment,
   useDownloadAttachment,
+  useGetImageUrl,
 } from '@/hooks/useWorkOrderAttachments';
 import { useAuth } from '@/contexts/auth';
+import { ImagePreviewModal } from './ImagePreviewModal';
 import { formatDistanceToNow } from 'date-fns';
 
 interface WorkOrderAttachmentsProps {
@@ -25,6 +27,13 @@ export const WorkOrderAttachments: React.FC<WorkOrderAttachmentsProps> = ({
   const uploadMutation = useUploadAttachment();
   const deleteMutation = useDeleteAttachment();
   const downloadMutation = useDownloadAttachment();
+  const getImageUrlMutation = useGetImageUrl();
+
+  const [previewImage, setPreviewImage] = useState<{
+    url: string;
+    fileName: string;
+    filePath: string;
+  } | null>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -54,10 +63,23 @@ export const WorkOrderAttachments: React.FC<WorkOrderAttachmentsProps> = ({
     downloadMutation.mutate({ filePath, fileName });
   };
 
+  const handlePreview = async (filePath: string, fileName: string) => {
+    const url = await getImageUrlMutation.mutateAsync(filePath);
+    setPreviewImage({ url, fileName, filePath });
+  };
+
+  const handleClosePreview = () => {
+    setPreviewImage(null);
+  };
+
   const handleDelete = (attachmentId: string, filePath: string) => {
     if (confirm('Are you sure you want to delete this attachment?')) {
       deleteMutation.mutate({ attachmentId, filePath, workOrderId });
     }
+  };
+
+  const isImage = (fileType: string): boolean => {
+    return fileType.startsWith('image/');
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -146,6 +168,18 @@ export const WorkOrderAttachments: React.FC<WorkOrderAttachmentsProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
+                  {isImage(attachment.file_type) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        handlePreview(attachment.file_path, attachment.file_name)
+                      }
+                      disabled={getImageUrlMutation.isPending}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -172,6 +206,18 @@ export const WorkOrderAttachments: React.FC<WorkOrderAttachmentsProps> = ({
               </div>
             ))}
           </div>
+        )}
+
+        {previewImage && (
+          <ImagePreviewModal
+            isOpen={!!previewImage}
+            onClose={handleClosePreview}
+            imageUrl={previewImage.url}
+            fileName={previewImage.fileName}
+            onDownload={() =>
+              handleDownload(previewImage.filePath, previewImage.fileName)
+            }
+          />
         )}
       </CardContent>
     </Card>
