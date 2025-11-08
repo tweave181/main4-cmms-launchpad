@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Plus, X } from 'lucide-react';
+
 interface InventorySearchAndFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -16,8 +17,13 @@ interface InventorySearchAndFiltersProps {
   onCreatePart: () => void;
   onClearFilters: () => void;
   categories: string[];
+  searchInputRef?: React.RefObject<HTMLInputElement>;
+  categorySelectRef?: React.RefObject<HTMLButtonElement>;
+  inventoryTypeSelectRef?: React.RefObject<HTMLButtonElement>;
+  stockSelectRef?: React.RefObject<HTMLButtonElement>;
 }
-export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps> = ({
+
+export const InventorySearchAndFilters = forwardRef<HTMLInputElement, InventorySearchAndFiltersProps>(({
   searchTerm,
   onSearchChange,
   categoryFilter,
@@ -28,8 +34,12 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
   onStockFilterChange,
   onCreatePart,
   onClearFilters,
-  categories
-}) => {
+  categories,
+  searchInputRef,
+  categorySelectRef,
+  inventoryTypeSelectRef,
+  stockSelectRef,
+}, ref) => {
   const hasActiveFilters = 
     searchTerm !== '' || 
     categoryFilter !== 'all' || 
@@ -55,7 +65,12 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
       
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
-          <Input placeholder="Search parts by name, SKU, or description..." value={searchTerm} onChange={e => onSearchChange(e.target.value)} />
+          <Input 
+            ref={searchInputRef || ref} 
+            placeholder="Search parts by name, SKU, or description..." 
+            value={searchTerm} 
+            onChange={e => onSearchChange(e.target.value)} 
+          />
           {searchTerm && (
             <Badge 
               variant="secondary" 
@@ -69,7 +84,7 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
         <div className="flex gap-4">
           <div className="relative">
             <Select value={inventoryTypeFilter} onValueChange={onInventoryTypeFilterChange}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger ref={inventoryTypeSelectRef} className="w-[180px]">
                 <SelectValue placeholder="Inventory Type" />
               </SelectTrigger>
               <SelectContent>
@@ -93,7 +108,7 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
 
           <div className="relative">
             <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger ref={categorySelectRef} className="w-[200px]">
                 <SelectValue placeholder="Filter by Category" />
               </SelectTrigger>
               <SelectContent>
@@ -115,7 +130,7 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
           
           <div className="relative">
             <Select value={stockFilter} onValueChange={onStockFilterChange}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger ref={stockSelectRef} className="w-[150px]">
                 <SelectValue placeholder="Stock Filter" />
               </SelectTrigger>
               <SelectContent>
@@ -137,4 +152,4 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
         </div>
       </div>
     </div>;
-};
+});

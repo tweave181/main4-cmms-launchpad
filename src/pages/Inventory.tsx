@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -81,6 +81,13 @@ const Inventory: React.FC = () => {
   const [showSavedIndicator, setShowSavedIndicator] = useState(wasLoaded);
   const [filterPersistenceEnabled, setFilterPersistenceEnabled] = useState(isFilterPersistenceEnabled());
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
+  
+  // Refs for keyboard navigation
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const categorySelectRef = useRef<HTMLButtonElement>(null);
+  const inventoryTypeSelectRef = useRef<HTMLButtonElement>(null);
+  const stockSelectRef = useRef<HTMLButtonElement>(null);
+  
   const { toast } = useToast();
 
   // Hide saved indicator after 3 seconds
@@ -93,7 +100,7 @@ const Inventory: React.FC = () => {
     }
   }, [showSavedIndicator]);
 
-  // Keyboard shortcut for toggling filter persistence (Ctrl+S / Cmd+S)
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ctrl+S / Cmd+S for filter persistence toggle
@@ -106,6 +113,34 @@ const Inventory: React.FC = () => {
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
         setShortcutsModalOpen(true);
+      }
+      
+      // Ctrl+N / Cmd+N for creating new part
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        setCreateModalOpen(true);
+      }
+      
+      // Ctrl+F / Cmd+F for search focus
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      
+      // Alt+1, Alt+2, Alt+3 for filter navigation
+      if (e.altKey && e.key === '1') {
+        e.preventDefault();
+        categorySelectRef.current?.click();
+      }
+      
+      if (e.altKey && e.key === '2') {
+        e.preventDefault();
+        inventoryTypeSelectRef.current?.click();
+      }
+      
+      if (e.altKey && e.key === '3') {
+        e.preventDefault();
+        stockSelectRef.current?.click();
       }
     };
 
@@ -326,6 +361,10 @@ const Inventory: React.FC = () => {
             onCreatePart={() => setCreateModalOpen(true)}
             onClearFilters={handleClearFilters}
             categories={categories}
+            searchInputRef={searchInputRef}
+            categorySelectRef={categorySelectRef}
+            inventoryTypeSelectRef={inventoryTypeSelectRef}
+            stockSelectRef={stockSelectRef}
           />
 
           <div className="flex items-center justify-between mb-4">

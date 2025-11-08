@@ -23,14 +23,39 @@ interface KeyboardShortcutsModalProps {
 
 const defaultShortcuts: KeyboardShortcut[] = [
   {
+    keys: ['Ctrl', '/'],
+    description: 'Open keyboard shortcuts help',
+    category: 'General',
+  },
+  {
+    keys: ['Ctrl', 'N'],
+    description: 'Create new part',
+    category: 'Actions',
+  },
+  {
+    keys: ['Ctrl', 'F'],
+    description: 'Focus on search',
+    category: 'Navigation',
+  },
+  {
     keys: ['Ctrl', 'S'],
     description: 'Toggle filter saving on/off',
     category: 'Filters',
   },
   {
-    keys: ['Ctrl', '/'],
-    description: 'Open keyboard shortcuts help',
-    category: 'General',
+    keys: ['Alt', '1'],
+    description: 'Focus category filter',
+    category: 'Filters',
+  },
+  {
+    keys: ['Alt', '2'],
+    description: 'Focus inventory type filter',
+    category: 'Filters',
+  },
+  {
+    keys: ['Alt', '3'],
+    description: 'Focus stock status filter',
+    category: 'Filters',
   },
 ];
 
