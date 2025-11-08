@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Boxes } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useInventoryParts } from './inventory/hooks/useInventoryParts';
 import { InventorySearchAndFilters } from './inventory/components/InventorySearchAndFilters';
 import { InventoryPartTable } from './inventory/components/InventoryPartTable';
@@ -19,6 +20,7 @@ const Inventory: React.FC = () => {
   const [stockFilter, setStockFilter] = useState('all');
   const [inventoryTypeFilter, setInventoryTypeFilter] = useState('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const { toast } = useToast();
 
   const {
     parts,
@@ -81,6 +83,11 @@ const Inventory: React.FC = () => {
     setCategoryFilter('all');
     setStockFilter('all');
     setInventoryTypeFilter('all');
+    
+    toast({
+      title: 'Filters Cleared',
+      description: 'All filters have been reset.',
+    });
   };
 
   // Calculate active filters count
