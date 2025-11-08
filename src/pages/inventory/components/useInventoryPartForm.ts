@@ -14,12 +14,15 @@ const formSchema = z.object({
   quantity_in_stock: z.number().min(0, "Quantity must be non-negative"),
   reorder_threshold: z.number().min(0, "Reorder threshold must be non-negative"),
   unit_of_measure: z.enum(['pieces', 'kg', 'lbs', 'liters', 'gallons', 'meters', 'feet', 'hours']),
+  unit_cost: z.number().min(0, "Unit cost must be non-negative").optional(),
   storage_locations: z.string().optional(),
   linked_asset_type: z.string().optional(),
 });
 
 export type FormData = z.infer<typeof formSchema>;
-type InventoryPartData = Omit<Database['public']['Tables']['inventory_parts']['Insert'], 'tenant_id' | 'created_by'>;
+type InventoryPartData = Omit<Database['public']['Tables']['inventory_parts']['Insert'], 'tenant_id' | 'created_by'> & {
+  unit_cost?: number | null;
+};
 
 interface UseInventoryPartFormProps {
   initialData?: Partial<InventoryPartData>;
@@ -39,6 +42,7 @@ export const useInventoryPartForm = ({ initialData, onSubmit }: UseInventoryPart
       quantity_in_stock: initialData?.quantity_in_stock || 0,
       reorder_threshold: initialData?.reorder_threshold || 0,
       unit_of_measure: initialData?.unit_of_measure || 'pieces',
+      unit_cost: (initialData as any)?.unit_cost ? Number((initialData as any).unit_cost) : undefined,
       storage_locations: initialData?.storage_locations?.join(', ') || '',
       linked_asset_type: initialData?.linked_asset_type || '',
     },
@@ -55,6 +59,7 @@ export const useInventoryPartForm = ({ initialData, onSubmit }: UseInventoryPart
       quantity_in_stock: data.quantity_in_stock,
       reorder_threshold: data.reorder_threshold,
       unit_of_measure: data.unit_of_measure,
+      unit_cost: data.unit_cost || null,
       linked_asset_type: data.linked_asset_type || null,
       storage_locations: data.storage_locations 
         ? data.storage_locations.split(',').map(loc => loc.trim()).filter(Boolean)

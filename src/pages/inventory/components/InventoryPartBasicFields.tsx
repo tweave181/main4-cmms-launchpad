@@ -156,6 +156,29 @@ export const InventoryPartBasicFields: React.FC<InventoryPartBasicFieldsProps> =
             </FormItem>
           )}
         />
+
+        <FormField
+          control={control}
+          name="unit_cost"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Unit Cost</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00" 
+                  autoComplete="off"
+                  {...field}
+                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                  value={field.value ?? ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
     </>
   );
