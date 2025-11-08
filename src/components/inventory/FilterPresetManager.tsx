@@ -138,6 +138,15 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   
   const [selectedRecommendations, setSelectedRecommendations] = useState<Set<number>>(new Set());
   const [pendingBulkAction, setPendingBulkAction] = useState<any[] | null>(null);
+  const [actionHistory, setActionHistory] = useState<Array<{
+    id: string;
+    timestamp: string;
+    action: string;
+    presetNames: string[];
+    details: string;
+    userName?: string;
+  }>>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -687,10 +696,23 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
 
     // Save current state for undo
     const previousState = [...presets];
+    
+    // Log action to history
+    const logAction = (actionType: string, details: string) => {
+      const historyEntry = {
+        id: `action-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        action: actionType,
+        presetNames: presetNames || [],
+        details,
+      };
+      setActionHistory(prev => [historyEntry, ...prev].slice(0, 50)); // Keep last 50 actions
+    };
 
     switch (action) {
       case 'keep':
         // Just show success message - no action needed
+        logAction('keep', `Marked ${presetNames.length} preset${presetNames.length > 1 ? 's' : ''} as important to keep`);
         toast({
           title: 'Preset Marked',
           description: `"${presetNames.join('", "')}" marked as important to keep.`,
@@ -707,6 +729,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
         });
         onUpdatePresets(archivedPresets);
         setLastAction({ type: 'archive', presetNames, previousState });
+        logAction('archive', `Archived ${presetNames.length} preset${presetNames.length > 1 ? 's' : ''}: ${presetNames.join(', ')}`);
         
         toast({
           title: 'Presets Archived',
@@ -732,6 +755,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           }
         });
         setLastAction({ type: 'delete', presetNames, previousState });
+        logAction('delete', `Deleted ${presetNames.length} preset${presetNames.length > 1 ? 's' : ''}: ${presetNames.join(', ')}`);
         
         toast({
           title: 'Presets Deleted',
@@ -797,6 +821,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
         ];
         onUpdatePresets(updatedPresets);
         setLastAction({ type: 'combine', presetNames, previousState });
+        logAction('combine', `Combined ${presetNames.length} presets into "${combinedName}"`);
         
         toast({
           title: 'Presets Combined',
@@ -2591,6 +2616,13 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           <DialogFooter>
             <Button 
               variant="outline" 
+              onClick={() => setHistoryOpen(true)}
+            >
+              <CalendarDays className="h-4 w-4 mr-2" />
+              View History ({actionHistory.length})
+            </Button>
+            <Button 
+              variant="outline" 
               onClick={handleGetRecommendations}
               disabled={isLoadingRecommendations}
             >
@@ -2645,6 +2677,100 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
         cancelText="Cancel"
         variant="destructive"
       />
+
+      {/* Action History Dialog */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-4xl max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Action History
+            </DialogTitle>
+            <DialogDescription>
+              Complete log of all recommendation actions applied to your presets
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="overflow-y-auto max-h-[60vh]">
+            {actionHistory.length > 0 ? (
+              <div className="space-y-3 pr-2">
+                {actionHistory.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="mt-1">
+                          {entry.action === 'keep' && <CheckCircle className="h-5 w-5 text-green-600" />}
+                          {entry.action === 'archive' && <Archive className="h-5 w-5 text-blue-600" />}
+                          {entry.action === 'delete' && <Trash className="h-5 w-5 text-red-600" />}
+                          {entry.action === 'combine' && <Combine className="h-5 w-5 text-purple-600" />}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant="outline"
+                              className={cn(
+                                "capitalize",
+                                entry.action === 'keep' && "border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-400",
+                                entry.action === 'archive' && "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-400",
+                                entry.action === 'delete' && "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400",
+                                entry.action === 'combine' && "border-purple-500/20 bg-purple-500/10 text-purple-700 dark:text-purple-400"
+                              )}
+                            >
+                              {entry.action}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(entry.timestamp), 'MMM dd, yyyy • h:mm a')}
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium">{entry.details}</p>
+                          {entry.presetNames.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {entry.presetNames.map((name, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">
+                                  {name}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <CalendarDays className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                <p className="text-sm">No actions recorded yet</p>
+                <p className="text-xs mt-1">Apply recommendations to see them here</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            {actionHistory.length > 0 && (
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setActionHistory([]);
+                  toast({
+                    title: 'History Cleared',
+                    description: 'Action history has been cleared.',
+                  });
+                }}
+              >
+                Clear History
+              </Button>
+            )}
+            <Button onClick={() => setHistoryOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
