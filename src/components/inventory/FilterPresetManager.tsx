@@ -883,6 +883,171 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     }, 500);
   };
 
+  const handleExportHistoryCSV = () => {
+    if (actionHistory.length === 0) {
+      toast({
+        title: 'No Data',
+        description: 'No action history to export.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Create CSV content
+    const headers = ['Timestamp', 'Action', 'Presets Affected', 'Details'];
+    const rows = actionHistory.map(entry => [
+      format(new Date(entry.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+      entry.action.toUpperCase(),
+      entry.presetNames.join('; '),
+      entry.details
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `preset-action-history-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: 'History Exported',
+      description: 'Action history exported as CSV successfully.',
+    });
+  };
+
+  const handleExportHistoryPDF = () => {
+    if (actionHistory.length === 0) {
+      toast({
+        title: 'No Data',
+        description: 'No action history to export.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let yPosition = 20;
+
+    // Title
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Preset Action History Report', pageWidth / 2, yPosition, { align: 'center' });
+    
+    yPosition += 10;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${format(new Date(), 'MMM dd, yyyy - h:mm a')}`, pageWidth / 2, yPosition, { align: 'center' });
+    
+    yPosition += 15;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Total Actions: ${actionHistory.length}`, 15, yPosition);
+
+    yPosition += 10;
+
+    // Table header
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date/Time', 15, yPosition);
+    doc.text('Action', 55, yPosition);
+    doc.text('Details', 85, yPosition);
+
+    yPosition += 5;
+    doc.line(15, yPosition, pageWidth - 15, yPosition);
+    yPosition += 5;
+
+    // Table content
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+
+    actionHistory.forEach((entry, index) => {
+      // Check if we need a new page
+      if (yPosition > pageHeight - 30) {
+        doc.addPage();
+        yPosition = 20;
+        
+        // Repeat header on new page
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('Date/Time', 15, yPosition);
+        doc.text('Action', 55, yPosition);
+        doc.text('Details', 85, yPosition);
+        yPosition += 5;
+        doc.line(15, yPosition, pageWidth - 15, yPosition);
+        yPosition += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+      }
+
+      const timestamp = format(new Date(entry.timestamp), 'MM/dd/yy HH:mm');
+      const action = entry.action.toUpperCase();
+      
+      doc.text(timestamp, 15, yPosition);
+      doc.text(action, 55, yPosition);
+      
+      // Handle long details with text wrapping
+      const maxWidth = pageWidth - 100;
+      const detailsLines = doc.splitTextToSize(entry.details, maxWidth);
+      doc.text(detailsLines, 85, yPosition);
+      
+      // Move position based on number of lines
+      yPosition += Math.max(detailsLines.length * 5, 8);
+      
+      // Add preset names if any
+      if (entry.presetNames.length > 0) {
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        const presetsText = `Presets: ${entry.presetNames.join(', ')}`;
+        const presetsLines = doc.splitTextToSize(presetsText, maxWidth);
+        doc.text(presetsLines, 85, yPosition);
+        yPosition += presetsLines.length * 4 + 4;
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+      } else {
+        yPosition += 4;
+      }
+
+      // Separator line
+      if (index < actionHistory.length - 1) {
+        doc.setDrawColor(200, 200, 200);
+        doc.line(15, yPosition, pageWidth - 15, yPosition);
+        yPosition += 4;
+      }
+    });
+
+    // Footer
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text(
+        `Page ${i} of ${totalPages}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+
+    doc.save(`preset-action-history-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+
+    toast({
+      title: 'History Exported',
+      description: 'Action history exported as PDF successfully.',
+    });
+  };
+
   const handleExportAnalytics = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -2752,18 +2917,34 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
 
           <DialogFooter>
             {actionHistory.length > 0 && (
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setActionHistory([]);
-                  toast({
-                    title: 'History Cleared',
-                    description: 'Action history has been cleared.',
-                  });
-                }}
-              >
-                Clear History
-              </Button>
+              <>
+                <Button 
+                  variant="outline"
+                  onClick={handleExportHistoryCSV}
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={handleExportHistoryPDF}
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export PDF
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setActionHistory([]);
+                    toast({
+                      title: 'History Cleared',
+                      description: 'Action history has been cleared.',
+                    });
+                  }}
+                >
+                  Clear History
+                </Button>
+              </>
             )}
             <Button onClick={() => setHistoryOpen(false)}>
               Close
