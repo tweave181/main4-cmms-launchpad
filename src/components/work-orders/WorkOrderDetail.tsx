@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/auth';
 import { ActivityLog } from './ActivityLog';
 import { TimeRecordsList } from '@/components/time-records/TimeRecordsList';
 import { QuickTimeLogButton } from '@/components/time-records/QuickTimeLogButton';
+import { WorkOrderAttachments } from './WorkOrderAttachments';
 import { exportWorkOrderToPDF } from '@/utils/workOrderExportUtils';
 import type { WorkOrder } from '@/types/workOrder';
 interface WorkOrderDetailProps {
@@ -243,6 +244,9 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
               <TimeRecordsList workOrderId={workOrder.id} />
             </CardContent>
           </Card>
+
+          {/* Attachments */}
+          <WorkOrderAttachments workOrderId={workOrder.id} />
 
           {/* Record Information */}
           <div className="text-sm text-muted-foreground">
