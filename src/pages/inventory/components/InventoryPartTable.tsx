@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import type { Database } from '@/integrations/supabase/types';
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'] & {
   spare_parts_category?: {
@@ -23,9 +24,8 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
   onDeletePart
 }) => {
   const navigate = useNavigate();
-  const {
-    userProfile
-  } = useAuth();
+  const { userProfile } = useAuth();
+  const { formatCurrency } = useGlobalSettings();
   const isAdmin = userProfile?.role === 'admin';
   const getStockStatus = (quantity: number, threshold: number) => {
     if (quantity === 0) return {
@@ -52,6 +52,7 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
             <TableHead className="bg-gray-300">SKU</TableHead>
             <TableHead className="bg-gray-300">Type</TableHead>
             <TableHead className="bg-gray-300 text-center w-24">Stock Level</TableHead>
+            <TableHead className="bg-gray-300 text-right">Unit Cost</TableHead>
             <TableHead className="bg-gray-300">Category</TableHead>
             <TableHead className="bg-gray-300">Supplier</TableHead>
             <TableHead className="bg-gray-300">Status</TableHead>
@@ -73,6 +74,9 @@ export const InventoryPartTable: React.FC<InventoryPartTableProps> = ({
                 <TableCell>{part.sku}</TableCell>
                 <TableCell>{inventoryTypeLabel}</TableCell>
                 <TableCell className="text-center w-24">{part.quantity_in_stock}</TableCell>
+                <TableCell className="text-right font-mono">
+                  {(part as any).unit_cost ? formatCurrency((part as any).unit_cost) : '-'}
+                </TableCell>
                 <TableCell>{part.spare_parts_category?.name || 'Uncategorized'}</TableCell>
                 <TableCell>{part.supplier?.company_name || 'No Supplier'}</TableCell>
                 <TableCell>
