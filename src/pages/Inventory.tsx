@@ -13,12 +13,14 @@ import { InventoryEmptyState } from './inventory/components/InventoryEmptyState'
 import { InventoryValueBreakdown } from './inventory/components/InventoryValueBreakdown';
 import { CreatePartModal } from './inventory/components/CreatePartModal';
 import { KeyboardShortcutsModal } from '@/components/ui/keyboard-shortcuts-modal';
+import { FilterPresetManager, FilterPreset } from '@/components/inventory/FilterPresetManager';
 import type { Database } from '@/integrations/supabase/types';
 
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
 
 const FILTER_STORAGE_KEY = 'inventory-filters';
 const FILTER_PERSISTENCE_KEY = 'inventory-filters-enabled';
+const PRESETS_STORAGE_KEY = 'inventory-filter-presets';
 
 const Inventory: React.FC = () => {
   // Check if filter persistence is enabled
@@ -71,6 +73,19 @@ const Inventory: React.FC = () => {
     };
   };
 
+  // Load saved presets from localStorage
+  const loadPresets = (): FilterPreset[] => {
+    try {
+      const saved = localStorage.getItem(PRESETS_STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Failed to load presets from localStorage:', error);
+    }
+    return [];
+  };
+
   const { filters: initialFilters, wasLoaded } = loadFilters();
   
   const [searchTerm, setSearchTerm] = useState(initialFilters.searchTerm);
@@ -81,6 +96,7 @@ const Inventory: React.FC = () => {
   const [showSavedIndicator, setShowSavedIndicator] = useState(wasLoaded);
   const [filterPersistenceEnabled, setFilterPersistenceEnabled] = useState(isFilterPersistenceEnabled());
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
+  const [presets, setPresets] = useState<FilterPreset[]>(loadPresets());
   
   // Refs for keyboard navigation
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -89,6 +105,15 @@ const Inventory: React.FC = () => {
   const stockSelectRef = useRef<HTMLButtonElement>(null);
   
   const { toast } = useToast();
+
+  // Save presets to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(presets));
+    } catch (error) {
+      console.error('Failed to save presets to localStorage:', error);
+    }
+  }, [presets]);
 
   // Hide saved indicator after 3 seconds
   useEffect(() => {
@@ -152,11 +177,20 @@ const Inventory: React.FC = () => {
         e.preventDefault();
         stockSelectRef.current?.click();
       }
+      
+      // Ctrl+1 through Ctrl+9 for loading presets
+      if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '9') {
+        e.preventDefault();
+        const presetIndex = parseInt(e.key) - 1;
+        if (presets[presetIndex]) {
+          loadPreset(presets[presetIndex]);
+        }
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [filterPersistenceEnabled, searchTerm, categoryFilter, stockFilter, inventoryTypeFilter, createModalOpen, shortcutsModalOpen]);
+  }, [filterPersistenceEnabled, searchTerm, categoryFilter, stockFilter, inventoryTypeFilter, createModalOpen, shortcutsModalOpen, presets]);
 
   // Save filters to localStorage whenever they change (only if persistence is enabled)
   useEffect(() => {
@@ -282,6 +316,56 @@ const Inventory: React.FC = () => {
     });
   };
 
+  // Preset management functions
+  const savePreset = (name: string) => {
+    const newPreset: FilterPreset = {
+      id: `preset-${Date.now()}`,
+      name,
+      searchTerm,
+      categoryFilter,
+      stockFilter,
+      inventoryTypeFilter,
+      createdAt: new Date().toISOString(),
+    };
+    
+    setPresets([...presets, newPreset]);
+    toast({
+      title: 'Preset Saved',
+      description: `"${name}" has been saved. Use Ctrl+${presets.length + 1} to load it quickly.`,
+    });
+  };
+
+  const loadPreset = (preset: FilterPreset) => {
+    setSearchTerm(preset.searchTerm);
+    setCategoryFilter(preset.categoryFilter);
+    setStockFilter(preset.stockFilter);
+    setInventoryTypeFilter(preset.inventoryTypeFilter);
+    
+    toast({
+      title: 'Preset Loaded',
+      description: `"${preset.name}" filters have been applied.`,
+    });
+  };
+
+  const deletePreset = (id: string) => {
+    const preset = presets.find(p => p.id === id);
+    setPresets(presets.filter(p => p.id !== id));
+    
+    toast({
+      title: 'Preset Deleted',
+      description: preset ? `"${preset.name}" has been removed.` : 'Preset has been removed.',
+    });
+  };
+
+  const updatePreset = (id: string, name: string) => {
+    setPresets(presets.map(p => p.id === id ? { ...p, name } : p));
+    
+    toast({
+      title: 'Preset Updated',
+      description: `Preset has been renamed to "${name}".`,
+    });
+  };
+
   // Calculate active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -378,40 +462,56 @@ const Inventory: React.FC = () => {
           />
 
           <div className="flex items-center justify-between mb-4">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={toggleFilterPersistence}
-                    className="flex items-center gap-2"
-                  >
-                    {filterPersistenceEnabled ? (
-                      <>
-                        <Save className="h-4 w-4 text-green-600" />
-                        <span>Filter Saving: On</span>
-                      </>
-                    ) : (
-                      <>
-                        <SaveOff className="h-4 w-4 text-muted-foreground" />
-                        <span>Filter Saving: Off</span>
-                      </>
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">
-                    {filterPersistenceEnabled 
-                      ? "Your filter preferences are automatically saved and will persist across sessions. Click to disable."
-                      : "Filter preferences will reset on page reload. Click to enable automatic saving across sessions."}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Keyboard shortcut: Ctrl+S (Cmd+S on Mac)
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleFilterPersistence}
+                      className="flex items-center gap-2"
+                    >
+                      {filterPersistenceEnabled ? (
+                        <>
+                          <Save className="h-4 w-4 text-green-600" />
+                          <span>Filter Saving: On</span>
+                        </>
+                      ) : (
+                        <>
+                          <SaveOff className="h-4 w-4 text-muted-foreground" />
+                          <span>Filter Saving: Off</span>
+                        </>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">
+                      {filterPersistenceEnabled 
+                        ? "Your filter preferences are automatically saved and will persist across sessions. Click to disable."
+                        : "Filter preferences will reset on page reload. Click to enable automatic saving across sessions."}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Keyboard shortcut: Ctrl+S (Cmd+S on Mac)
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <FilterPresetManager
+                currentFilters={{
+                  searchTerm,
+                  categoryFilter,
+                  stockFilter,
+                  inventoryTypeFilter,
+                }}
+                presets={presets}
+                onSavePreset={savePreset}
+                onLoadPreset={loadPreset}
+                onDeletePreset={deletePreset}
+                onUpdatePreset={updatePreset}
+              />
+            </div>
           </div>
 
           <InventoryValueBreakdown 

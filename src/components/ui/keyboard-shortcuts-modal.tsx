@@ -62,6 +62,11 @@ const defaultShortcuts: KeyboardShortcut[] = [
     description: 'Focus stock status filter',
     category: 'Filters',
   },
+  {
+    keys: ['Ctrl', '1-9'],
+    description: 'Load filter preset (1-9)',
+    category: 'Presets',
+  },
 ];
 
 export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
