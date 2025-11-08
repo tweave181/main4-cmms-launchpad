@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Wrench, Plus } from 'lucide-react';
+import { Wrench, Plus, Download } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { exportWorkOrdersToCSV } from '@/utils/workOrderExportUtils';
 import { WorkOrderList } from '@/components/work-orders/WorkOrderList';
 import { WorkOrderFiltersComponent } from '@/components/work-orders/WorkOrderFilters';
 import { CreateWorkOrderModal } from '@/components/work-orders/CreateWorkOrderModal';
@@ -13,6 +15,7 @@ import { useOfflineWorkOrders } from '@/hooks/useOfflineWorkOrders';
 import type { WorkOrder, WorkOrderFilters } from '@/types/workOrder';
 
 const WorkOrders: React.FC = () => {
+  const { toast } = useToast();
   // Set default filter to show only "Open" work orders
   const [filters, setFilters] = useState<WorkOrderFilters>({ status: 'open' });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -55,6 +58,23 @@ const WorkOrders: React.FC = () => {
     setFilters({ search: code });
   };
 
+  const handleExportToCSV = () => {
+    if (workOrders.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no work orders to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    exportWorkOrdersToCSV(workOrders);
+    toast({
+      title: "Export successful",
+      description: `Exported ${workOrders.length} work order${workOrders.length !== 1 ? 's' : ''} to CSV.`,
+    });
+  };
+
   return (
     <div className="p-6">
       <Card className="rounded-2xl shadow-sm border border-gray-200">
@@ -65,13 +85,24 @@ const WorkOrders: React.FC = () => {
               <span>Work Orders</span>
               {isOffline && <span className="text-sm text-orange-600">(Offline)</span>}
             </CardTitle>
-            <Button 
-              onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center space-x-2"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Create Work Order</span>
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button 
+                onClick={handleExportToCSV}
+                variant="outline"
+                className="flex items-center space-x-2"
+                disabled={isLoading || workOrders.length === 0}
+              >
+                <Download className="h-4 w-4" />
+                <span>Export CSV</span>
+              </Button>
+              <Button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className="flex items-center space-x-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Create Work Order</span>
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
