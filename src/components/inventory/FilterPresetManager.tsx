@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon, TrendingUp } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon, TrendingUp, TrendingDown, Minus, Calendar as CalendarDays, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   BarChart, 
@@ -44,7 +44,7 @@ import {
   Line
 } from 'recharts';
 import jsPDF from 'jspdf';
-import { format, subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
+import { format, subDays, isAfter, isBefore, startOfDay, endOfDay, getDay, parseISO } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -299,6 +299,116 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       };
     });
 
+    // Pattern insights detection
+    const getPatternInsights = (presetId: string) => {
+      const preset = dataSource.find(p => p.id === presetId);
+      if (!preset || !preset.usageHistory || preset.usageHistory.length < 3) {
+        return null;
+      }
+
+      const insights: {
+        trend: 'increasing' | 'decreasing' | 'stable';
+        trendPercentage: number;
+        mostActiveDay?: string;
+        leastActiveDay?: string;
+        avgDailyUsage: number;
+        peakUsageDate?: string;
+        recentActivity: 'active' | 'inactive' | 'moderate';
+      } = {
+        trend: 'stable',
+        trendPercentage: 0,
+        avgDailyUsage: 0,
+        recentActivity: 'moderate',
+      };
+
+      const dateRange = getDateRange();
+      const filteredHistory = preset.usageHistory.filter(entry => {
+        const entryDate = new Date(entry.date);
+        if (dateRange) {
+          return isAfter(entryDate, dateRange.start) && isBefore(entryDate, dateRange.end);
+        }
+        return true;
+      });
+
+      if (filteredHistory.length < 3) return null;
+
+      // Day of week analysis
+      const dayUsage: Record<number, number> = {};
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      
+      filteredHistory.forEach(entry => {
+        const day = getDay(parseISO(entry.date));
+        dayUsage[day] = (dayUsage[day] || 0) + entry.count;
+      });
+
+      if (Object.keys(dayUsage).length > 0) {
+        const sortedDays = Object.entries(dayUsage)
+          .sort(([, a], [, b]) => b - a);
+        
+        if (sortedDays.length > 0) {
+          insights.mostActiveDay = dayNames[parseInt(sortedDays[0][0])];
+          if (sortedDays.length > 1) {
+            insights.leastActiveDay = dayNames[parseInt(sortedDays[sortedDays.length - 1][0])];
+          }
+        }
+      }
+
+      // Trend analysis (compare first half vs second half)
+      const midpoint = Math.floor(filteredHistory.length / 2);
+      const firstHalf = filteredHistory.slice(0, midpoint);
+      const secondHalf = filteredHistory.slice(midpoint);
+
+      const firstHalfTotal = firstHalf.reduce((sum, e) => sum + e.count, 0);
+      const secondHalfTotal = secondHalf.reduce((sum, e) => sum + e.count, 0);
+
+      const firstHalfAvg = firstHalfTotal / firstHalf.length;
+      const secondHalfAvg = secondHalfTotal / secondHalf.length;
+
+      const percentChange = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
+      insights.trendPercentage = Math.abs(percentChange);
+
+      if (percentChange > 20) {
+        insights.trend = 'increasing';
+      } else if (percentChange < -20) {
+        insights.trend = 'decreasing';
+      } else {
+        insights.trend = 'stable';
+      }
+
+      // Average daily usage
+      const totalUsage = filteredHistory.reduce((sum, e) => sum + e.count, 0);
+      insights.avgDailyUsage = parseFloat((totalUsage / filteredHistory.length).toFixed(1));
+
+      // Peak usage date
+      const peakEntry = filteredHistory.reduce((max, entry) => 
+        entry.count > max.count ? entry : max
+      , filteredHistory[0]);
+      insights.peakUsageDate = format(parseISO(peakEntry.date), 'MMM dd, yyyy');
+
+      // Recent activity (last 7 days)
+      const sevenDaysAgo = subDays(new Date(), 7);
+      const recentEntries = filteredHistory.filter(entry => 
+        isAfter(parseISO(entry.date), sevenDaysAgo)
+      );
+      const recentUsage = recentEntries.reduce((sum, e) => sum + e.count, 0);
+
+      if (recentUsage === 0) {
+        insights.recentActivity = 'inactive';
+      } else if (recentUsage >= insights.avgDailyUsage * 5) {
+        insights.recentActivity = 'active';
+      } else {
+        insights.recentActivity = 'moderate';
+      }
+
+      return insights;
+    };
+
+    // Add insights to individual preset trends
+    const individualPresetTrendsWithInsights = individualPresetTrends.map(trend => ({
+      ...trend,
+      insights: getPatternInsights(trend.presetId),
+    }));
+
     return {
       totalUsage,
       totalPresets,
@@ -307,7 +417,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       mostPopular,
       categoryData,
       usageTrend,
-      individualPresetTrends,
+      individualPresetTrends: individualPresetTrendsWithInsights,
       getIndividualPresetTrend,
     };
   }, [filteredPresetsByDate, presets, dateRangeFilter, customStartDate, customEndDate, trendView, selectedPresetForTrend]);
@@ -1546,7 +1656,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
               {selectedPresetForTrend.length > 0 ? (
                 <div className="space-y-6">
                   {analyticsData.individualPresetTrends.map((trend, index) => (
-                    <div key={trend.presetId} className="p-4 bg-muted/30 rounded-lg">
+                    <div key={trend.presetId} className="p-4 bg-muted/30 rounded-lg border border-border">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-medium text-sm flex items-center gap-2">
                           <div 
@@ -1559,6 +1669,157 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                           {trend.data.reduce((sum, d) => sum + d.usage, 0)} total uses
                         </Badge>
                       </div>
+
+                      {/* Pattern Insights */}
+                      {trend.insights && (
+                        <div className="mb-4 p-3 bg-background rounded-lg border border-border space-y-2">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Lightbulb className="h-4 w-4 text-primary" />
+                            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              Usage Insights
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {/* Trend Badge */}
+                            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                              {trend.insights.trend === 'increasing' && (
+                                <>
+                                  <TrendingUp className="h-4 w-4 text-green-500" />
+                                  <div>
+                                    <p className="text-xs font-medium text-green-600 dark:text-green-400">
+                                      Growing
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      +{trend.insights.trendPercentage.toFixed(0)}%
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                              {trend.insights.trend === 'decreasing' && (
+                                <>
+                                  <TrendingDown className="h-4 w-4 text-orange-500" />
+                                  <div>
+                                    <p className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                                      Declining
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      -{trend.insights.trendPercentage.toFixed(0)}%
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                              {trend.insights.trend === 'stable' && (
+                                <>
+                                  <Minus className="h-4 w-4 text-blue-500" />
+                                  <div>
+                                    <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                      Stable
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      ±{trend.insights.trendPercentage.toFixed(0)}%
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Most Active Day */}
+                            {trend.insights.mostActiveDay && (
+                              <div className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                                <CalendarDays className="h-4 w-4 text-primary" />
+                                <div>
+                                  <p className="text-xs font-medium">Most Active</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {trend.insights.mostActiveDay}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Recent Activity */}
+                            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                              {trend.insights.recentActivity === 'active' && (
+                                <>
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                  <div>
+                                    <p className="text-xs font-medium text-green-600 dark:text-green-400">
+                                      Active
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Last 7 days
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                              {trend.insights.recentActivity === 'inactive' && (
+                                <>
+                                  <AlertCircle className="h-4 w-4 text-orange-500" />
+                                  <div>
+                                    <p className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                                      Inactive
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Last 7 days
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                              {trend.insights.recentActivity === 'moderate' && (
+                                <>
+                                  <Minus className="h-4 w-4 text-blue-500" />
+                                  <div>
+                                    <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                      Moderate
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Last 7 days
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Average Daily Usage */}
+                            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                              <BarChart3 className="h-4 w-4 text-primary" />
+                              <div>
+                                <p className="text-xs font-medium">Avg Daily</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {trend.insights.avgDailyUsage} uses
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Peak Usage */}
+                            {trend.insights.peakUsageDate && (
+                              <div className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                                <Star className="h-4 w-4 text-yellow-500" />
+                                <div>
+                                  <p className="text-xs font-medium">Peak Day</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {trend.insights.peakUsageDate}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Least Active Day */}
+                            {trend.insights.leastActiveDay && (
+                              <div className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="text-xs font-medium">Least Active</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {trend.insights.leastActiveDay}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       {trend.data.length > 0 ? (
                         <ResponsiveContainer width="100%" height={200}>
                           <LineChart data={trend.data}>
