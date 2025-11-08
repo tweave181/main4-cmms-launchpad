@@ -1562,6 +1562,7 @@ export type Database = {
           id: string
           part_id: string
           quantity_used: number
+          tenant_id: string
           work_order_id: string
         }
         Insert: {
@@ -1569,6 +1570,7 @@ export type Database = {
           id?: string
           part_id: string
           quantity_used: number
+          tenant_id: string
           work_order_id: string
         }
         Update: {
@@ -1576,6 +1578,7 @@ export type Database = {
           id?: string
           part_id?: string
           quantity_used?: number
+          tenant_id?: string
           work_order_id?: string
         }
         Relationships: [
