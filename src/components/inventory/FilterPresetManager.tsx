@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon, TrendingUp, TrendingDown, Minus, Calendar as CalendarDays, AlertCircle, CheckCircle, Sparkles, Archive, Trash, Combine } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon, TrendingUp, TrendingDown, Minus, Calendar as CalendarDays, AlertCircle, CheckCircle, Sparkles, Archive, Trash, Combine, Undo2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   BarChart, 
@@ -124,6 +124,11 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [recommendations, setRecommendations] = useState<any>(null);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [recommendationsOpen, setRecommendationsOpen] = useState(false);
+  const [lastAction, setLastAction] = useState<{
+    type: 'archive' | 'delete' | 'combine';
+    presetNames: string[];
+    previousState: FilterPreset[];
+  } | null>(null);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -658,6 +663,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const handleApplyRecommendation = async (recommendation: any) => {
     const { action, presetNames } = recommendation;
 
+    // Save current state for undo
+    const previousState = [...presets];
+
     switch (action) {
       case 'keep':
         // Just show success message - no action needed
@@ -665,7 +673,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           title: 'Preset Marked',
           description: `"${presetNames.join('", "')}" marked as important to keep.`,
         });
-        break;
+        return; // No undo needed for keep action
 
       case 'archive':
         // Add archived flag to presets
@@ -676,9 +684,20 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           return p;
         });
         onUpdatePresets(archivedPresets);
+        setLastAction({ type: 'archive', presetNames, previousState });
+        
         toast({
           title: 'Presets Archived',
           description: `${presetNames.length} preset${presetNames.length > 1 ? 's' : ''} archived successfully.`,
+          action: (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleUndo}
+            >
+              Undo
+            </Button>
+          ),
         });
         break;
 
@@ -690,9 +709,20 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
             onDeletePreset(preset.id);
           }
         });
+        setLastAction({ type: 'delete', presetNames, previousState });
+        
         toast({
           title: 'Presets Deleted',
           description: `${presetNames.length} preset${presetNames.length > 1 ? 's' : ''} deleted successfully.`,
+          action: (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleUndo}
+            >
+              Undo
+            </Button>
+          ),
         });
         break;
 
@@ -744,10 +774,20 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           mergedPreset,
         ];
         onUpdatePresets(updatedPresets);
+        setLastAction({ type: 'combine', presetNames, previousState });
         
         toast({
           title: 'Presets Combined',
           description: `Created "${combinedName}" from ${presetNames.length} presets.`,
+          action: (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleUndo}
+            >
+              Undo
+            </Button>
+          ),
         });
         break;
 
@@ -760,6 +800,37 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     }
 
     // Refresh recommendations after action
+    setTimeout(() => {
+      handleGetRecommendations();
+    }, 500);
+  };
+
+  const handleUndo = () => {
+    if (!lastAction) {
+      toast({
+        title: 'Nothing to Undo',
+        description: 'No recent action to reverse.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Restore previous state
+    onUpdatePresets(lastAction.previousState);
+    
+    const actionName = lastAction.type === 'archive' ? 'Archived' 
+      : lastAction.type === 'delete' ? 'Deleted' 
+      : 'Combined';
+    
+    toast({
+      title: 'Action Undone',
+      description: `${actionName} action has been reversed.`,
+    });
+
+    // Clear last action
+    setLastAction(null);
+
+    // Refresh recommendations
     setTimeout(() => {
       handleGetRecommendations();
     }, 500);
@@ -2378,6 +2449,15 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
             >
               Refresh
             </Button>
+            {lastAction && (
+              <Button 
+                variant="outline"
+                onClick={handleUndo}
+              >
+                <Undo2 className="h-4 w-4 mr-2" />
+                Undo Last Action
+              </Button>
+            )}
             <Button onClick={() => setRecommendationsOpen(false)}>
               Close
             </Button>
