@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon, TrendingUp, TrendingDown, Minus, Calendar as CalendarDays, AlertCircle, CheckCircle } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon, TrendingUp, TrendingDown, Minus, Calendar as CalendarDays, AlertCircle, CheckCircle, Sparkles, Archive, Trash, Combine } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   BarChart, 
@@ -118,6 +118,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
   const [trendView, setTrendView] = useState<'daily' | 'weekly'>('daily');
   const [selectedPresetForTrend, setSelectedPresetForTrend] = useState<string[]>([]);
+  const [recommendations, setRecommendations] = useState<any>(null);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [recommendationsOpen, setRecommendationsOpen] = useState(false);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -557,6 +560,98 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     });
   };
 
+  const handleGetRecommendations = async () => {
+    setIsLoadingRecommendations(true);
+    setRecommendationsOpen(true);
+
+    try {
+      // Prepare preset data with insights
+      const presetData = presets.map(preset => {
+        const insights = analyticsData.individualPresetTrends
+          .find(t => t.presetId === preset.id)?.insights;
+
+        return {
+          id: preset.id,
+          name: preset.name,
+          category: preset.category,
+          usageCount: preset.usageCount || 0,
+          lastUsed: preset.lastUsed,
+          insights: insights || undefined,
+        };
+      });
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/preset-recommendations`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ presets: presetData }),
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again in a moment.');
+        }
+        if (response.status === 402) {
+          throw new Error('AI credits required. Please add credits to your workspace.');
+        }
+        throw new Error('Failed to get recommendations');
+      }
+
+      const data = await response.json();
+      setRecommendations(data);
+      
+      toast({
+        title: 'Recommendations Generated',
+        description: `Found ${data.recommendations?.length || 0} optimization suggestions.`,
+      });
+    } catch (error) {
+      console.error('Error getting recommendations:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to generate recommendations',
+        variant: 'destructive',
+      });
+      setRecommendationsOpen(false);
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
+
+  const getActionIcon = (action: string) => {
+    switch (action) {
+      case 'keep':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'archive':
+        return <Archive className="h-4 w-4 text-blue-500" />;
+      case 'combine':
+        return <Combine className="h-4 w-4 text-purple-500" />;
+      case 'delete':
+        return <Trash className="h-4 w-4 text-red-500" />;
+      default:
+        return <AlertCircle className="h-4 w-4" />;
+    }
+  };
+
+  const getActionColor = (action: string) => {
+    switch (action) {
+      case 'keep':
+        return 'text-green-600 dark:text-green-400 bg-green-500/10 border-green-500/20';
+      case 'archive':
+        return 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20';
+      case 'combine':
+        return 'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20';
+      case 'delete':
+        return 'text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20';
+      default:
+        return '';
+    }
+  };
+
   const handleExportAnalytics = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -930,6 +1025,16 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               View Analytics
+            </Button>
+            <Button
+              onClick={handleGetRecommendations}
+              size="sm"
+              variant="outline"
+              className="w-full justify-start"
+              disabled={presets.length === 0}
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Get AI Recommendations
             </Button>
             {presets.some(p => p.usageCount && p.usageCount > 0) && (
               <Button
@@ -2053,6 +2158,103 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
               Export as PDF
             </Button>
             <Button onClick={() => setAnalyticsOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Recommendations Dialog */}
+      <Dialog open={recommendationsOpen} onOpenChange={setRecommendationsOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              AI-Powered Preset Recommendations
+            </DialogTitle>
+            <DialogDescription>
+              Intelligent suggestions to optimize your filter preset library based on usage patterns
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {isLoadingRecommendations ? (
+              <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+                <p className="text-sm text-muted-foreground">Analyzing your preset usage patterns...</p>
+              </div>
+            ) : recommendations?.recommendations ? (
+              <>
+                <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-medium">
+                      {recommendations.recommendations.length} optimization {recommendations.recommendations.length === 1 ? 'suggestion' : 'suggestions'} found
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {recommendations.recommendations.map((rec: any, index: number) => (
+                    <div
+                      key={index}
+                      className={`p-4 rounded-lg border ${getActionColor(rec.action)}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {getActionIcon(rec.action)}
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold capitalize">
+                              {rec.action} {rec.action === 'combine' ? 'Presets' : 'Preset'}
+                            </h4>
+                            <Badge 
+                              variant={rec.priority === 'high' ? 'default' : 'outline'}
+                              className="text-xs"
+                            >
+                              {rec.priority} priority
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-1">
+                            {rec.presetNames.map((name: string, i: number) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {name}
+                              </Badge>
+                            ))}
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {rec.reason}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground">
+                    💡 These recommendations are generated by AI based on your usage patterns. 
+                    Review each suggestion carefully before taking action.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No recommendations available.</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={handleGetRecommendations}
+              disabled={isLoadingRecommendations}
+            >
+              Refresh
+            </Button>
+            <Button onClick={() => setRecommendationsOpen(false)}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
