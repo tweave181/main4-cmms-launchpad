@@ -342,9 +342,22 @@ const Inventory: React.FC = () => {
     setStockFilter(preset.stockFilter);
     setInventoryTypeFilter(preset.inventoryTypeFilter);
     
+    // Increment usage counter and update last used timestamp
+    const updatedPresets = presets.map(p => 
+      p.id === preset.id 
+        ? { 
+            ...p, 
+            usageCount: (p.usageCount || 0) + 1,
+            lastUsed: new Date().toISOString()
+          }
+        : p
+    );
+    setPresets(updatedPresets);
+    
+    const usageCount = (preset.usageCount || 0) + 1;
     toast({
       title: 'Preset Loaded',
-      description: `"${preset.name}" filters have been applied.`,
+      description: `"${preset.name}" filters have been applied. (Used ${usageCount} time${usageCount === 1 ? '' : 's'})`,
     });
   };
 

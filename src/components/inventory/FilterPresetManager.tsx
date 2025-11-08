@@ -37,6 +37,8 @@ export interface FilterPreset {
   stockFilter: string;
   inventoryTypeFilter: string;
   createdAt: string;
+  usageCount?: number;
+  lastUsed?: string;
 }
 
 interface FilterPresetManagerProps {
@@ -157,7 +159,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     setSaveDialogOpen(true);
   };
 
-  // Group presets by category
+  // Group presets by category and sort by usage
   const groupedPresets = React.useMemo(() => {
     const groups: Record<string, FilterPreset[]> = {};
     
@@ -167,6 +169,23 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
         groups[category] = [];
       }
       groups[category].push(preset);
+    });
+
+    // Sort presets within each category by usage count (descending)
+    Object.keys(groups).forEach((category) => {
+      groups[category].sort((a, b) => {
+        const usageA = a.usageCount || 0;
+        const usageB = b.usageCount || 0;
+        if (usageB !== usageA) {
+          return usageB - usageA; // Most used first
+        }
+        // If same usage, sort by last used (most recent first)
+        if (a.lastUsed && b.lastUsed) {
+          return new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime();
+        }
+        // If no usage data, sort by creation date
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
     });
 
     return groups;
@@ -365,6 +384,11 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                                 {globalIndex < 9 && (
                                   <Badge variant="outline" className="text-xs">
                                     Ctrl+{globalIndex + 1}
+                                  </Badge>
+                                )}
+                                {preset.usageCount && preset.usageCount > 0 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {preset.usageCount} use{preset.usageCount === 1 ? '' : 's'}
                                   </Badge>
                                 )}
                               </div>
