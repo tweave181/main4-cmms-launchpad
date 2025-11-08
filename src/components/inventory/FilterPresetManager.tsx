@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export interface FilterPreset {
@@ -53,6 +53,7 @@ interface FilterPresetManagerProps {
   onLoadPreset: (preset: FilterPreset) => void;
   onDeletePreset: (id: string) => void;
   onUpdatePreset: (id: string, name: string, category?: string) => void;
+  onResetUsageStats: (id?: string) => void;
 }
 
 const DEFAULT_CATEGORIES = [
@@ -70,6 +71,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   onLoadPreset,
   onDeletePreset,
   onUpdatePreset,
+  onResetUsageStats,
 }) => {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -83,6 +85,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -217,6 +220,21 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     setPresetName(`Copy of ${preset.name}`);
     setPresetCategory(preset.category || '');
     setSaveDialogOpen(true);
+  };
+
+  const handleResetAllStats = () => {
+    onResetUsageStats();
+    setResetConfirmOpen(false);
+    setDropdownOpen(false);
+  };
+
+  const handleResetIndividualStats = (presetId: string, presetName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onResetUsageStats(presetId);
+    toast({
+      title: 'Usage Statistics Reset',
+      description: `Usage stats for "${presetName}" have been reset.`,
+    });
   };
 
   // Group presets by category and sort by usage
@@ -408,6 +426,17 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                 Import
               </Button>
             </div>
+            {presets.some(p => p.usageCount && p.usageCount > 0) && (
+              <Button
+                onClick={() => setResetConfirmOpen(true)}
+                size="sm"
+                variant="outline"
+                className="w-full justify-start text-muted-foreground"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset All Usage Statistics
+              </Button>
+            )}
             <input
               ref={fileInputRef}
               type="file"
@@ -473,6 +502,17 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                             <div className={`flex gap-1 transition-opacity ml-2 ${
                               isFocused ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                             }`}>
+                              {preset.usageCount && preset.usageCount > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={(e) => handleResetIndividualStats(preset.id, preset.name, e)}
+                                  title="Reset usage statistics"
+                                >
+                                  <RotateCcw className="h-3 w-3" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -811,6 +851,34 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
               Cancel
             </Button>
             <Button onClick={confirmImport}>Import Presets</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset All Usage Stats Confirmation Dialog */}
+      <Dialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset All Usage Statistics?</DialogTitle>
+            <DialogDescription>
+              This will reset the usage count and last used date for all presets. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-sm">
+                <span className="font-medium">Presets with usage data:</span>{' '}
+                {presets.filter(p => p.usageCount && p.usageCount > 0).length}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleResetAllStats}>
+              Reset All Statistics
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

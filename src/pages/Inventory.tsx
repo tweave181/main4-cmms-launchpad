@@ -380,6 +380,29 @@ const Inventory: React.FC = () => {
     });
   };
 
+  const resetUsageStats = (id?: string) => {
+    if (id) {
+      // Reset individual preset stats
+      setPresets(presets.map(p => 
+        p.id === id 
+          ? { ...p, usageCount: 0, lastUsed: undefined }
+          : p
+      ));
+    } else {
+      // Reset all preset stats
+      setPresets(presets.map(p => ({ 
+        ...p, 
+        usageCount: 0, 
+        lastUsed: undefined 
+      })));
+      
+      toast({
+        title: 'All Statistics Reset',
+        description: 'Usage statistics have been reset for all presets.',
+      });
+    }
+  };
+
   // Calculate active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -524,6 +547,7 @@ const Inventory: React.FC = () => {
                 onLoadPreset={loadPreset}
                 onDeletePreset={deletePreset}
                 onUpdatePreset={updatePreset}
+                onResetUsageStats={resetUsageStats}
               />
             </div>
           </div>
