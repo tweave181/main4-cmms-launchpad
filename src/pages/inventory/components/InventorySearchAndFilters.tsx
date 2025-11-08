@@ -1,6 +1,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Plus, X } from 'lucide-react';
 interface InventorySearchAndFiltersProps {
@@ -53,48 +54,86 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
       </div>
       
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <Input placeholder="Search parts by name, SKU, or description..." value={searchTerm} onChange={e => onSearchChange(e.target.value)} />
+          {searchTerm && (
+            <Badge 
+              variant="secondary" 
+              className="absolute -top-2 -right-2 h-5 min-w-5 px-1.5 flex items-center justify-center"
+            >
+              1
+            </Badge>
+          )}
         </div>
         
         <div className="flex gap-4">
-          <Select value={inventoryTypeFilter} onValueChange={onInventoryTypeFilterChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Inventory Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="spare_parts">Spare Parts</SelectItem>
-              <SelectItem value="consumables">Consumables</SelectItem>
-              <SelectItem value="tools">Tools</SelectItem>
-              <SelectItem value="supplies">Supplies</SelectItem>
-              <SelectItem value="materials">Materials</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            <Select value={inventoryTypeFilter} onValueChange={onInventoryTypeFilterChange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Inventory Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="spare_parts">Spare Parts</SelectItem>
+                <SelectItem value="consumables">Consumables</SelectItem>
+                <SelectItem value="tools">Tools</SelectItem>
+                <SelectItem value="supplies">Supplies</SelectItem>
+                <SelectItem value="materials">Materials</SelectItem>
+              </SelectContent>
+            </Select>
+            {inventoryTypeFilter !== 'all' && (
+              <Badge 
+                variant="default" 
+                className="absolute -top-2 -right-2 h-5 min-w-5 px-1.5 flex items-center justify-center"
+              >
+                1
+              </Badge>
+            )}
+          </div>
 
-          <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filter by Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map(category => <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map(category => <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>)}
+              </SelectContent>
+            </Select>
+            {categoryFilter !== 'all' && (
+              <Badge 
+                variant="default" 
+                className="absolute -top-2 -right-2 h-5 min-w-5 px-1.5 flex items-center justify-center"
+              >
+                1
+              </Badge>
+            )}
+          </div>
           
-          <Select value={stockFilter} onValueChange={onStockFilterChange}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Stock Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Stock</SelectItem>
-              <SelectItem value="in-stock">In Stock</SelectItem>
-              <SelectItem value="low">Low Stock</SelectItem>
-              <SelectItem value="out">Out of Stock</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            <Select value={stockFilter} onValueChange={onStockFilterChange}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Stock Filter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Stock</SelectItem>
+                <SelectItem value="in-stock">In Stock</SelectItem>
+                <SelectItem value="low">Low Stock</SelectItem>
+                <SelectItem value="out">Out of Stock</SelectItem>
+              </SelectContent>
+            </Select>
+            {stockFilter !== 'all' && (
+              <Badge 
+                variant="default" 
+                className="absolute -top-2 -right-2 h-5 min-w-5 px-1.5 flex items-center justify-center"
+              >
+                1
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
     </div>;
