@@ -2,7 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Plus } from 'lucide-react';
+import { Search, Filter, Plus, X } from 'lucide-react';
 interface InventorySearchAndFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -13,6 +13,7 @@ interface InventorySearchAndFiltersProps {
   stockFilter: string;
   onStockFilterChange: (value: string) => void;
   onCreatePart: () => void;
+  onClearFilters: () => void;
   categories: string[];
 }
 export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps> = ({
@@ -25,15 +26,30 @@ export const InventorySearchAndFilters: React.FC<InventorySearchAndFiltersProps>
   stockFilter,
   onStockFilterChange,
   onCreatePart,
+  onClearFilters,
   categories
 }) => {
+  const hasActiveFilters = 
+    searchTerm !== '' || 
+    categoryFilter !== 'all' || 
+    inventoryTypeFilter !== 'all' || 
+    stockFilter !== 'all';
+
   return <div className="space-y-4 mb-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Inventory Parts List</h2>
-        <Button onClick={onCreatePart} className="whitespace-nowrap">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Inventory Part
-        </Button>
+        <div className="flex gap-2">
+          {hasActiveFilters && (
+            <Button onClick={onClearFilters} variant="outline" className="whitespace-nowrap">
+              <X className="h-4 w-4 mr-2" />
+              Clear All Filters
+            </Button>
+          )}
+          <Button onClick={onCreatePart} className="whitespace-nowrap">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Inventory Part
+          </Button>
+        </div>
       </div>
       
       <div className="flex flex-col md:flex-row gap-4">

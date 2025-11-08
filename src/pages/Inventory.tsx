@@ -75,6 +75,13 @@ const Inventory: React.FC = () => {
     // TODO: Implement edit functionality
   };
 
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setCategoryFilter('all');
+    setStockFilter('all');
+    setInventoryTypeFilter('all');
+  };
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -113,6 +120,7 @@ const Inventory: React.FC = () => {
             stockFilter={stockFilter}
             onStockFilterChange={setStockFilter}
             onCreatePart={() => setCreateModalOpen(true)}
+            onClearFilters={handleClearFilters}
             categories={categories}
           />
 
