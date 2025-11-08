@@ -2,7 +2,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Boxes, X, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Boxes, X, Check, Save, SaveOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useInventoryParts } from './inventory/hooks/useInventoryParts';
 import { InventorySearchAndFilters } from './inventory/components/InventorySearchAndFilters';
@@ -15,10 +16,33 @@ import type { Database } from '@/integrations/supabase/types';
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
 
 const FILTER_STORAGE_KEY = 'inventory-filters';
+const FILTER_PERSISTENCE_KEY = 'inventory-filters-enabled';
 
 const Inventory: React.FC = () => {
+  // Check if filter persistence is enabled
+  const isFilterPersistenceEnabled = () => {
+    try {
+      const enabled = localStorage.getItem(FILTER_PERSISTENCE_KEY);
+      return enabled !== 'false'; // Default to true if not set
+    } catch (error) {
+      return true;
+    }
+  };
+
   // Load initial filter state from localStorage
   const loadFilters = () => {
+    if (!isFilterPersistenceEnabled()) {
+      return {
+        filters: {
+          searchTerm: '',
+          categoryFilter: 'all',
+          stockFilter: 'all',
+          inventoryTypeFilter: 'all',
+        },
+        wasLoaded: false,
+      };
+    }
+
     try {
       const saved = localStorage.getItem(FILTER_STORAGE_KEY);
       if (saved) {
@@ -53,6 +77,7 @@ const Inventory: React.FC = () => {
   const [inventoryTypeFilter, setInventoryTypeFilter] = useState(initialFilters.inventoryTypeFilter);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [showSavedIndicator, setShowSavedIndicator] = useState(wasLoaded);
+  const [filterPersistenceEnabled, setFilterPersistenceEnabled] = useState(isFilterPersistenceEnabled());
   const { toast } = useToast();
 
   // Hide saved indicator after 3 seconds
@@ -65,8 +90,10 @@ const Inventory: React.FC = () => {
     }
   }, [showSavedIndicator]);
 
-  // Save filters to localStorage whenever they change
+  // Save filters to localStorage whenever they change (only if persistence is enabled)
   useEffect(() => {
+    if (!filterPersistenceEnabled) return;
+
     const filters = {
       searchTerm,
       categoryFilter,
@@ -78,7 +105,7 @@ const Inventory: React.FC = () => {
     } catch (error) {
       console.error('Failed to save filters to localStorage:', error);
     }
-  }, [searchTerm, categoryFilter, stockFilter, inventoryTypeFilter]);
+  }, [searchTerm, categoryFilter, stockFilter, inventoryTypeFilter, filterPersistenceEnabled]);
 
   const {
     parts,
@@ -155,6 +182,38 @@ const Inventory: React.FC = () => {
     });
   };
 
+  const toggleFilterPersistence = () => {
+    const newState = !filterPersistenceEnabled;
+    setFilterPersistenceEnabled(newState);
+    
+    try {
+      localStorage.setItem(FILTER_PERSISTENCE_KEY, String(newState));
+      
+      if (newState) {
+        // Save current filters when enabling
+        const filters = {
+          searchTerm,
+          categoryFilter,
+          stockFilter,
+          inventoryTypeFilter,
+        };
+        localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+      } else {
+        // Remove saved filters when disabling
+        localStorage.removeItem(FILTER_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error('Failed to toggle filter persistence:', error);
+    }
+    
+    toast({
+      title: newState ? 'Filter Saving Enabled' : 'Filter Saving Disabled',
+      description: newState 
+        ? 'Your filter preferences will now be saved across sessions.' 
+        : 'Filter preferences will no longer be saved.',
+    });
+  };
+
   // Calculate active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -226,6 +285,27 @@ const Inventory: React.FC = () => {
             onClearFilters={handleClearFilters}
             categories={categories}
           />
+
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleFilterPersistence}
+              className="flex items-center gap-2"
+            >
+              {filterPersistenceEnabled ? (
+                <>
+                  <Save className="h-4 w-4 text-green-600" />
+                  <span>Filter Saving: On</span>
+                </>
+              ) : (
+                <>
+                  <SaveOff className="h-4 w-4 text-muted-foreground" />
+                  <span>Filter Saving: Off</span>
+                </>
+              )}
+            </Button>
+          </div>
 
           <InventoryValueBreakdown 
             parts={filteredParts} 
