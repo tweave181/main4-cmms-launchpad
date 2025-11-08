@@ -150,6 +150,10 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [historyActionFilter, setHistoryActionFilter] = useState<string>('all');
   const [historySearchTerm, setHistorySearchTerm] = useState('');
   const [historyDateRange, setHistoryDateRange] = useState<{ start?: Date; end?: Date }>({});
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiveSearchTerm, setArchiveSearchTerm] = useState('');
+  const [archiveCategoryFilter, setArchiveCategoryFilter] = useState<string>('all');
+  const [selectedArchivedPresets, setSelectedArchivedPresets] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -166,6 +170,11 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   // Flatten presets for keyboard navigation
   const flatPresets = React.useMemo(() => {
     return presets;
+  }, [presets]);
+
+  // Get archived presets
+  const archivedPresets = React.useMemo(() => {
+    return presets.filter(p => p.archived);
   }, [presets]);
 
   // Get recently used presets (top 3)
@@ -1382,6 +1391,71 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const handleConfirmBulkAction = () => {
     if (pendingBulkAction) {
       applyBulkRecommendations(pendingBulkAction);
+    }
+  };
+
+  const toggleArchivedPresetSelection = (id: string) => {
+    const newSelection = new Set(selectedArchivedPresets);
+    if (newSelection.has(id)) {
+      newSelection.delete(id);
+    } else {
+      newSelection.add(id);
+    }
+    setSelectedArchivedPresets(newSelection);
+  };
+
+  const handleRestorePreset = (presetId: string) => {
+    const restoredPresets = presets.map(p => {
+      if (p.id === presetId) {
+        return { ...p, archived: false };
+      }
+      return p;
+    });
+    onUpdatePresets(restoredPresets);
+
+    const preset = presets.find(p => p.id === presetId);
+    toast({
+      title: 'Preset Restored',
+      description: `"${preset?.name}" has been restored from archive.`,
+    });
+  };
+
+  const handleBulkRestore = () => {
+    if (selectedArchivedPresets.size === 0) {
+      toast({
+        title: 'No Selection',
+        description: 'Please select at least one preset to restore.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const restoredPresets = presets.map(p => {
+      if (selectedArchivedPresets.has(p.id)) {
+        return { ...p, archived: false };
+      }
+      return p;
+    });
+    onUpdatePresets(restoredPresets);
+
+    toast({
+      title: 'Presets Restored',
+      description: `${selectedArchivedPresets.size} preset${selectedArchivedPresets.size > 1 ? 's' : ''} restored successfully.`,
+    });
+
+    setSelectedArchivedPresets(new Set());
+  };
+
+  const handleDeleteArchivedPreset = (presetId: string) => {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    if (window.confirm(`Are you sure you want to permanently delete "${preset.name}"?`)) {
+      onDeletePreset(presetId);
+      toast({
+        title: 'Preset Deleted',
+        description: `"${preset.name}" has been permanently deleted.`,
+      });
     }
   };
 
@@ -2784,6 +2858,13 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           <DialogFooter>
             <Button 
               variant="outline" 
+              onClick={() => setArchiveOpen(true)}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archive ({archivedPresets.length})
+            </Button>
+            <Button 
+              variant="outline" 
               onClick={() => setHistoryOpen(true)}
             >
               <CalendarDays className="h-4 w-4 mr-2" />
@@ -3091,6 +3172,198 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
               </>
             )}
             <Button onClick={() => setHistoryOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Archive Manager Dialog */}
+      <Dialog open={archiveOpen} onOpenChange={(open) => {
+        setArchiveOpen(open);
+        if (!open) {
+          setArchiveSearchTerm('');
+          setArchiveCategoryFilter('all');
+          setSelectedArchivedPresets(new Set());
+        }
+      }}>
+        <DialogContent className="max-w-4xl max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Archive className="h-5 w-5" />
+              Archive Manager
+            </DialogTitle>
+            <DialogDescription>
+              View, restore, or permanently delete archived presets
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Filters */}
+          {archivedPresets.length > 0 && (
+            <div className="space-y-3 border-b pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Search Filter */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Search</Label>
+                  <Input
+                    placeholder="Search archived presets..."
+                    value={archiveSearchTerm}
+                    onChange={(e) => setArchiveSearchTerm(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+
+                {/* Category Filter */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Category</Label>
+                  <Select value={archiveCategoryFilter} onValueChange={setArchiveCategoryFilter}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {allCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Clear Filters and Bulk Actions */}
+              <div className="flex items-center justify-between">
+                {(archiveSearchTerm || archiveCategoryFilter !== 'all') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setArchiveSearchTerm('');
+                      setArchiveCategoryFilter('all');
+                    }}
+                    className="h-7 text-xs"
+                  >
+                    <RotateCcw className="h-3 w-3 mr-1" />
+                    Clear Filters
+                  </Button>
+                )}
+                {selectedArchivedPresets.size > 0 && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <span className="text-xs text-muted-foreground">
+                      {selectedArchivedPresets.size} selected
+                    </span>
+                    <Button
+                      size="sm"
+                      onClick={handleBulkRestore}
+                      className="h-7"
+                    >
+                      Restore Selected ({selectedArchivedPresets.size})
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="overflow-y-auto max-h-[60vh]">
+            {(() => {
+              // Apply filters
+              let filteredArchived = archivedPresets;
+
+              // Filter by search term
+              if (archiveSearchTerm.trim()) {
+                const searchLower = archiveSearchTerm.toLowerCase();
+                filteredArchived = filteredArchived.filter(preset =>
+                  preset.name.toLowerCase().includes(searchLower)
+                );
+              }
+
+              // Filter by category
+              if (archiveCategoryFilter !== 'all') {
+                filteredArchived = filteredArchived.filter(preset =>
+                  preset.category === archiveCategoryFilter
+                );
+              }
+
+              if (filteredArchived.length > 0) {
+                return (
+                  <div className="space-y-3 pr-2">
+                    {filteredArchived.map((preset) => (
+                      <div
+                        key={preset.id}
+                        className="p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
+                      >
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={selectedArchivedPresets.has(preset.id)}
+                            onCheckedChange={() => toggleArchivedPresetSelection(preset.id)}
+                            className="mt-1"
+                          />
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-1">
+                                <h4 className="font-semibold">{preset.name}</h4>
+                                {preset.category && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {preset.category}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleRestorePreset(preset.id)}
+                                  className="h-7 text-xs"
+                                >
+                                  <RotateCcw className="h-3 w-3 mr-1" />
+                                  Restore
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteArchivedPreset(preset.id)}
+                                  className="h-7 text-xs"
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-xs text-muted-foreground space-y-1">
+                              {preset.lastUsed && (
+                                <p>Last used: {format(new Date(preset.lastUsed), 'MMM dd, yyyy')}</p>
+                              )}
+                              {preset.usageCount !== undefined && (
+                                <p>Usage count: {preset.usageCount}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Archive className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                    <p className="text-sm">
+                      {archivedPresets.length > 0 ? 'No results found' : 'No archived presets'}
+                    </p>
+                    <p className="text-xs mt-1">
+                      {archivedPresets.length > 0 ? 'Try adjusting your filters' : 'Archive presets to see them here'}
+                    </p>
+                  </div>
+                );
+              }
+            })()}
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setArchiveOpen(false)}>
               Close
             </Button>
           </DialogFooter>
