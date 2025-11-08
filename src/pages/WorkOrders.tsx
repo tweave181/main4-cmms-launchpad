@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Wrench, Plus, Download } from 'lucide-react';
+import { Wrench, Plus, Download, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { exportWorkOrdersToCSV } from '@/utils/workOrderExportUtils';
+import { exportWorkOrdersToCSV, exportWorkOrdersToPDF } from '@/utils/workOrderExportUtils';
 import { WorkOrderList } from '@/components/work-orders/WorkOrderList';
 import { WorkOrderFiltersComponent } from '@/components/work-orders/WorkOrderFilters';
 import { CreateWorkOrderModal } from '@/components/work-orders/CreateWorkOrderModal';
@@ -75,6 +75,23 @@ const WorkOrders: React.FC = () => {
     });
   };
 
+  const handleExportToPDF = () => {
+    if (workOrders.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no work orders to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    exportWorkOrdersToPDF(workOrders);
+    toast({
+      title: "PDF Export successful",
+      description: `Exported ${workOrders.length} work order${workOrders.length !== 1 ? 's' : ''} to PDF.`,
+    });
+  };
+
   return (
     <div className="p-6">
       <Card className="rounded-2xl shadow-sm border border-gray-200">
@@ -93,7 +110,16 @@ const WorkOrders: React.FC = () => {
                 disabled={isLoading || workOrders.length === 0}
               >
                 <Download className="h-4 w-4" />
-                <span>Export CSV</span>
+                <span className="hidden sm:inline">Export CSV</span>
+              </Button>
+              <Button 
+                onClick={handleExportToPDF}
+                variant="outline"
+                className="flex items-center space-x-2"
+                disabled={isLoading || workOrders.length === 0}
+              >
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Export PDF</span>
               </Button>
               <Button 
                 onClick={() => setIsCreateModalOpen(true)}
