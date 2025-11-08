@@ -3,12 +3,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, User, Wrench, DollarSign, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Clock, User, Wrench, DollarSign, Edit, Trash2, FileText } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { useAuth } from '@/contexts/auth';
 import { ActivityLog } from './ActivityLog';
 import { TimeRecordsList } from '@/components/time-records/TimeRecordsList';
 import { QuickTimeLogButton } from '@/components/time-records/QuickTimeLogButton';
+import { exportWorkOrderToPDF } from '@/utils/workOrderExportUtils';
 import type { WorkOrder } from '@/types/workOrder';
 interface WorkOrderDetailProps {
   workOrder: WorkOrder & {
@@ -34,6 +36,7 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
   onEdit,
   onDelete
 }) => {
+  const { toast } = useToast();
   const {
     formatDate,
     formatCurrency
@@ -44,6 +47,14 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
   const isAdmin = userProfile?.role === 'admin';
   const isCompleted = workOrder.status === 'completed';
   const canEdit = isAdmin || !isCompleted;
+
+  const handleExportToPDF = () => {
+    exportWorkOrderToPDF(workOrder);
+    toast({
+      title: "PDF Export successful",
+      description: `Work Order ${workOrder.work_order_number} exported to PDF.`,
+    });
+  };
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open':
@@ -84,6 +95,10 @@ export const WorkOrderDetail: React.FC<WorkOrderDetailProps> = ({
               </div>
             </DialogTitle>
             <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleExportToPDF} className="flex items-center space-x-2">
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Export PDF</span>
+              </Button>
               {onEdit && canEdit && <Button variant="outline" size="sm" onClick={onEdit} className="flex items-center space-x-2">
                   <Edit className="h-4 w-4" />
                   <span>Edit</span>
