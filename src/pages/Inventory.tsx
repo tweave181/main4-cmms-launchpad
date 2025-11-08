@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Boxes, X } from 'lucide-react';
@@ -14,13 +14,50 @@ import type { Database } from '@/integrations/supabase/types';
 
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
 
+const FILTER_STORAGE_KEY = 'inventory-filters';
+
 const Inventory: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [stockFilter, setStockFilter] = useState('all');
-  const [inventoryTypeFilter, setInventoryTypeFilter] = useState('all');
+  // Load initial filter state from localStorage
+  const loadFilters = () => {
+    try {
+      const saved = localStorage.getItem(FILTER_STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Failed to load filters from localStorage:', error);
+    }
+    return {
+      searchTerm: '',
+      categoryFilter: 'all',
+      stockFilter: 'all',
+      inventoryTypeFilter: 'all',
+    };
+  };
+
+  const initialFilters = loadFilters();
+  
+  const [searchTerm, setSearchTerm] = useState(initialFilters.searchTerm);
+  const [categoryFilter, setCategoryFilter] = useState(initialFilters.categoryFilter);
+  const [stockFilter, setStockFilter] = useState(initialFilters.stockFilter);
+  const [inventoryTypeFilter, setInventoryTypeFilter] = useState(initialFilters.inventoryTypeFilter);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const { toast } = useToast();
+
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    const filters = {
+      searchTerm,
+      categoryFilter,
+      stockFilter,
+      inventoryTypeFilter,
+    };
+    try {
+      localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+    } catch (error) {
+      console.error('Failed to save filters to localStorage:', error);
+    }
+  }, [searchTerm, categoryFilter, stockFilter, inventoryTypeFilter]);
 
   const {
     parts,
