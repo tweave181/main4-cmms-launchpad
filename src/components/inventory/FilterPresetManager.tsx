@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   BarChart, 
@@ -41,6 +41,10 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 import jsPDF from 'jspdf';
+import { format, subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 export interface FilterPreset {
   id: string;
@@ -105,6 +109,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [dateRangeFilter, setDateRangeFilter] = useState<'7days' | '30days' | 'all' | 'custom'>('all');
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined);
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -135,14 +142,50 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       .slice(0, 3);
   }, [presets]);
 
+  // Get date range for filtering
+  const getDateRange = () => {
+    const now = new Date();
+    if (dateRangeFilter === '7days') {
+      return { start: startOfDay(subDays(now, 7)), end: endOfDay(now) };
+    } else if (dateRangeFilter === '30days') {
+      return { start: startOfDay(subDays(now, 30)), end: endOfDay(now) };
+    } else if (dateRangeFilter === 'custom' && customStartDate && customEndDate) {
+      return { start: startOfDay(customStartDate), end: endOfDay(customEndDate) };
+    }
+    return null; // 'all' - no filtering
+  };
+
+  // Filter presets by date range
+  const filteredPresetsByDate = React.useMemo(() => {
+    const dateRange = getDateRange();
+    if (!dateRange) return presets;
+
+    return presets.map(preset => {
+      // If the preset has never been used, exclude it from date-filtered analytics
+      if (!preset.lastUsed) {
+        return { ...preset, usageCount: 0 };
+      }
+
+      const lastUsedDate = new Date(preset.lastUsed);
+      const isInRange = isAfter(lastUsedDate, dateRange.start) && isBefore(lastUsedDate, dateRange.end);
+      
+      // If not in range, set usage to 0 for this filtered view
+      return {
+        ...preset,
+        usageCount: isInRange ? preset.usageCount : 0,
+      };
+    });
+  }, [presets, dateRangeFilter, customStartDate, customEndDate]);
+
   // Analytics calculations
   const analyticsData = React.useMemo(() => {
-    const totalUsage = presets.reduce((sum, p) => sum + (p.usageCount || 0), 0);
+    const dataSource = filteredPresetsByDate;
+    const totalUsage = dataSource.reduce((sum, p) => sum + (p.usageCount || 0), 0);
     const totalPresets = presets.length;
-    const presetsWithUsage = presets.filter(p => p.usageCount && p.usageCount > 0).length;
+    const presetsWithUsage = dataSource.filter(p => p.usageCount && p.usageCount > 0).length;
 
     // Most popular presets
-    const mostPopular = [...presets]
+    const mostPopular = [...dataSource]
       .filter(p => p.usageCount && p.usageCount > 0)
       .sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
       .slice(0, 5)
@@ -153,7 +196,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
 
     // Category breakdown
     const categoryUsage: Record<string, number> = {};
-    presets.forEach(p => {
+    dataSource.forEach(p => {
       const category = p.category || 'Uncategorized';
       categoryUsage[category] = (categoryUsage[category] || 0) + (p.usageCount || 0);
     });
@@ -173,7 +216,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       mostPopular,
       categoryData,
     };
-  }, [presets]);
+  }, [filteredPresetsByDate, presets]);
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 
@@ -322,10 +365,22 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     doc.text('Filter Preset Analytics Report', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 10;
 
-    // Date
+    // Date and Date Range
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
+    
+    // Show date range filter
+    let dateRangeText = 'Period: All Time';
+    if (dateRangeFilter === '7days') {
+      dateRangeText = 'Period: Last 7 Days';
+    } else if (dateRangeFilter === '30days') {
+      dateRangeText = 'Period: Last 30 Days';
+    } else if (dateRangeFilter === 'custom' && customStartDate && customEndDate) {
+      dateRangeText = `Period: ${format(customStartDate, 'PP')} - ${format(customEndDate, 'PP')}`;
+    }
+    doc.text(dateRangeText, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 15;
 
     // Summary Stats
@@ -400,10 +455,10 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       const unusedCount = analyticsData.totalPresets - analyticsData.presetsWithUsage;
-      doc.text(`${unusedCount} preset${unusedCount === 1 ? '' : 's'} ${unusedCount === 1 ? 'has' : 'have'} never been used.`, 25, yPosition);
+      doc.text(`${unusedCount} preset${unusedCount === 1 ? '' : 's'} ${unusedCount === 1 ? 'has' : 'have'} never been used${dateRangeFilter !== 'all' ? ' in this period' : ''}.`, 25, yPosition);
       yPosition += 6;
 
-      const unusedPresets = presets.filter(p => !p.usageCount || p.usageCount === 0);
+      const unusedPresets = filteredPresetsByDate.filter(p => !p.usageCount || p.usageCount === 0);
       unusedPresets.forEach((preset) => {
         if (yPosition > pageHeight - 20) {
           doc.addPage();
@@ -1204,6 +1259,103 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           </DialogHeader>
           
           <div className="space-y-6 py-4">
+            {/* Date Range Filter */}
+            <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-border">
+              <Label className="text-sm font-medium">Time Period:</Label>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant={dateRangeFilter === 'all' ? 'default' : 'outline'}
+                  onClick={() => setDateRangeFilter('all')}
+                >
+                  All Time
+                </Button>
+                <Button
+                  size="sm"
+                  variant={dateRangeFilter === '7days' ? 'default' : 'outline'}
+                  onClick={() => setDateRangeFilter('7days')}
+                >
+                  Last 7 Days
+                </Button>
+                <Button
+                  size="sm"
+                  variant={dateRangeFilter === '30days' ? 'default' : 'outline'}
+                  onClick={() => setDateRangeFilter('30days')}
+                >
+                  Last 30 Days
+                </Button>
+                <Button
+                  size="sm"
+                  variant={dateRangeFilter === 'custom' ? 'default' : 'outline'}
+                  onClick={() => setDateRangeFilter('custom')}
+                >
+                  Custom Range
+                </Button>
+              </div>
+              
+              {/* Custom Date Range Pickers */}
+              {dateRangeFilter === 'custom' && (
+                <div className="flex flex-wrap items-center gap-2 w-full mt-2">
+                  <Label className="text-xs">From:</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !customStartDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {customStartDate ? format(customStartDate, "PPP") : "Pick start date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={customStartDate}
+                        onSelect={setCustomStartDate}
+                        disabled={(date) => date > new Date()}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <Label className="text-xs">To:</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !customEndDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {customEndDate ? format(customEndDate, "PPP") : "Pick end date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={customEndDate}
+                        onSelect={setCustomEndDate}
+                        disabled={(date) => 
+                          date > new Date() || 
+                          (customStartDate ? date < customStartDate : false)
+                        }
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+            </div>
+
             {/* Summary Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-4 bg-muted rounded-lg">
