@@ -21,11 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   BarChart, 
@@ -115,6 +116,8 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [dateRangeFilter, setDateRangeFilter] = useState<'7days' | '30days' | 'all' | 'custom'>('all');
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined);
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
+  const [trendView, setTrendView] = useState<'daily' | 'weekly'>('daily');
+  const [selectedPresetForTrend, setSelectedPresetForTrend] = useState<string[]>([]);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -242,6 +245,60 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       return dateA.getTime() - dateB.getTime();
     });
 
+    // Individual preset trends
+    const getIndividualPresetTrend = (presetId: string) => {
+      const preset = dataSource.find(p => p.id === presetId);
+      if (!preset || !preset.usageHistory || preset.usageHistory.length === 0) {
+        return [];
+      }
+
+      const presetTrendData: Record<string, { date: string; usage: number }> = {};
+      const dateRange = getDateRange();
+
+      preset.usageHistory.forEach(entry => {
+        const entryDate = new Date(entry.date);
+        
+        // Filter by date range if applicable
+        if (dateRange) {
+          if (isBefore(entryDate, dateRange.start) || isAfter(entryDate, dateRange.end)) {
+            return;
+          }
+        }
+        
+        const dateKey = trendView === 'daily' 
+          ? format(entryDate, 'MMM dd')
+          : `Week ${format(entryDate, 'w')}`;
+        
+        if (!presetTrendData[dateKey]) {
+          presetTrendData[dateKey] = { date: dateKey, usage: 0 };
+        }
+        presetTrendData[dateKey].usage += entry.count;
+      });
+
+      return Object.values(presetTrendData).sort((a, b) => {
+        if (trendView === 'daily') {
+          const dateA = new Date(a.date + ', 2024');
+          const dateB = new Date(b.date + ', 2024');
+          return dateA.getTime() - dateB.getTime();
+        } else {
+          // For weekly, extract week number and sort
+          const weekA = parseInt(a.date.replace('Week ', ''));
+          const weekB = parseInt(b.date.replace('Week ', ''));
+          return weekA - weekB;
+        }
+      });
+    };
+
+    // Combined trends for multiple selected presets
+    const individualPresetTrends = selectedPresetForTrend.map(presetId => {
+      const preset = dataSource.find(p => p.id === presetId);
+      return {
+        presetId,
+        presetName: preset?.name || 'Unknown',
+        data: getIndividualPresetTrend(presetId),
+      };
+    });
+
     return {
       totalUsage,
       totalPresets,
@@ -250,8 +307,10 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       mostPopular,
       categoryData,
       usageTrend,
+      individualPresetTrends,
+      getIndividualPresetTrend,
     };
-  }, [filteredPresetsByDate, presets, dateRangeFilter, customStartDate, customEndDate]);
+  }, [filteredPresetsByDate, presets, dateRangeFilter, customStartDate, customEndDate, trendView, selectedPresetForTrend]);
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 
@@ -1409,6 +1468,185 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                 <p className="text-sm text-muted-foreground">Avg Usage</p>
                 <p className="text-2xl font-bold mt-1">{analyticsData.avgUsage}</p>
               </div>
+            </div>
+
+            {/* Individual Preset Trends */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Individual Preset Trends
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">View:</Label>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={trendView === 'daily' ? 'default' : 'outline'}
+                      onClick={() => setTrendView('daily')}
+                    >
+                      Daily
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={trendView === 'weekly' ? 'default' : 'outline'}
+                      onClick={() => setTrendView('weekly')}
+                    >
+                      Weekly
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preset Selection */}
+              <div className="mb-4 p-4 bg-muted/50 rounded-lg">
+                <Label className="text-sm font-medium mb-2 block">Select Presets to Compare (max 5):</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                  {presets
+                    .filter(p => p.usageHistory && p.usageHistory.length > 0)
+                    .map((preset) => (
+                      <div key={preset.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`preset-${preset.id}`}
+                          checked={selectedPresetForTrend.includes(preset.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked && selectedPresetForTrend.length < 5) {
+                              setSelectedPresetForTrend([...selectedPresetForTrend, preset.id]);
+                            } else if (!checked) {
+                              setSelectedPresetForTrend(selectedPresetForTrend.filter(id => id !== preset.id));
+                            } else {
+                              toast({
+                                title: 'Maximum Reached',
+                                description: 'You can compare up to 5 presets at once.',
+                                variant: 'destructive',
+                              });
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`preset-${preset.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {preset.name}
+                          {preset.category && (
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              {preset.category}
+                            </Badge>
+                          )}
+                        </label>
+                      </div>
+                    ))}
+                </div>
+                {presets.filter(p => p.usageHistory && p.usageHistory.length > 0).length === 0 && (
+                  <p className="text-sm text-muted-foreground">No presets with usage history yet.</p>
+                )}
+              </div>
+
+              {/* Individual Preset Trend Charts */}
+              {selectedPresetForTrend.length > 0 ? (
+                <div className="space-y-6">
+                  {analyticsData.individualPresetTrends.map((trend, index) => (
+                    <div key={trend.presetId} className="p-4 bg-muted/30 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-sm flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          />
+                          {trend.presetName}
+                        </h4>
+                        <Badge variant="secondary">
+                          {trend.data.reduce((sum, d) => sum + d.usage, 0)} total uses
+                        </Badge>
+                      </div>
+                      {trend.data.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={200}>
+                          <LineChart data={trend.data}>
+                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                            <XAxis 
+                              dataKey="date" 
+                              className="text-xs"
+                              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                            />
+                            <YAxis 
+                              className="text-xs"
+                              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--background))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="usage" 
+                              stroke={COLORS[index % COLORS.length]}
+                              strokeWidth={2}
+                              dot={{ fill: COLORS[index % COLORS.length], r: 3 }}
+                              activeDot={{ r: 5 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-8">
+                          No usage data in selected time period
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* Combined Comparison Chart */}
+                  {selectedPresetForTrend.length > 1 && (
+                    <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                      <h4 className="font-medium text-sm mb-3">Combined Comparison</h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis 
+                            dataKey="date"
+                            type="category"
+                            allowDuplicatedCategory={false}
+                            className="text-xs"
+                            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                          />
+                          <YAxis 
+                            className="text-xs"
+                            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--background))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Legend />
+                          {analyticsData.individualPresetTrends.map((trend, index) => (
+                            <Line
+                              key={trend.presetId}
+                              data={trend.data}
+                              type="monotone"
+                              dataKey="usage"
+                              name={trend.presetName}
+                              stroke={COLORS[index % COLORS.length]}
+                              strokeWidth={2}
+                              dot={{ fill: COLORS[index % COLORS.length], r: 3 }}
+                            />
+                          ))}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-muted-foreground border-2 border-dashed border-border rounded-lg">
+                  <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="font-medium">Select presets to view trends</p>
+                  <p className="text-sm mt-1">Choose up to 5 presets from the list above to compare their usage patterns over time.</p>
+                </div>
+              )}
             </div>
 
             {/* Usage Trend Over Time */}
