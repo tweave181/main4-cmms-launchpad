@@ -108,6 +108,77 @@ export const useAddPartToWorkOrder = () => {
   });
 };
 
+export const useBulkAddPartsToWorkOrder = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({
+      workOrderId,
+      parts,
+      tenantId,
+    }: {
+      workOrderId: string;
+      parts: Array<{ partId: string; quantity: number }>;
+      tenantId: string;
+    }) => {
+      // Validate all parts have sufficient stock
+      const stockChecks = await Promise.all(
+        parts.map(async (part) => {
+          const { data, error } = await supabase
+            .from('inventory_parts')
+            .select('quantity_in_stock, name')
+            .eq('id', part.partId)
+            .single();
+
+          if (error) throw error;
+
+          if (data.quantity_in_stock < part.quantity) {
+            throw new Error(
+              `Insufficient stock for ${data.name}. Requested: ${part.quantity}, Available: ${data.quantity_in_stock}`
+            );
+          }
+
+          return { partId: part.partId, name: data.name };
+        })
+      );
+
+      // Insert all parts
+      const insertData = parts.map((part) => ({
+        work_order_id: workOrderId,
+        part_id: part.partId,
+        quantity_used: part.quantity,
+        tenant_id: tenantId,
+      }));
+
+      const { data, error } = await supabase
+        .from('part_work_order_usage')
+        .insert(insertData)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['work-order-parts', variables.workOrderId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['inventory-parts'] });
+      toast({
+        title: 'Success',
+        description: `${variables.parts.length} part${variables.parts.length !== 1 ? 's' : ''} added to work order`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to add parts',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
 export const useUpdatePartUsage = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();

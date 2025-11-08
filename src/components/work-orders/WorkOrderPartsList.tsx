@@ -3,13 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Package, Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { Package, Plus, Trash2, Edit2, Check, X, Layers } from 'lucide-react';
 import {
   useWorkOrderParts,
   useRemovePartFromWorkOrder,
   useUpdatePartUsage,
+  useBulkAddPartsToWorkOrder,
 } from '@/hooks/useWorkOrderParts';
 import { AddPartToWorkOrderModal } from './AddPartToWorkOrderModal';
+import { BulkAddPartsModal } from './BulkAddPartsModal';
+import { useAuth } from '@/contexts/auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface WorkOrderPartsListProps {
   workOrderId: string;
@@ -18,10 +27,13 @@ interface WorkOrderPartsListProps {
 export const WorkOrderPartsList: React.FC<WorkOrderPartsListProps> = ({
   workOrderId,
 }) => {
+  const { userProfile } = useAuth();
   const { data: parts = [], isLoading } = useWorkOrderParts(workOrderId);
   const removeMutation = useRemovePartFromWorkOrder();
   const updateMutation = useUpdatePartUsage();
+  const bulkAddMutation = useBulkAddPartsToWorkOrder();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQuantity, setEditQuantity] = useState<string>('');
 
@@ -59,6 +71,18 @@ export const WorkOrderPartsList: React.FC<WorkOrderPartsListProps> = ({
     setEditQuantity('');
   };
 
+  const handleBulkAdd = async (
+    selectedParts: Array<{ partId: string; quantity: number }>
+  ) => {
+    if (!userProfile?.tenant_id) return;
+
+    await bulkAddMutation.mutateAsync({
+      workOrderId,
+      parts: selectedParts,
+      tenantId: userProfile.tenant_id,
+    });
+  };
+
   return (
     <>
       <Card className="rounded-2xl">
@@ -71,15 +95,24 @@ export const WorkOrderPartsList: React.FC<WorkOrderPartsListProps> = ({
                 <Badge variant="secondary">{parts.length}</Badge>
               )}
             </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center space-x-2"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Part</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center space-x-2">
+                  <Plus className="h-4 w-4" />
+                  <span>Add Parts</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsAddModalOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Single Part
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsBulkAddModalOpen(true)}>
+                  <Layers className="h-4 w-4 mr-2" />
+                  Add Multiple Parts
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardHeader>
         <CardContent>
@@ -173,6 +206,13 @@ export const WorkOrderPartsList: React.FC<WorkOrderPartsListProps> = ({
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         workOrderId={workOrderId}
+      />
+
+      <BulkAddPartsModal
+        isOpen={isBulkAddModalOpen}
+        onClose={() => setIsBulkAddModalOpen(false)}
+        workOrderId={workOrderId}
+        onSubmit={handleBulkAdd}
       />
     </>
   );
