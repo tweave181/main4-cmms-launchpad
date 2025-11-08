@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Boxes, X, Check, Save, SaveOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useInventoryParts } from './inventory/hooks/useInventoryParts';
@@ -287,24 +288,37 @@ const Inventory: React.FC = () => {
           />
 
           <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleFilterPersistence}
-              className="flex items-center gap-2"
-            >
-              {filterPersistenceEnabled ? (
-                <>
-                  <Save className="h-4 w-4 text-green-600" />
-                  <span>Filter Saving: On</span>
-                </>
-              ) : (
-                <>
-                  <SaveOff className="h-4 w-4 text-muted-foreground" />
-                  <span>Filter Saving: Off</span>
-                </>
-              )}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleFilterPersistence}
+                    className="flex items-center gap-2"
+                  >
+                    {filterPersistenceEnabled ? (
+                      <>
+                        <Save className="h-4 w-4 text-green-600" />
+                        <span>Filter Saving: On</span>
+                      </>
+                    ) : (
+                      <>
+                        <SaveOff className="h-4 w-4 text-muted-foreground" />
+                        <span>Filter Saving: Off</span>
+                      </>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">
+                    {filterPersistenceEnabled 
+                      ? "Your filter preferences are automatically saved and will persist across sessions. Click to disable."
+                      : "Filter preferences will reset on page reload. Click to enable automatic saving across sessions."}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           <InventoryValueBreakdown 
