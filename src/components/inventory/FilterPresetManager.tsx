@@ -135,6 +135,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     recommendation: any;
     action: string;
   } | null>(null);
+  
+  const [selectedRecommendations, setSelectedRecommendations] = useState<Set<number>>(new Set());
+  const [pendingBulkAction, setPendingBulkAction] = useState<any[] | null>(null);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -855,13 +858,6 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     }, 500);
   };
 
-  const handleConfirmAction = () => {
-    if (pendingAction) {
-      applyRecommendation(pendingAction.recommendation);
-      setPendingAction(null);
-    }
-  };
-
   const handleExportAnalytics = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -1082,6 +1078,13 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       });
     }
   };
+    reader.readAsText(file);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
   
   const handleConfirmAction = () => {
     if (pendingAction) {
@@ -1089,11 +1092,103 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       setPendingAction(null);
     }
   };
-    reader.readAsText(file);
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+
+  const toggleRecommendationSelection = (index: number) => {
+    const newSelection = new Set(selectedRecommendations);
+    if (newSelection.has(index)) {
+      newSelection.delete(index);
+    } else {
+      newSelection.add(index);
+    }
+    setSelectedRecommendations(newSelection);
+  };
+
+  const handleBulkApply = () => {
+    if (!recommendations?.recommendations || selectedRecommendations.size === 0) {
+      toast({
+        title: 'No Selections',
+        description: 'Please select at least one recommendation to apply.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const selectedRecs = Array.from(selectedRecommendations)
+      .map(index => recommendations.recommendations[index])
+      .filter(Boolean);
+
+    // Check if any are destructive actions
+    const hasDestructive = selectedRecs.some(rec => 
+      rec.action === 'delete' || rec.action === 'combine'
+    );
+
+    if (hasDestructive) {
+      setPendingBulkAction(selectedRecs);
+    } else {
+      // Apply all non-destructive immediately
+      applyBulkRecommendations(selectedRecs);
+    }
+  };
+
+  const applyBulkRecommendations = async (recs: any[]) => {
+    const previousState = [...presets];
+    let successCount = 0;
+    const actionsByType: Record<string, string[]> = {};
+
+    for (const rec of recs) {
+      try {
+        await applyRecommendation(rec);
+        successCount++;
+        
+        const actionType = rec.action;
+        if (!actionsByType[actionType]) {
+          actionsByType[actionType] = [];
+        }
+        actionsByType[actionType].push(...rec.presetNames);
+      } catch (error) {
+        console.error('Error applying recommendation:', error);
+      }
+    }
+
+    // Save bulk action for undo
+    setLastAction({
+      type: 'archive', // Use generic type for bulk
+      presetNames: Object.values(actionsByType).flat(),
+      previousState,
+    });
+
+    // Clear selections
+    setSelectedRecommendations(new Set());
+    setPendingBulkAction(null);
+
+    // Show summary toast
+    const actionSummary = Object.entries(actionsByType)
+      .map(([action, presets]) => `${action}: ${presets.length}`)
+      .join(', ');
+
+    toast({
+      title: 'Bulk Actions Applied',
+      description: `Successfully applied ${successCount} recommendation${successCount > 1 ? 's' : ''} (${actionSummary})`,
+      action: (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleUndo}
+        >
+          Undo
+        </Button>
+      ),
+    });
+
+    // Refresh recommendations
+    setTimeout(() => {
+      handleGetRecommendations();
+    }, 500);
+  };
+
+  const handleConfirmBulkAction = () => {
+    if (pendingBulkAction) {
+      applyBulkRecommendations(pendingBulkAction);
     }
   };
 
@@ -2410,6 +2505,20 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                       {recommendations.recommendations.length} optimization {recommendations.recommendations.length === 1 ? 'suggestion' : 'suggestions'} found
                     </span>
                   </div>
+                  {selectedRecommendations.size > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {selectedRecommendations.size} selected
+                      </span>
+                      <Button
+                        size="sm"
+                        onClick={handleBulkApply}
+                        className="h-7"
+                      >
+                        Apply Selected ({selectedRecommendations.size})
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -2419,6 +2528,11 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                       className={`p-4 rounded-lg border ${getActionColor(rec.action)}`}
                     >
                       <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={selectedRecommendations.has(index)}
+                          onCheckedChange={() => toggleRecommendationSelection(index)}
+                          className="mt-1"
+                        />
                         {getActionIcon(rec.action)}
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">
@@ -2509,6 +2623,25 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
             : `Are you sure you want to combine these presets: ${pendingAction?.recommendation.presetNames?.join(', ')}? This will create a new preset and the original presets will be removed. This action can be undone.`
         }
         confirmText={pendingAction?.action === 'delete' ? 'Delete' : 'Combine'}
+        cancelText="Cancel"
+        variant="destructive"
+      />
+
+      <ConfirmationDialog
+        isOpen={!!pendingBulkAction}
+        onClose={() => setPendingBulkAction(null)}
+        onConfirm={handleConfirmBulkAction}
+        title="Apply Multiple Recommendations?"
+        description={
+          pendingBulkAction
+            ? `You are about to apply ${pendingBulkAction.length} recommendation${pendingBulkAction.length > 1 ? 's' : ''}:\n\n` +
+              pendingBulkAction.map(rec => 
+                `• ${rec.action.toUpperCase()}: ${rec.presetNames.join(', ')}`
+              ).join('\n') +
+              '\n\nThis action can be undone.'
+            : ''
+        }
+        confirmText={`Apply ${pendingBulkAction?.length || 0} Action${pendingBulkAction?.length !== 1 ? 's' : ''}`}
         cancelText="Cancel"
         variant="destructive"
       />
