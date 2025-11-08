@@ -28,6 +28,11 @@ const defaultShortcuts: KeyboardShortcut[] = [
     category: 'General',
   },
   {
+    keys: ['Escape'],
+    description: 'Close open modals and dialogs',
+    category: 'General',
+  },
+  {
     keys: ['Ctrl', 'N'],
     description: 'Create new part',
     category: 'Actions',

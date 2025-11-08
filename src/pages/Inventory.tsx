@@ -103,6 +103,16 @@ const Inventory: React.FC = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape key to close modals
+      if (e.key === 'Escape') {
+        if (createModalOpen) {
+          setCreateModalOpen(false);
+        } else if (shortcutsModalOpen) {
+          setShortcutsModalOpen(false);
+        }
+        return;
+      }
+      
       // Ctrl+S / Cmd+S for filter persistence toggle
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
@@ -146,7 +156,7 @@ const Inventory: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [filterPersistenceEnabled, searchTerm, categoryFilter, stockFilter, inventoryTypeFilter]);
+  }, [filterPersistenceEnabled, searchTerm, categoryFilter, stockFilter, inventoryTypeFilter, createModalOpen, shortcutsModalOpen]);
 
   // Save filters to localStorage whenever they change (only if persistence is enabled)
   useEffect(() => {
