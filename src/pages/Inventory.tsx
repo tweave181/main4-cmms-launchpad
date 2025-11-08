@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Boxes, X, Check, Save, SaveOff } from 'lucide-react';
+import { Boxes, X, Check, Save, SaveOff, Keyboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useInventoryParts } from './inventory/hooks/useInventoryParts';
 import { InventorySearchAndFilters } from './inventory/components/InventorySearchAndFilters';
@@ -12,6 +12,7 @@ import { InventoryPartTable } from './inventory/components/InventoryPartTable';
 import { InventoryEmptyState } from './inventory/components/InventoryEmptyState';
 import { InventoryValueBreakdown } from './inventory/components/InventoryValueBreakdown';
 import { CreatePartModal } from './inventory/components/CreatePartModal';
+import { KeyboardShortcutsModal } from '@/components/ui/keyboard-shortcuts-modal';
 import type { Database } from '@/integrations/supabase/types';
 
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
@@ -79,6 +80,7 @@ const Inventory: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [showSavedIndicator, setShowSavedIndicator] = useState(wasLoaded);
   const [filterPersistenceEnabled, setFilterPersistenceEnabled] = useState(isFilterPersistenceEnabled());
+  const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
   const { toast } = useToast();
 
   // Hide saved indicator after 3 seconds
@@ -94,9 +96,16 @@ const Inventory: React.FC = () => {
   // Keyboard shortcut for toggling filter persistence (Ctrl+S / Cmd+S)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S / Cmd+S for filter persistence toggle
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         toggleFilterPersistence();
+      }
+      
+      // Ctrl+/ / Cmd+/ for keyboard shortcuts help
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setShortcutsModalOpen(true);
       }
     };
 
@@ -283,6 +292,25 @@ const Inventory: React.FC = () => {
                 <X className="h-3 w-3" />
               </Badge>
             )}
+            <div className="ml-auto">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShortcutsModalOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Keyboard className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Keyboard Shortcuts (Ctrl+/)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -364,6 +392,11 @@ const Inventory: React.FC = () => {
           await createPart(data);
         }}
         isCreating={isCreating}
+      />
+
+      <KeyboardShortcutsModal
+        open={shortcutsModalOpen}
+        onOpenChange={setShortcutsModalOpen}
       />
     </div>
   );
