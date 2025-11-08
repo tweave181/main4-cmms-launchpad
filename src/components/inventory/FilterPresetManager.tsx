@@ -38,7 +38,9 @@ import {
   CartesianGrid, 
   Tooltip, 
   Legend, 
-  ResponsiveContainer 
+  ResponsiveContainer,
+  LineChart,
+  Line
 } from 'recharts';
 import jsPDF from 'jspdf';
 import { format, subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
@@ -57,6 +59,7 @@ export interface FilterPreset {
   createdAt: string;
   usageCount?: number;
   lastUsed?: string;
+  usageHistory?: Array<{ date: string; count: number }>;
 }
 
 interface FilterPresetManagerProps {
@@ -208,6 +211,37 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     // Average usage per preset
     const avgUsage = presetsWithUsage > 0 ? (totalUsage / presetsWithUsage).toFixed(1) : '0';
 
+    // Usage trend over time
+    const trendData: Record<string, { date: string; usage: number }> = {};
+    const dateRange = getDateRange();
+    
+    dataSource.forEach(preset => {
+      if (preset.usageHistory && preset.usageHistory.length > 0) {
+        preset.usageHistory.forEach(entry => {
+          const entryDate = new Date(entry.date);
+          
+          // Filter by date range if applicable
+          if (dateRange) {
+            if (isBefore(entryDate, dateRange.start) || isAfter(entryDate, dateRange.end)) {
+              return;
+            }
+          }
+          
+          const dateKey = format(entryDate, 'MMM dd');
+          if (!trendData[dateKey]) {
+            trendData[dateKey] = { date: dateKey, usage: 0 };
+          }
+          trendData[dateKey].usage += entry.count;
+        });
+      }
+    });
+
+    const usageTrend = Object.values(trendData).sort((a, b) => {
+      const dateA = new Date(a.date + ', 2024');
+      const dateB = new Date(b.date + ', 2024');
+      return dateA.getTime() - dateB.getTime();
+    });
+
     return {
       totalUsage,
       totalPresets,
@@ -215,8 +249,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       avgUsage,
       mostPopular,
       categoryData,
+      usageTrend,
     };
-  }, [filteredPresetsByDate, presets]);
+  }, [filteredPresetsByDate, presets, dateRangeFilter, customStartDate, customEndDate]);
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 
@@ -1375,6 +1410,43 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                 <p className="text-2xl font-bold mt-1">{analyticsData.avgUsage}</p>
               </div>
             </div>
+
+            {/* Usage Trend Over Time */}
+            {analyticsData.usageTrend && analyticsData.usageTrend.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Usage Trend Over Time</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={analyticsData.usageTrend}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="date" 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      label={{ value: 'Usage Count', angle: -90, position: 'insideLeft' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="usage" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                      dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
 
             {/* Most Popular Presets Chart */}
             {analyticsData.mostPopular.length > 0 ? (

@@ -15,6 +15,7 @@ import { CreatePartModal } from './inventory/components/CreatePartModal';
 import { KeyboardShortcutsModal } from '@/components/ui/keyboard-shortcuts-modal';
 import { FilterPresetManager, FilterPreset } from '@/components/inventory/FilterPresetManager';
 import type { Database } from '@/integrations/supabase/types';
+import { format, subDays, isAfter } from 'date-fns';
 
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
 
@@ -342,16 +343,51 @@ const Inventory: React.FC = () => {
     setStockFilter(preset.stockFilter);
     setInventoryTypeFilter(preset.inventoryTypeFilter);
     
-    // Increment usage counter and update last used timestamp
-    const updatedPresets = presets.map(p => 
-      p.id === preset.id 
-        ? { 
-            ...p, 
-            usageCount: (p.usageCount || 0) + 1,
-            lastUsed: new Date().toISOString()
-          }
-        : p
-    );
+    const now = new Date().toISOString();
+    const today = format(new Date(), 'yyyy-MM-dd');
+    
+    // Increment usage counter and update last used timestamp and history
+    const updatedPresets = presets.map(p => {
+      if (p.id === preset.id) {
+        // Get existing usage history or initialize new array
+        const currentHistory = p.usageHistory || [];
+        
+        // Check if there's already an entry for today
+        const todayEntryIndex = currentHistory.findIndex(
+          entry => entry.date.startsWith(today)
+        );
+        
+        let newHistory;
+        if (todayEntryIndex >= 0) {
+          // Update today's count
+          newHistory = [...currentHistory];
+          newHistory[todayEntryIndex] = {
+            date: now,
+            count: newHistory[todayEntryIndex].count + 1
+          };
+        } else {
+          // Add new entry for today
+          newHistory = [
+            ...currentHistory,
+            { date: now, count: 1 }
+          ];
+        }
+        
+        // Keep only last 90 days of history to avoid storage bloat
+        const ninetyDaysAgo = subDays(new Date(), 90);
+        newHistory = newHistory.filter(entry => 
+          isAfter(new Date(entry.date), ninetyDaysAgo)
+        );
+        
+        return {
+          ...p,
+          usageCount: (p.usageCount || 0) + 1,
+          lastUsed: now,
+          usageHistory: newHistory
+        };
+      }
+      return p;
+    });
     setPresets(updatedPresets);
     
     const usageCount = (preset.usageCount || 0) + 1;
@@ -385,7 +421,7 @@ const Inventory: React.FC = () => {
       // Reset individual preset stats
       setPresets(presets.map(p => 
         p.id === id 
-          ? { ...p, usageCount: 0, lastUsed: undefined }
+          ? { ...p, usageCount: 0, lastUsed: undefined, usageHistory: [] }
           : p
       ));
     } else {
@@ -393,7 +429,8 @@ const Inventory: React.FC = () => {
       setPresets(presets.map(p => ({ 
         ...p, 
         usageCount: 0, 
-        lastUsed: undefined 
+        lastUsed: undefined,
+        usageHistory: []
       })));
       
       toast({
