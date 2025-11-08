@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Boxes } from 'lucide-react';
 import { useInventoryParts } from './inventory/hooks/useInventoryParts';
 import { InventorySearchAndFilters } from './inventory/components/InventorySearchAndFilters';
@@ -82,6 +83,16 @@ const Inventory: React.FC = () => {
     setInventoryTypeFilter('all');
   };
 
+  // Calculate active filters count
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (categoryFilter !== 'all') count++;
+    if (stockFilter !== 'all') count++;
+    if (inventoryTypeFilter !== 'all') count++;
+    return count;
+  }, [searchTerm, categoryFilter, stockFilter, inventoryTypeFilter]);
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -107,6 +118,11 @@ const Inventory: React.FC = () => {
           <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
             <Boxes className="h-6 w-6 text-primary" />
             <span>Inventory</span>
+            {activeFiltersCount > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {activeFiltersCount} {activeFiltersCount === 1 ? 'Filter' : 'Filters'} Active
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
