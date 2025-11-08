@@ -104,6 +104,18 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     return presets;
   }, [presets]);
 
+  // Get recently used presets (top 3)
+  const recentlyUsedPresets = React.useMemo(() => {
+    return presets
+      .filter(p => p.lastUsed)
+      .sort((a, b) => {
+        const dateA = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
+        const dateB = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
+        return dateB - dateA;
+      })
+      .slice(0, 3);
+  }, [presets]);
+
   // Reset focus when dropdown closes
   React.useEffect(() => {
     if (!dropdownOpen) {
@@ -377,6 +389,20 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     return parts.length > 0 ? parts.join(', ') : 'No filters applied';
   };
 
+  const getTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
   return (
     <>
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -447,6 +473,67 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           </div>
           {presets.length > 0 && (
             <>
+              {recentlyUsedPresets.length > 0 && (
+                <>
+                  <div className="px-2 py-1.5 flex items-center gap-2 bg-muted/50">
+                    <Star className="h-3 w-3 text-primary" />
+                    <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
+                      Recently Used
+                    </span>
+                  </div>
+                  <div className="pb-2">
+                    {recentlyUsedPresets.map((preset) => {
+                      const globalIndex = presets.findIndex((p) => p.id === preset.id);
+                      const isFocused = focusedIndex === globalIndex;
+                      const timeAgo = preset.lastUsed 
+                        ? getTimeAgo(new Date(preset.lastUsed))
+                        : '';
+                      return (
+                        <div
+                          key={preset.id}
+                          ref={isFocused ? focusedItemRef : null}
+                          className={`group p-2 cursor-pointer transition-colors ${
+                            isFocused 
+                              ? 'bg-accent border-l-2 border-primary' 
+                              : 'hover:bg-accent'
+                          }`}
+                        >
+                          <div
+                            className="flex items-start justify-between"
+                            onClick={() => {
+                              onLoadPreset(preset);
+                              setDropdownOpen(false);
+                            }}
+                            onMouseEnter={() => setFocusedIndex(globalIndex)}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-sm truncate">
+                                  {preset.name}
+                                </span>
+                                {preset.category && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {preset.category}
+                                  </Badge>
+                                )}
+                                {globalIndex < 9 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Ctrl+{globalIndex + 1}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {timeAgo && `Used ${timeAgo}`}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuSeparator />
               <div className="max-h-[400px] overflow-y-auto">
                 {Object.entries(groupedPresets).map(([category, categoryPresets]) => (
