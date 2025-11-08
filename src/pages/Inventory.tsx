@@ -440,6 +440,10 @@ const Inventory: React.FC = () => {
     }
   };
 
+  const updatePresets = (newPresets: FilterPreset[]) => {
+    setPresets(newPresets);
+  };
+
   // Check if current filters match any preset
   const [matchedPreset, setMatchedPreset] = useState<FilterPreset | null>(null);
   const [dismissedPresetId, setDismissedPresetId] = useState<string | null>(null);
@@ -626,6 +630,7 @@ const Inventory: React.FC = () => {
                 onDeletePreset={deletePreset}
                 onUpdatePreset={updatePreset}
                 onResetUsageStats={resetUsageStats}
+                onUpdatePresets={updatePresets}
                 matchedPreset={matchedPreset}
                 onDismissMatch={handleDismissMatch}
               />

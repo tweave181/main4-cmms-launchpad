@@ -61,6 +61,7 @@ export interface FilterPreset {
   usageCount?: number;
   lastUsed?: string;
   usageHistory?: Array<{ date: string; count: number }>;
+  archived?: boolean;
 }
 
 interface FilterPresetManagerProps {
@@ -76,6 +77,7 @@ interface FilterPresetManagerProps {
   onDeletePreset: (id: string) => void;
   onUpdatePreset: (id: string, name: string, category?: string) => void;
   onResetUsageStats: (id?: string) => void;
+  onUpdatePresets: (presets: FilterPreset[]) => void;
   matchedPreset?: FilterPreset | null;
   onDismissMatch?: () => void;
 }
@@ -96,6 +98,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   onDeletePreset,
   onUpdatePreset,
   onResetUsageStats,
+  onUpdatePresets,
   matchedPreset,
   onDismissMatch,
 }) => {
@@ -652,6 +655,116 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     }
   };
 
+  const handleApplyRecommendation = async (recommendation: any) => {
+    const { action, presetNames } = recommendation;
+
+    switch (action) {
+      case 'keep':
+        // Just show success message - no action needed
+        toast({
+          title: 'Preset Marked',
+          description: `"${presetNames.join('", "')}" marked as important to keep.`,
+        });
+        break;
+
+      case 'archive':
+        // Add archived flag to presets
+        const archivedPresets = presets.map(p => {
+          if (presetNames.includes(p.name)) {
+            return { ...p, archived: true };
+          }
+          return p;
+        });
+        onUpdatePresets(archivedPresets);
+        toast({
+          title: 'Presets Archived',
+          description: `${presetNames.length} preset${presetNames.length > 1 ? 's' : ''} archived successfully.`,
+        });
+        break;
+
+      case 'delete':
+        // Delete the presets
+        presetNames.forEach((name: string) => {
+          const preset = presets.find(p => p.name === name);
+          if (preset) {
+            onDeletePreset(preset.id);
+          }
+        });
+        toast({
+          title: 'Presets Deleted',
+          description: `${presetNames.length} preset${presetNames.length > 1 ? 's' : ''} deleted successfully.`,
+        });
+        break;
+
+      case 'combine':
+        // Merge presets into one
+        if (presetNames.length < 2) {
+          toast({
+            title: 'Cannot Combine',
+            description: 'Need at least 2 presets to combine.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        const presetsToMerge = presets.filter(p => presetNames.includes(p.name));
+        if (presetsToMerge.length === 0) return;
+
+        // Create combined preset name
+        const combinedName = `Combined: ${presetNames.slice(0, 2).join(' + ')}${presetNames.length > 2 ? ` +${presetNames.length - 2}` : ''}`;
+        
+        // Merge usage data
+        const totalUsage = presetsToMerge.reduce((sum, p) => sum + (p.usageCount || 0), 0);
+        const allHistory = presetsToMerge.flatMap(p => p.usageHistory || []);
+        
+        // Use the first preset's filters as the base
+        const basePreset = presetsToMerge[0];
+        
+        const mergedPreset: FilterPreset = {
+          id: `preset-${Date.now()}`,
+          name: combinedName,
+          category: basePreset.category,
+          searchTerm: basePreset.searchTerm,
+          categoryFilter: basePreset.categoryFilter,
+          stockFilter: basePreset.stockFilter,
+          inventoryTypeFilter: basePreset.inventoryTypeFilter,
+          createdAt: new Date().toISOString(),
+          usageCount: totalUsage,
+          usageHistory: allHistory,
+          lastUsed: presetsToMerge
+            .map(p => p.lastUsed)
+            .filter(Boolean)
+            .sort()
+            .reverse()[0],
+        };
+
+        // Remove original presets and add merged one
+        const updatedPresets = [
+          ...presets.filter(p => !presetNames.includes(p.name)),
+          mergedPreset,
+        ];
+        onUpdatePresets(updatedPresets);
+        
+        toast({
+          title: 'Presets Combined',
+          description: `Created "${combinedName}" from ${presetNames.length} presets.`,
+        });
+        break;
+
+      default:
+        toast({
+          title: 'Unknown Action',
+          description: 'This action is not supported.',
+          variant: 'destructive',
+        });
+    }
+
+    // Refresh recommendations after action
+    setTimeout(() => {
+      handleGetRecommendations();
+    }, 500);
+  };
+
   const handleExportAnalytics = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -782,7 +895,10 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const groupedPresets = React.useMemo(() => {
     const groups: Record<string, FilterPreset[]> = {};
     
-    presets.forEach((preset) => {
+    // Filter out archived presets
+    const activePresets = presets.filter(p => !p.archived);
+    
+    activePresets.forEach((preset) => {
       const category = preset.category || 'Uncategorized';
       if (!groups[category]) {
         groups[category] = [];
@@ -2205,12 +2321,22 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                             <h4 className="font-semibold capitalize">
                               {rec.action} {rec.action === 'combine' ? 'Presets' : 'Preset'}
                             </h4>
-                            <Badge 
-                              variant={rec.priority === 'high' ? 'default' : 'outline'}
-                              className="text-xs"
-                            >
-                              {rec.priority} priority
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant={rec.priority === 'high' ? 'default' : 'outline'}
+                                className="text-xs"
+                              >
+                                {rec.priority} priority
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant={rec.action === 'delete' ? 'destructive' : 'default'}
+                                onClick={() => handleApplyRecommendation(rec)}
+                                className="h-7 text-xs"
+                              >
+                                Apply
+                              </Button>
+                            </div>
                           </div>
                           
                           <div className="flex flex-wrap gap-1">
