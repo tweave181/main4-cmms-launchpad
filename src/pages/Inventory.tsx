@@ -121,9 +121,16 @@ const Inventory: React.FC = () => {
     setStockFilter('all');
     setInventoryTypeFilter('all');
     
+    // Clear saved filters from localStorage
+    try {
+      localStorage.removeItem(FILTER_STORAGE_KEY);
+    } catch (error) {
+      console.error('Failed to clear filters from localStorage:', error);
+    }
+    
     toast({
-      title: 'Filters Cleared',
-      description: 'All filters have been reset.',
+      title: 'Filters Reset',
+      description: 'All filters have been reset to default settings.',
     });
   };
 
