@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -128,6 +129,11 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     type: 'archive' | 'delete' | 'combine';
     presetNames: string[];
     previousState: FilterPreset[];
+  } | null>(null);
+  
+  const [pendingAction, setPendingAction] = useState<{
+    recommendation: any;
+    action: string;
   } | null>(null);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -661,6 +667,19 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   };
 
   const handleApplyRecommendation = async (recommendation: any) => {
+    const action = recommendation.action?.toLowerCase();
+    
+    // Show confirmation for destructive actions
+    if (action === 'delete' || action === 'combine') {
+      setPendingAction({ recommendation, action });
+      return;
+    }
+    
+    // Non-destructive actions proceed immediately
+    applyRecommendation(recommendation);
+  };
+
+  const applyRecommendation = async (recommendation: any) => {
     const { action, presetNames } = recommendation;
 
     // Save current state for undo
@@ -834,6 +853,13 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     setTimeout(() => {
       handleGetRecommendations();
     }, 500);
+  };
+
+  const handleConfirmAction = () => {
+    if (pendingAction) {
+      applyRecommendation(pendingAction.recommendation);
+      setPendingAction(null);
+    }
   };
 
   const handleExportAnalytics = () => {
@@ -1053,9 +1079,16 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           title: 'Import Failed',
           description: error instanceof Error ? error.message : 'Invalid file format.',
           variant: 'destructive',
-        });
-      }
-    };
+      });
+    }
+  };
+  
+  const handleConfirmAction = () => {
+    if (pendingAction) {
+      applyRecommendation(pendingAction.recommendation);
+      setPendingAction(null);
+    }
+  };
     reader.readAsText(file);
     
     // Reset file input
@@ -2464,6 +2497,21 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmationDialog
+        isOpen={!!pendingAction}
+        onClose={() => setPendingAction(null)}
+        onConfirm={handleConfirmAction}
+        title={pendingAction?.action === 'delete' ? 'Delete Preset?' : 'Combine Presets?'}
+        description={
+          pendingAction?.action === 'delete'
+            ? `Are you sure you want to delete the preset "${pendingAction.recommendation.presetNames?.[0]}"? This action can be undone.`
+            : `Are you sure you want to combine these presets: ${pendingAction?.recommendation.presetNames?.join(', ')}? This will create a new preset and the original presets will be removed. This action can be undone.`
+        }
+        confirmText={pendingAction?.action === 'delete' ? 'Delete' : 'Combine'}
+        cancelText="Cancel"
+        variant="destructive"
+      />
     </>
   );
 };
