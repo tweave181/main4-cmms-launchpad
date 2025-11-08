@@ -147,6 +147,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     userName?: string;
   }>>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyActionFilter, setHistoryActionFilter] = useState<string>('all');
+  const [historySearchTerm, setHistorySearchTerm] = useState('');
+  const [historyDateRange, setHistoryDateRange] = useState<{ start?: Date; end?: Date }>({});
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -2844,7 +2847,15 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       />
 
       {/* Action History Dialog */}
-      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+      <Dialog open={historyOpen} onOpenChange={(open) => {
+        setHistoryOpen(open);
+        if (!open) {
+          // Clear filters when closing
+          setHistoryActionFilter('all');
+          setHistorySearchTerm('');
+          setHistoryDateRange({});
+        }
+      }}>
         <DialogContent className="max-w-4xl max-h-[85vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -2856,63 +2867,196 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
             </DialogDescription>
           </DialogHeader>
 
+          {/* Filters */}
+          {actionHistory.length > 0 && (
+            <div className="space-y-3 border-b pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Action Type Filter */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Action Type</Label>
+                  <Select value={historyActionFilter} onValueChange={setHistoryActionFilter}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Actions</SelectItem>
+                      <SelectItem value="keep">Keep</SelectItem>
+                      <SelectItem value="archive">Archive</SelectItem>
+                      <SelectItem value="delete">Delete</SelectItem>
+                      <SelectItem value="combine">Combine</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Search Filter */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Search Presets</Label>
+                  <Input
+                    placeholder="Search by preset name..."
+                    value={historySearchTerm}
+                    onChange={(e) => setHistorySearchTerm(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+
+                {/* Date Range Filter */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Date Range</Label>
+                  <div className="flex gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="h-9 flex-1 justify-start text-left font-normal">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {historyDateRange.start ? format(historyDateRange.start, 'MMM dd') : 'Start'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={historyDateRange.start}
+                          onSelect={(date) => setHistoryDateRange(prev => ({ ...prev, start: date }))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="h-9 flex-1 justify-start text-left font-normal">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {historyDateRange.end ? format(historyDateRange.end, 'MMM dd') : 'End'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={historyDateRange.end}
+                          onSelect={(date) => setHistoryDateRange(prev => ({ ...prev, end: date }))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              </div>
+
+              {/* Clear Filters Button */}
+              {(historyActionFilter !== 'all' || historySearchTerm || historyDateRange.start || historyDateRange.end) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setHistoryActionFilter('all');
+                    setHistorySearchTerm('');
+                    setHistoryDateRange({});
+                  }}
+                  className="h-7 text-xs"
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          )}
+
           <div className="overflow-y-auto max-h-[60vh]">
-            {actionHistory.length > 0 ? (
-              <div className="space-y-3 pr-2">
-                {actionHistory.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className="mt-1">
-                          {entry.action === 'keep' && <CheckCircle className="h-5 w-5 text-green-600" />}
-                          {entry.action === 'archive' && <Archive className="h-5 w-5 text-blue-600" />}
-                          {entry.action === 'delete' && <Trash className="h-5 w-5 text-red-600" />}
-                          {entry.action === 'combine' && <Combine className="h-5 w-5 text-purple-600" />}
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Badge 
-                              variant="outline"
-                              className={cn(
-                                "capitalize",
-                                entry.action === 'keep' && "border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-400",
-                                entry.action === 'archive' && "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-400",
-                                entry.action === 'delete' && "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400",
-                                entry.action === 'combine' && "border-purple-500/20 bg-purple-500/10 text-purple-700 dark:text-purple-400"
-                              )}
-                            >
-                              {entry.action}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(entry.timestamp), 'MMM dd, yyyy • h:mm a')}
-                            </span>
-                          </div>
-                          <p className="text-sm font-medium">{entry.details}</p>
-                          {entry.presetNames.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {entry.presetNames.map((name, i) => (
-                                <Badge key={i} variant="secondary" className="text-xs">
-                                  {name}
-                                </Badge>
-                              ))}
+            {(() => {
+              // Apply filters
+              let filteredHistory = actionHistory;
+
+              // Filter by action type
+              if (historyActionFilter !== 'all') {
+                filteredHistory = filteredHistory.filter(entry => entry.action === historyActionFilter);
+              }
+
+              // Filter by search term
+              if (historySearchTerm.trim()) {
+                const searchLower = historySearchTerm.toLowerCase();
+                filteredHistory = filteredHistory.filter(entry =>
+                  entry.presetNames.some(name => name.toLowerCase().includes(searchLower)) ||
+                  entry.details.toLowerCase().includes(searchLower)
+                );
+              }
+
+              // Filter by date range
+              if (historyDateRange.start || historyDateRange.end) {
+                filteredHistory = filteredHistory.filter(entry => {
+                  const entryDate = new Date(entry.timestamp);
+                  if (historyDateRange.start && historyDateRange.end) {
+                    return entryDate >= startOfDay(historyDateRange.start) && entryDate <= endOfDay(historyDateRange.end);
+                  } else if (historyDateRange.start) {
+                    return entryDate >= startOfDay(historyDateRange.start);
+                  } else if (historyDateRange.end) {
+                    return entryDate <= endOfDay(historyDateRange.end);
+                  }
+                  return true;
+                });
+              }
+
+              if (filteredHistory.length > 0) {
+                return (
+                  <div className="space-y-3 pr-2">
+                    {filteredHistory.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 flex-1">
+                            <div className="mt-1">
+                              {entry.action === 'keep' && <CheckCircle className="h-5 w-5 text-green-600" />}
+                              {entry.action === 'archive' && <Archive className="h-5 w-5 text-blue-600" />}
+                              {entry.action === 'delete' && <Trash className="h-5 w-5 text-red-600" />}
+                              {entry.action === 'combine' && <Combine className="h-5 w-5 text-purple-600" />}
                             </div>
-                          )}
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant="outline"
+                                  className={cn(
+                                    "capitalize",
+                                    entry.action === 'keep' && "border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-400",
+                                    entry.action === 'archive' && "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-400",
+                                    entry.action === 'delete' && "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400",
+                                    entry.action === 'combine' && "border-purple-500/20 bg-purple-500/10 text-purple-700 dark:text-purple-400"
+                                  )}
+                                >
+                                  {entry.action}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(entry.timestamp), 'MMM dd, yyyy • h:mm a')}
+                                </span>
+                              </div>
+                              <p className="text-sm font-medium">{entry.details}</p>
+                              {entry.presetNames.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {entry.presetNames.map((name, i) => (
+                                    <Badge key={i} variant="secondary" className="text-xs">
+                                      {name}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <CalendarDays className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                <p className="text-sm">No actions recorded yet</p>
-                <p className="text-xs mt-1">Apply recommendations to see them here</p>
-              </div>
-            )}
+                );
+              } else {
+                return (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <CalendarDays className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                    <p className="text-sm">
+                      {actionHistory.length > 0 ? 'No results found' : 'No actions recorded yet'}
+                    </p>
+                    <p className="text-xs mt-1">
+                      {actionHistory.length > 0 ? 'Try adjusting your filters' : 'Apply recommendations to see them here'}
+                    </p>
+                  </div>
+                );
+              }
+            })()}
           </div>
 
           <DialogFooter>
