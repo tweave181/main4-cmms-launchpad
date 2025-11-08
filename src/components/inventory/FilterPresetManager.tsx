@@ -25,8 +25,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb } from 'lucide-react';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  BarChart, 
+  Bar, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from 'recharts';
 
 export interface FilterPreset {
   id: string;
@@ -90,6 +103,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -119,6 +133,48 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       })
       .slice(0, 3);
   }, [presets]);
+
+  // Analytics calculations
+  const analyticsData = React.useMemo(() => {
+    const totalUsage = presets.reduce((sum, p) => sum + (p.usageCount || 0), 0);
+    const totalPresets = presets.length;
+    const presetsWithUsage = presets.filter(p => p.usageCount && p.usageCount > 0).length;
+
+    // Most popular presets
+    const mostPopular = [...presets]
+      .filter(p => p.usageCount && p.usageCount > 0)
+      .sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
+      .slice(0, 5)
+      .map(p => ({
+        name: p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name,
+        usage: p.usageCount || 0,
+      }));
+
+    // Category breakdown
+    const categoryUsage: Record<string, number> = {};
+    presets.forEach(p => {
+      const category = p.category || 'Uncategorized';
+      categoryUsage[category] = (categoryUsage[category] || 0) + (p.usageCount || 0);
+    });
+
+    const categoryData = Object.entries(categoryUsage)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    // Average usage per preset
+    const avgUsage = presetsWithUsage > 0 ? (totalUsage / presetsWithUsage).toFixed(1) : '0';
+
+    return {
+      totalUsage,
+      totalPresets,
+      presetsWithUsage,
+      avgUsage,
+      mostPopular,
+      categoryData,
+    };
+  }, [presets]);
+
+  const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 
   // Reset focus when dropdown closes
   React.useEffect(() => {
@@ -491,6 +547,16 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                 Import
               </Button>
             </div>
+            <Button
+              onClick={() => setAnalyticsOpen(true)}
+              size="sm"
+              variant="outline"
+              className="w-full justify-start"
+              disabled={presets.length === 0}
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              View Analytics
+            </Button>
             {presets.some(p => p.usageCount && p.usageCount > 0) && (
               <Button
                 onClick={() => setResetConfirmOpen(true)}
@@ -1005,6 +1071,146 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
             <Button variant="destructive" onClick={handleResetAllStats}>
               Reset All Statistics
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Analytics Dashboard */}
+      <Dialog open={analyticsOpen} onOpenChange={setAnalyticsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Preset Analytics Dashboard
+            </DialogTitle>
+            <DialogDescription>
+              Insights into your filter preset usage patterns and trends
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Summary Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">Total Presets</p>
+                <p className="text-2xl font-bold mt-1">{analyticsData.totalPresets}</p>
+              </div>
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">Total Usage</p>
+                <p className="text-2xl font-bold mt-1">{analyticsData.totalUsage}</p>
+              </div>
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">Active Presets</p>
+                <p className="text-2xl font-bold mt-1">{analyticsData.presetsWithUsage}</p>
+              </div>
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">Avg Usage</p>
+                <p className="text-2xl font-bold mt-1">{analyticsData.avgUsage}</p>
+              </div>
+            </div>
+
+            {/* Most Popular Presets Chart */}
+            {analyticsData.mostPopular.length > 0 ? (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Most Popular Presets</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={analyticsData.mostPopular}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="name" 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Bar dataKey="usage" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="p-8 text-center text-muted-foreground">
+                <p>No usage data available yet. Start using presets to see analytics.</p>
+              </div>
+            )}
+
+            {/* Category Breakdown Chart */}
+            {analyticsData.categoryData.length > 0 && analyticsData.totalUsage > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Usage by Category</h3>
+                <div className="flex flex-col md:flex-row items-center gap-8">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={analyticsData.categoryData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="hsl(var(--primary))"
+                        dataKey="value"
+                      >
+                        {analyticsData.categoryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  
+                  <div className="flex-1 space-y-2">
+                    {analyticsData.categoryData.map((cat, index) => (
+                      <div key={cat.name} className="flex items-center justify-between p-2 bg-muted rounded">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          />
+                          <span className="text-sm font-medium">{cat.name}</span>
+                        </div>
+                        <span className="text-sm text-muted-foreground">{cat.value} uses</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Unused Presets */}
+            {analyticsData.totalPresets > analyticsData.presetsWithUsage && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Unused Presets</h3>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    You have <span className="font-semibold text-foreground">
+                      {analyticsData.totalPresets - analyticsData.presetsWithUsage}
+                    </span> preset{analyticsData.totalPresets - analyticsData.presetsWithUsage === 1 ? '' : 's'} that {analyticsData.totalPresets - analyticsData.presetsWithUsage === 1 ? 'has' : 'have'} never been used.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Consider reviewing and removing unused presets to keep your list organized.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setAnalyticsOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
