@@ -154,6 +154,11 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [archiveSearchTerm, setArchiveSearchTerm] = useState('');
   const [archiveCategoryFilter, setArchiveCategoryFilter] = useState<string>('all');
   const [selectedArchivedPresets, setSelectedArchivedPresets] = useState<Set<string>>(new Set());
+  const [autoArchiveRulesOpen, setAutoArchiveRulesOpen] = useState(false);
+  const [autoArchiveEnabled, setAutoArchiveEnabled] = useState(false);
+  const [inactivityDays, setInactivityDays] = useState(30);
+  const [usageThreshold, setUsageThreshold] = useState(5);
+  const [usageThresholdDays, setUsageThresholdDays] = useState(30);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -1457,6 +1462,117 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
         description: `"${preset.name}" has been permanently deleted.`,
       });
     }
+  };
+
+  // Check which presets should be auto-archived based on rules
+  const checkAutoArchiveCandidates = () => {
+    if (!autoArchiveEnabled) return [];
+
+    const now = new Date();
+    const candidates: FilterPreset[] = [];
+
+    presets.forEach(preset => {
+      // Skip already archived presets
+      if (preset.archived) return;
+
+      let shouldArchive = false;
+      const reasons: string[] = [];
+
+      // Check inactivity rule
+      if (preset.lastUsed) {
+        const lastUsedDate = new Date(preset.lastUsed);
+        const daysSinceLastUse = Math.floor((now.getTime() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysSinceLastUse >= inactivityDays) {
+          shouldArchive = true;
+          reasons.push(`inactive for ${daysSinceLastUse} days`);
+        }
+      } else if (preset.createdAt) {
+        // If never used, check since creation
+        const createdDate = new Date(preset.createdAt);
+        const daysSinceCreation = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysSinceCreation >= inactivityDays) {
+          shouldArchive = true;
+          reasons.push(`never used in ${daysSinceCreation} days`);
+        }
+      }
+
+      // Check usage threshold rule
+      if (preset.usageHistory && usageThresholdDays > 0) {
+        const thresholdDate = subDays(now, usageThresholdDays);
+        const recentUsage = preset.usageHistory.filter(entry => 
+          isAfter(new Date(entry.date), thresholdDate)
+        ).reduce((sum, entry) => sum + entry.count, 0);
+
+        if (recentUsage < usageThreshold) {
+          shouldArchive = true;
+          reasons.push(`only ${recentUsage} uses in last ${usageThresholdDays} days`);
+        }
+      } else if (preset.usageCount !== undefined && preset.usageCount < usageThreshold) {
+        // Fallback to total usage count
+        shouldArchive = true;
+        reasons.push(`total usage (${preset.usageCount}) below threshold`);
+      }
+
+      if (shouldArchive) {
+        candidates.push({
+          ...preset,
+          // Store reason in a temporary field for display
+          _archiveReason: reasons.join(', '),
+        } as any);
+      }
+    });
+
+    return candidates;
+  };
+
+  // Apply auto-archive rules
+  const applyAutoArchiveRules = () => {
+    const candidates = checkAutoArchiveCandidates();
+
+    if (candidates.length === 0) {
+      toast({
+        title: 'No Candidates Found',
+        description: 'No presets match the auto-archive criteria.',
+      });
+      return;
+    }
+
+    // Show confirmation
+    if (!window.confirm(
+      `Auto-archive will archive ${candidates.length} preset${candidates.length > 1 ? 's' : ''}:\n\n` +
+      candidates.slice(0, 5).map(p => `• ${p.name}`).join('\n') +
+      (candidates.length > 5 ? `\n...and ${candidates.length - 5} more` : '') +
+      '\n\nContinue?'
+    )) {
+      return;
+    }
+
+    const candidateIds = new Set(candidates.map(c => c.id));
+    const updatedPresets = presets.map(p => 
+      candidateIds.has(p.id) ? { ...p, archived: true } : p
+    );
+
+    onUpdatePresets(updatedPresets);
+
+    // Add to action history
+    const newEntry = {
+      id: `auto-archive-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      action: 'archive' as const,
+      presetNames: candidates.map(c => c.name),
+      details: `Auto-archived ${candidates.length} preset${candidates.length > 1 ? 's' : ''} based on rules`,
+      userName: 'Auto-Archive',
+    };
+    setActionHistory(prev => [newEntry, ...prev]);
+
+    toast({
+      title: 'Auto-Archive Complete',
+      description: `Successfully archived ${candidates.length} preset${candidates.length > 1 ? 's' : ''}.`,
+    });
+
+    setAutoArchiveRulesOpen(false);
   };
 
   const confirmImport = () => {
@@ -2858,6 +2974,13 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           <DialogFooter>
             <Button 
               variant="outline" 
+              onClick={() => setAutoArchiveRulesOpen(true)}
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Auto-Archive Rules
+            </Button>
+            <Button 
+              variant="outline" 
               onClick={() => setArchiveOpen(true)}
             >
               <Archive className="h-4 w-4 mr-2" />
@@ -3365,6 +3488,165 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
           <DialogFooter>
             <Button onClick={() => setArchiveOpen(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Auto-Archive Rules Settings Dialog */}
+      <Dialog open={autoArchiveRulesOpen} onOpenChange={setAutoArchiveRulesOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Auto-Archive Rules
+            </DialogTitle>
+            <DialogDescription>
+              Automatically archive presets based on inactivity or low usage to keep your library organized
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Enable/Disable Toggle */}
+            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+              <div className="space-y-1">
+                <Label className="text-base font-medium">Enable Auto-Archive</Label>
+                <p className="text-sm text-muted-foreground">
+                  Automatically archive presets that meet the criteria below
+                </p>
+              </div>
+              <Checkbox
+                checked={autoArchiveEnabled}
+                onCheckedChange={(checked) => setAutoArchiveEnabled(checked as boolean)}
+              />
+            </div>
+
+            {/* Inactivity Rule */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-base font-medium">Inactivity Period</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Archive presets that haven't been used for this many days
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="number"
+                  min="1"
+                  max="365"
+                  value={inactivityDays}
+                  onChange={(e) => setInactivityDays(parseInt(e.target.value) || 30)}
+                  className="w-24"
+                  disabled={!autoArchiveEnabled}
+                />
+                <span className="text-sm text-muted-foreground">days</span>
+              </div>
+            </div>
+
+            {/* Usage Threshold Rule */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-base font-medium">Usage Threshold</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Archive presets with usage below this threshold in the specified period
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">Less than</span>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={usageThreshold}
+                  onChange={(e) => setUsageThreshold(parseInt(e.target.value) || 5)}
+                  className="w-24"
+                  disabled={!autoArchiveEnabled}
+                />
+                <span className="text-sm text-muted-foreground">uses in the last</span>
+                <Input
+                  type="number"
+                  min="1"
+                  max="365"
+                  value={usageThresholdDays}
+                  onChange={(e) => setUsageThresholdDays(parseInt(e.target.value) || 30)}
+                  className="w-24"
+                  disabled={!autoArchiveEnabled}
+                />
+                <span className="text-sm text-muted-foreground">days</span>
+              </div>
+            </div>
+
+            {/* Preview of Candidates */}
+            {autoArchiveEnabled && (() => {
+              const candidates = checkAutoArchiveCandidates();
+              return (
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-primary" />
+                      <span className="font-medium">
+                        {candidates.length} preset{candidates.length !== 1 ? 's' : ''} will be archived
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {candidates.length > 0 && (
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                      {candidates.slice(0, 10).map((preset) => (
+                        <div
+                          key={preset.id}
+                          className="p-2 bg-background rounded border text-sm"
+                        >
+                          <div className="font-medium">{preset.name}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {(preset as any)._archiveReason}
+                          </div>
+                        </div>
+                      ))}
+                      {candidates.length > 10 && (
+                        <div className="text-xs text-muted-foreground text-center pt-2">
+                          ...and {candidates.length - 10} more
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {candidates.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      No presets currently match the auto-archive criteria
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Info Note */}
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                💡 <strong>Tip:</strong> Archived presets can be restored at any time from the Archive Manager. 
+                Auto-archive helps maintain a clean and relevant preset library by automatically moving 
+                unused presets to the archive.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAutoArchiveRulesOpen(false)}>
+              Cancel
+            </Button>
+            {autoArchiveEnabled && checkAutoArchiveCandidates().length > 0 && (
+              <Button onClick={applyAutoArchiveRules}>
+                Apply Auto-Archive Now
+              </Button>
+            )}
+            <Button onClick={() => {
+              toast({
+                title: 'Settings Saved',
+                description: `Auto-archive ${autoArchiveEnabled ? 'enabled' : 'disabled'}`,
+              });
+              setAutoArchiveRulesOpen(false);
+            }}>
+              Save Settings
             </Button>
           </DialogFooter>
         </DialogContent>
