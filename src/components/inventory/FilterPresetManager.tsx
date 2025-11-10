@@ -27,7 +27,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon, TrendingUp, TrendingDown, Minus, Calendar as CalendarDays, AlertCircle, CheckCircle, Sparkles, Archive, Trash, Combine, Undo2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Save, Bookmark, Trash2, Edit2, Star, Download, Upload, Copy, Tag, RotateCcw, Lightbulb, BarChart3, FileDown, CalendarIcon, TrendingUp, TrendingDown, Minus, Calendar as CalendarDays, AlertCircle, CheckCircle, Sparkles, Archive, Trash, Combine, Undo2, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   BarChart, 
@@ -159,6 +160,13 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [inactivityDays, setInactivityDays] = useState(30);
   const [usageThreshold, setUsageThreshold] = useState(5);
   const [usageThresholdDays, setUsageThresholdDays] = useState(30);
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduleFrequency, setScheduleFrequency] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [scheduleTime, setScheduleTime] = useState('00:00');
+  const [scheduleDayOfWeek, setScheduleDayOfWeek] = useState(1); // Monday
+  const [scheduleDayOfMonth, setScheduleDayOfMonth] = useState(1);
+  const [lastScheduledRun, setLastScheduledRun] = useState<Date | null>(null);
+  const [nextScheduledRun, setNextScheduledRun] = useState<Date | null>(null);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -520,6 +528,115 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [dropdownOpen, focusedIndex, flatPresets, onLoadPreset]);
+
+  // Load schedule settings from localStorage
+  React.useEffect(() => {
+    const savedSchedule = localStorage.getItem('inventoryAutoArchiveSchedule');
+    if (savedSchedule) {
+      try {
+        const parsed = JSON.parse(savedSchedule);
+        setScheduleEnabled(parsed.enabled || false);
+        setScheduleFrequency(parsed.frequency || 'weekly');
+        setScheduleTime(parsed.time || '00:00');
+        setScheduleDayOfWeek(parsed.dayOfWeek || 1);
+        setScheduleDayOfMonth(parsed.dayOfMonth || 1);
+        if (parsed.lastRun) setLastScheduledRun(new Date(parsed.lastRun));
+        if (parsed.nextRun) setNextScheduledRun(new Date(parsed.nextRun));
+      } catch (e) {
+        console.error('Failed to load schedule settings:', e);
+      }
+    }
+  }, []);
+
+  // Save schedule settings to localStorage
+  React.useEffect(() => {
+    const scheduleData = {
+      enabled: scheduleEnabled,
+      frequency: scheduleFrequency,
+      time: scheduleTime,
+      dayOfWeek: scheduleDayOfWeek,
+      dayOfMonth: scheduleDayOfMonth,
+      lastRun: lastScheduledRun?.toISOString(),
+      nextRun: nextScheduledRun?.toISOString(),
+    };
+    localStorage.setItem('inventoryAutoArchiveSchedule', JSON.stringify(scheduleData));
+  }, [scheduleEnabled, scheduleFrequency, scheduleTime, scheduleDayOfWeek, scheduleDayOfMonth, lastScheduledRun, nextScheduledRun]);
+
+  // Calculate next scheduled run
+  const calculateNextRun = React.useCallback(() => {
+    if (!scheduleEnabled) return null;
+
+    const now = new Date();
+    const [hours, minutes] = scheduleTime.split(':').map(Number);
+    const next = new Date();
+    next.setHours(hours, minutes, 0, 0);
+
+    switch (scheduleFrequency) {
+      case 'daily':
+        if (next <= now) {
+          next.setDate(next.getDate() + 1);
+        }
+        break;
+      case 'weekly':
+        next.setDate(next.getDate() + ((scheduleDayOfWeek + 7 - next.getDay()) % 7));
+        if (next <= now) {
+          next.setDate(next.getDate() + 7);
+        }
+        break;
+      case 'monthly':
+        next.setDate(scheduleDayOfMonth);
+        if (next <= now) {
+          next.setMonth(next.getMonth() + 1);
+        }
+        break;
+    }
+
+    return next;
+  }, [scheduleEnabled, scheduleFrequency, scheduleTime, scheduleDayOfWeek, scheduleDayOfMonth]);
+
+  // Update next run when schedule changes
+  React.useEffect(() => {
+    const next = calculateNextRun();
+    setNextScheduledRun(next);
+  }, [calculateNextRun]);
+
+  // Scheduled auto-archive checker
+  React.useEffect(() => {
+    if (!scheduleEnabled || !autoArchiveEnabled) return;
+
+    const checkSchedule = () => {
+      const now = new Date();
+      const next = nextScheduledRun;
+
+      if (next && now >= next) {
+        console.log('Running scheduled auto-archive...');
+        
+        // Apply auto-archive rules
+        const candidates = checkAutoArchiveCandidates();
+        if (candidates.length > 0) {
+          applyAutoArchiveRules();
+        }
+
+        // Update last run and calculate next run
+        setLastScheduledRun(now);
+        const newNext = calculateNextRun();
+        setNextScheduledRun(newNext);
+
+        toast({
+          title: 'Scheduled Auto-Archive Complete',
+          description: `Archived ${candidates.length} preset${candidates.length !== 1 ? 's' : ''}.`,
+        });
+      }
+    };
+
+    // Check every minute
+    const interval = setInterval(checkSchedule, 60000);
+    
+    // Check immediately on mount
+    checkSchedule();
+
+    return () => clearInterval(interval);
+  }, [scheduleEnabled, autoArchiveEnabled, nextScheduledRun, calculateNextRun, toast]);
 
   const handleSave = () => {
     if (!presetName.trim()) {
@@ -3515,119 +3632,231 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
                   Automatically archive presets that meet the criteria below
                 </p>
               </div>
-              <Checkbox
+              <Switch
                 checked={autoArchiveEnabled}
-                onCheckedChange={(checked) => setAutoArchiveEnabled(checked as boolean)}
+                onCheckedChange={setAutoArchiveEnabled}
               />
             </div>
 
-            {/* Inactivity Rule */}
-            <div className="space-y-3">
-              <div>
-                <Label className="text-base font-medium">Inactivity Period</Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Archive presets that haven't been used for this many days
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Input
-                  type="number"
-                  min="1"
-                  max="365"
-                  value={inactivityDays}
-                  onChange={(e) => setInactivityDays(parseInt(e.target.value) || 30)}
-                  className="w-24"
-                  disabled={!autoArchiveEnabled}
-                />
-                <span className="text-sm text-muted-foreground">days</span>
-              </div>
-            </div>
-
-            {/* Usage Threshold Rule */}
-            <div className="space-y-3">
-              <div>
-                <Label className="text-base font-medium">Usage Threshold</Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Archive presets with usage below this threshold in the specified period
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">Less than</span>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={usageThreshold}
-                  onChange={(e) => setUsageThreshold(parseInt(e.target.value) || 5)}
-                  className="w-24"
-                  disabled={!autoArchiveEnabled}
-                />
-                <span className="text-sm text-muted-foreground">uses in the last</span>
-                <Input
-                  type="number"
-                  min="1"
-                  max="365"
-                  value={usageThresholdDays}
-                  onChange={(e) => setUsageThresholdDays(parseInt(e.target.value) || 30)}
-                  className="w-24"
-                  disabled={!autoArchiveEnabled}
-                />
-                <span className="text-sm text-muted-foreground">days</span>
-              </div>
-            </div>
-
-            {/* Preview of Candidates */}
-            {autoArchiveEnabled && (() => {
-              const candidates = checkAutoArchiveCandidates();
-              return (
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+            {autoArchiveEnabled && (
+              <>
+                {/* Scheduled Auto-Archive Section */}
+                <div className="space-y-4 p-4 border border-border rounded-lg bg-card">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-primary" />
-                      <span className="font-medium">
-                        {candidates.length} preset{candidates.length !== 1 ? 's' : ''} will be archived
-                      </span>
+                    <div className="space-y-1">
+                      <div className="font-medium flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        Scheduled Auto-Archive
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Run auto-archive rules automatically at scheduled times
+                      </div>
                     </div>
+                    <Switch
+                      checked={scheduleEnabled}
+                      onCheckedChange={setScheduleEnabled}
+                    />
                   </div>
-                  
-                  {candidates.length > 0 && (
-                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                      {candidates.slice(0, 10).map((preset) => (
-                        <div
-                          key={preset.id}
-                          className="p-2 bg-background rounded border text-sm"
-                        >
-                          <div className="font-medium">{preset.name}</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {(preset as any)._archiveReason}
-                          </div>
-                        </div>
-                      ))}
-                      {candidates.length > 10 && (
-                        <div className="text-xs text-muted-foreground text-center pt-2">
-                          ...and {candidates.length - 10} more
+
+                  {scheduleEnabled && (
+                    <div className="space-y-4 pl-6 border-l-2 border-primary/20">
+                      <div>
+                        <Label htmlFor="schedule-frequency" className="text-sm font-medium">
+                          Frequency
+                        </Label>
+                        <Select value={scheduleFrequency} onValueChange={(value: any) => setScheduleFrequency(value)}>
+                          <SelectTrigger id="schedule-frequency" className="mt-1.5">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="schedule-time" className="text-sm font-medium">
+                          Time
+                        </Label>
+                        <Input
+                          id="schedule-time"
+                          type="time"
+                          value={scheduleTime}
+                          onChange={(e) => setScheduleTime(e.target.value)}
+                          className="mt-1.5"
+                        />
+                      </div>
+
+                      {scheduleFrequency === 'weekly' && (
+                        <div>
+                          <Label htmlFor="schedule-day-week" className="text-sm font-medium">
+                            Day of Week
+                          </Label>
+                          <Select value={scheduleDayOfWeek.toString()} onValueChange={(value) => setScheduleDayOfWeek(parseInt(value))}>
+                            <SelectTrigger id="schedule-day-week" className="mt-1.5">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">Sunday</SelectItem>
+                              <SelectItem value="1">Monday</SelectItem>
+                              <SelectItem value="2">Tuesday</SelectItem>
+                              <SelectItem value="3">Wednesday</SelectItem>
+                              <SelectItem value="4">Thursday</SelectItem>
+                              <SelectItem value="5">Friday</SelectItem>
+                              <SelectItem value="6">Saturday</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       )}
+
+                      {scheduleFrequency === 'monthly' && (
+                        <div>
+                          <Label htmlFor="schedule-day-month" className="text-sm font-medium">
+                            Day of Month
+                          </Label>
+                          <Input
+                            id="schedule-day-month"
+                            type="number"
+                            min="1"
+                            max="28"
+                            value={scheduleDayOfMonth}
+                            onChange={(e) => setScheduleDayOfMonth(parseInt(e.target.value) || 1)}
+                            className="mt-1.5"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Days 1-28 only to ensure it runs every month
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="p-3 bg-muted/50 rounded-md space-y-2">
+                        {lastScheduledRun && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Last run:</span>
+                            <span className="font-medium">{format(lastScheduledRun, 'PPp')}</span>
+                          </div>
+                        )}
+                        {nextScheduledRun && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="w-4 h-4 text-primary" />
+                            <span className="text-muted-foreground">Next run:</span>
+                            <span className="font-medium text-primary">{format(nextScheduledRun, 'PPp')}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
-                  
-                  {candidates.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      No presets currently match the auto-archive criteria
-                    </p>
-                  )}
                 </div>
-              );
-            })()}
 
-            {/* Info Note */}
-            <div className="p-3 bg-muted/50 rounded-lg">
-              <p className="text-xs text-muted-foreground">
-                💡 <strong>Tip:</strong> Archived presets can be restored at any time from the Archive Manager. 
-                Auto-archive helps maintain a clean and relevant preset library by automatically moving 
-                unused presets to the archive.
-              </p>
-            </div>
+                {/* Inactivity Rule */}
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-base font-medium">Inactivity Period</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Archive presets that haven't been used for this many days
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="365"
+                      value={inactivityDays}
+                      onChange={(e) => setInactivityDays(parseInt(e.target.value) || 30)}
+                      className="w-24"
+                    />
+                    <span className="text-sm text-muted-foreground">days</span>
+                  </div>
+                </div>
+
+                {/* Usage Threshold Rule */}
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-base font-medium">Usage Threshold</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Archive presets with usage below this threshold in the specified period
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">Less than</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={usageThreshold}
+                      onChange={(e) => setUsageThreshold(parseInt(e.target.value) || 5)}
+                      className="w-24"
+                    />
+                    <span className="text-sm text-muted-foreground">uses in the last</span>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="365"
+                      value={usageThresholdDays}
+                      onChange={(e) => setUsageThresholdDays(parseInt(e.target.value) || 30)}
+                      className="w-24"
+                    />
+                    <span className="text-sm text-muted-foreground">days</span>
+                  </div>
+                </div>
+
+                {/* Preview of Candidates */}
+                {(() => {
+                  const candidates = checkAutoArchiveCandidates();
+                  return (
+                    <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-5 w-5 text-primary" />
+                          <span className="font-medium">
+                            {candidates.length} preset{candidates.length !== 1 ? 's' : ''} will be archived
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {candidates.length > 0 && (
+                        <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                          {candidates.slice(0, 10).map((preset) => (
+                            <div
+                              key={preset.id}
+                              className="p-2 bg-background rounded border text-sm"
+                            >
+                              <div className="font-medium">{preset.name}</div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {(preset as any)._archiveReason}
+                              </div>
+                            </div>
+                          ))}
+                          {candidates.length > 10 && (
+                            <div className="text-xs text-muted-foreground text-center pt-2">
+                              ...and {candidates.length - 10} more
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {candidates.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          No presets currently match the auto-archive criteria
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Info Note */}
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground">
+                    💡 <strong>Tip:</strong> Archived presets can be restored at any time from the Archive Manager. 
+                    Auto-archive helps maintain a clean and relevant preset library by automatically moving 
+                    unused presets to the archive.
+                  </p>
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>
