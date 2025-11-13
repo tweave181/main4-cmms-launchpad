@@ -13,8 +13,11 @@ import { useAuth } from '@/contexts/auth';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { format } from 'date-fns';
 import type { Database } from '@/integrations/supabase/types';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 
-type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
+type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'] & {
+  unit_cost?: number | null;
+};
 
 interface InventoryPartDetailModalProps {
   part: InventoryPart | null;
@@ -32,6 +35,7 @@ export const InventoryPartDetailModal: React.FC<InventoryPartDetailModalProps> =
   onDelete,
 }) => {
   const { userProfile } = useAuth();
+  const { formatCurrency } = useGlobalSettings();
   const isAdmin = userProfile?.role === 'admin';
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -110,6 +114,10 @@ export const InventoryPartDetailModal: React.FC<InventoryPartDetailModalProps> =
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Unit of Measure:</span>
                     <span>{part.unit_of_measure}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Unit Cost:</span>
+                    <span>{part.unit_cost ? formatCurrency(part.unit_cost) : '-'}</span>
                   </div>
                 </div>
               </div>

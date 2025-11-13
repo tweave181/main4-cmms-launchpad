@@ -19,6 +19,7 @@ import { PartSupplierCard } from '@/components/inventory/PartSupplierCard';
 import { PartLinkedAssetsCard } from '@/components/inventory/PartLinkedAssetsCard';
 import { useInventoryParts } from '@/pages/inventory/hooks/useInventoryParts';
 import { SparePartsCategorySelector } from '@/components/inventory/SparePartsCategorySelector';
+import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
 
@@ -29,6 +30,7 @@ const InventoryPartDetail: React.FC = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { formatCurrency } = useGlobalSettings();
   const isAdmin = userProfile?.role === 'admin';
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
@@ -265,6 +267,10 @@ const InventoryPartDetail: React.FC = () => {
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Unit of Measure:</span>
                         <span>{part.unit_of_measure}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Unit Cost:</span>
+                        <span>{part.unit_cost ? formatCurrency(part.unit_cost) : '-'}</span>
                       </div>
                     </div>
                   </div>
