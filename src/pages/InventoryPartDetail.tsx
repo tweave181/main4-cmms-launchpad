@@ -20,6 +20,11 @@ import { PartLinkedAssetsCard } from '@/components/inventory/PartLinkedAssetsCar
 import { useInventoryParts } from '@/pages/inventory/hooks/useInventoryParts';
 import { SparePartsCategorySelector } from '@/components/inventory/SparePartsCategorySelector';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
+import { useInventoryPartForm } from '@/pages/inventory/components/useInventoryPartForm';
+import { InventoryPartBasicFields } from '@/pages/inventory/components/InventoryPartBasicFields';
+import { InventoryPartQuantityFields } from '@/pages/inventory/components/InventoryPartQuantityFields';
+import { InventoryPartLocationFields } from '@/pages/inventory/components/InventoryPartLocationFields';
+import type { FormData } from '@/pages/inventory/components/useInventoryPartForm';
 
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
 
@@ -42,18 +47,43 @@ const InventoryPartDetail: React.FC = () => {
   const { data: part, isLoading } = usePartWithSupplier(id || '');
   const { updatePart } = useInventoryParts();
 
-  // Form setup for category editing
-  const form = useForm({
-    defaultValues: {
-      spare_parts_category_id: part?.spare_parts_category_id || null,
-    },
+  // Form state for editing all fields
+  const { form, handleSubmit: handleFormSubmit } = useInventoryPartForm({
+    initialData: part ? {
+      name: part.name,
+      sku: part.sku || '',
+      description: part.description || '',
+      inventory_type: part.inventory_type || 'spare_parts',
+      unit_of_measure: part.unit_of_measure || 'pieces',
+      unit_cost: part.unit_cost || 0,
+      quantity_in_stock: part.quantity_in_stock,
+      reorder_threshold: part.reorder_threshold || 0,
+      storage_locations: part.storage_locations,
+      linked_asset_type: part.linked_asset_type || '',
+      spare_parts_category_id: part.spare_parts_category_id || '',
+    } : undefined,
+    onSubmit: async (data) => {
+      // This will be called by handleSave
+    }
   });
 
   // Update form when part data changes
   useEffect(() => {
     if (part) {
       form.reset({
-        spare_parts_category_id: part.spare_parts_category_id || null,
+        name: part.name,
+        sku: part.sku || '',
+        description: part.description || '',
+        inventory_type: part.inventory_type || 'spare_parts',
+        unit_of_measure: part.unit_of_measure || 'pieces',
+        unit_cost: part.unit_cost || 0,
+        quantity_in_stock: part.quantity_in_stock,
+        reorder_threshold: part.reorder_threshold || 0,
+        storage_locations: Array.isArray(part.storage_locations) 
+          ? part.storage_locations.join(', ') 
+          : part.storage_locations || '',
+        linked_asset_type: part.linked_asset_type || '',
+        spare_parts_category_id: part.spare_parts_category_id || '',
       });
     }
   }, [part, form]);
@@ -146,13 +176,43 @@ const InventoryPartDetail: React.FC = () => {
     navigate(`/inventory/${id}`);
   };
 
-  const handleSave = () => {
-    const formData = form.getValues();
-    updatePartMutation.mutate({
-      updates: {
-        spare_parts_category_id: formData.spare_parts_category_id,
-      }
+  const handleSave = async () => {
+    const values = form.getValues();
+    
+    const { error } = await supabase
+      .from('inventory_parts')
+      .update({
+        name: values.name,
+        sku: values.sku || null,
+        description: values.description || null,
+        unit_of_measure: values.unit_of_measure || null,
+        unit_cost: values.unit_cost || null,
+        quantity_in_stock: values.quantity_in_stock,
+        reorder_threshold: values.reorder_threshold || null,
+        storage_locations: values.storage_locations 
+          ? values.storage_locations.split(',').map(loc => loc.trim()).filter(Boolean)
+          : null,
+        spare_parts_category_id: values.spare_parts_category_id || null,
+      })
+      .eq('id', id!);
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update part',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    await queryClient.invalidateQueries({ queryKey: ['inventory-parts'] });
+    await queryClient.invalidateQueries({ queryKey: ['inventory-part-supplier', id] });
+    toast({
+      title: 'Success',
+      description: 'Part updated successfully',
     });
+    setMode('view');
+    navigate(`/inventory/${id}`, { state: location.state });
   };
 
   if (isLoading) {
@@ -236,43 +296,61 @@ const InventoryPartDetail: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">SKU: {part.sku}</p>
-                    <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
-                  </div>
+                <div>
+                  <h3 className="font-medium mb-4">Basic Information</h3>
+                  {mode === 'edit' ? (
+                    <Form {...form}>
+                      <InventoryPartBasicFields control={form.control} />
+                    </Form>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">SKU:</span>
+                        <span>{part.sku}</span>
+                      </div>
+                      {part.description && (
+                        <div>
+                          <span className="text-sm text-muted-foreground">Description:</span>
+                          <p className="text-sm mt-1">{part.description}</p>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-start">
+                        <span className="text-sm text-muted-foreground">Stock Status:</span>
+                        <Badge variant={stockStatus.variant}>{stockStatus.label}</Badge>
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {part.description && (
-                  <div>
-                    <h3 className="font-medium mb-2">Description</h3>
-                    <p className="text-sm text-muted-foreground">{part.description}</p>
-                  </div>
-                )}
 
                 <Separator />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <h3 className="font-medium">Stock Information</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Current Stock:</span>
-                        <span className="font-medium">{part.quantity_in_stock}</span>
+                    {mode === 'edit' ? (
+                      <Form {...form}>
+                        <InventoryPartQuantityFields control={form.control} />
+                      </Form>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Current Stock:</span>
+                          <span className="font-medium">{part.quantity_in_stock}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Reorder Threshold:</span>
+                          <span>{part.reorder_threshold}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Unit of Measure:</span>
+                          <span>{part.unit_of_measure}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Unit Cost:</span>
+                          <span>{part.unit_cost ? formatCurrency(part.unit_cost) : '-'}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Reorder Threshold:</span>
-                        <span>{part.reorder_threshold}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Unit of Measure:</span>
-                        <span>{part.unit_of_measure}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Unit Cost:</span>
-                        <span>{part.unit_cost ? formatCurrency(part.unit_cost) : '-'}</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -317,7 +395,7 @@ const InventoryPartDetail: React.FC = () => {
                   </div>
                 </div>
 
-                {part.storage_locations && part.storage_locations.length > 0 && (
+                {part.storage_locations && part.storage_locations.length > 0 || mode === 'edit' ? (
                   <>
                     <Separator />
                     <div>
@@ -325,16 +403,22 @@ const InventoryPartDetail: React.FC = () => {
                         <MapPin className="h-4 w-4" />
                         Storage Locations
                       </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {part.storage_locations.map((location, index) => (
-                          <Badge key={index} variant="outline">
-                            {location}
-                          </Badge>
-                        ))}
-                      </div>
+                      {mode === 'edit' ? (
+                        <Form {...form}>
+                          <InventoryPartLocationFields control={form.control} />
+                        </Form>
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {part.storage_locations?.map((location, index) => (
+                            <Badge key={index} variant="outline">
+                              {location}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </>
-                )}
+                ) : null}
               </div>
             </CardContent>
           </Card>
