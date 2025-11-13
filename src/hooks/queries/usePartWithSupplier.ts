@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/auth';
 import type { Database } from '@/integrations/supabase/types';
 
 type InventoryPartWithSupplier = Database['public']['Tables']['inventory_parts']['Row'] & {
+  unit_cost?: number | null;
   supplier?: {
     id: string;
     company_name: string | null;  
