@@ -19,6 +19,7 @@ interface NotificationFormData {
   system_notifications_enabled: boolean;
   maintenance_notifications_enabled: boolean;
   security_alerts_enabled: boolean;
+  low_stock_alerts_enabled: boolean;
   email_frequency: 'immediate' | 'daily_digest' | 'weekly_digest';
 }
 
@@ -38,6 +39,7 @@ export const NotificationPreferencesSection: React.FC = () => {
       system_notifications_enabled: settings?.system_notifications_enabled ?? true,
       maintenance_notifications_enabled: settings?.maintenance_notifications_enabled ?? true,
       security_alerts_enabled: settings?.security_alerts_enabled ?? true,
+      low_stock_alerts_enabled: settings?.low_stock_alerts_enabled ?? true,
       email_frequency: settings?.email_frequency ?? 'immediate',
     },
   });
@@ -52,6 +54,7 @@ export const NotificationPreferencesSection: React.FC = () => {
       setValue('system_notifications_enabled', settings.system_notifications_enabled);
       setValue('maintenance_notifications_enabled', settings.maintenance_notifications_enabled);
       setValue('security_alerts_enabled', settings.security_alerts_enabled);
+      setValue('low_stock_alerts_enabled', settings.low_stock_alerts_enabled);
       setValue('email_frequency', settings.email_frequency);
     }
   }, [settings, setValue]);
@@ -230,6 +233,22 @@ export const NotificationPreferencesSection: React.FC = () => {
                   <Controller
                     control={control}
                     name="security_alerts_enabled"
+                    render={({ field }) => (
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    )}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Low Stock Alerts</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receive email notifications when inventory reaches reorder threshold
+                    </p>
+                  </div>
+                  <Controller
+                    control={control}
+                    name="low_stock_alerts_enabled"
                     render={({ field }) => (
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     )}

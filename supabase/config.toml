@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.send-auto-archive-notification]
 verify_jwt = false
+
+[functions.send-low-stock-alert]
+verify_jwt = false
