@@ -184,6 +184,7 @@ const InventoryPartDetail: React.FC = () => {
 
   const handleSave = async () => {
     const values = form.getValues();
+    const previousStock = part?.quantity_in_stock || 0;
     
     const { error } = await supabase
       .from('inventory_parts')
@@ -213,6 +214,43 @@ const InventoryPartDetail: React.FC = () => {
 
     await queryClient.invalidateQueries({ queryKey: ['inventory-parts'] });
     await queryClient.invalidateQueries({ queryKey: ['inventory-part-supplier', id] });
+    
+    // Check if we should trigger low stock alert
+    const currentStock = values.quantity_in_stock;
+    const reorderThreshold = values.reorder_threshold || 0;
+
+    if (
+      currentStock <= reorderThreshold &&
+      previousStock > reorderThreshold &&
+      part &&
+      userProfile?.tenant_id
+    ) {
+      const { areLowStockAlertsEnabled, triggerLowStockAlert } = await import('@/utils/notificationHelpers');
+      
+      const alertsEnabled = await areLowStockAlertsEnabled(userProfile.tenant_id);
+      
+      if (alertsEnabled) {
+        console.log('Triggering low stock alert for part:', part.name);
+        
+        try {
+          await triggerLowStockAlert({
+            partId: part.id,
+            partName: values.name,
+            sku: values.sku || part.sku,
+            currentStock: currentStock,
+            reorderThreshold: reorderThreshold,
+            unitOfMeasure: values.unit_of_measure || 'pieces',
+            category: part.spare_parts_category?.name,
+            supplierName: part.supplier?.company_name,
+            tenantId: userProfile.tenant_id,
+          });
+        } catch (error) {
+          console.error('Failed to send low stock alert:', error);
+          // Don't throw - we don't want to fail the update if email fails
+        }
+      }
+    }
+    
     toast({
       title: 'Success',
       description: 'Part updated successfully',

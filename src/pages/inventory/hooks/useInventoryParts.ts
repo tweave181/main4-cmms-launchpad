@@ -83,20 +83,68 @@ export const useInventoryParts = (inventoryType?: 'spare_parts' | 'consumables')
   });
 
   const updatePartMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: InventoryPartUpdate }) => {
+    mutationFn: async ({ id, updates, previousStock }: { id: string; updates: InventoryPartUpdate; previousStock?: number }) => {
       const { data, error } = await supabase
         .from('inventory_parts')
         .update(updates)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          spare_parts_categories (
+            name
+          ),
+          addresses!supplier_id (
+            company_details!addresses_company_id_fkey (
+              company_name,
+              email
+            )
+          )
+        `)
         .single();
 
       if (error) throw error;
-      return data;
+      return { data, previousStock };
     },
-    onSuccess: () => {
+    onSuccess: async ({ data, previousStock }) => {
       queryClient.invalidateQueries({ queryKey: ['inventory-parts'] });
       showSuccessToast("Part updated successfully");
+
+      // Check if we should trigger low stock alert
+      const currentStock = data.quantity_in_stock;
+      const reorderThreshold = data.reorder_threshold;
+
+      // Only trigger if stock is now at or below threshold AND was previously above it
+      if (
+        currentStock <= reorderThreshold &&
+        previousStock !== undefined &&
+        previousStock > reorderThreshold
+      ) {
+        const { areLowStockAlertsEnabled, triggerLowStockAlert } = await import('@/utils/notificationHelpers');
+        
+        const alertsEnabled = await areLowStockAlertsEnabled(data.tenant_id);
+        
+        if (alertsEnabled) {
+          console.log('Triggering low stock alert for part:', data.name);
+          
+          try {
+            await triggerLowStockAlert({
+              partId: data.id,
+              partName: data.name,
+              sku: data.sku,
+              currentStock: currentStock,
+              reorderThreshold: reorderThreshold,
+              unitOfMeasure: data.unit_of_measure,
+              category: data.spare_parts_categories?.name,
+              supplierName: data.addresses?.company_details?.company_name,
+              supplierEmail: data.addresses?.company_details?.email,
+              tenantId: data.tenant_id,
+            });
+          } catch (error) {
+            console.error('Failed to send low stock alert:', error);
+            // Don't throw - we don't want to fail the update if email fails
+          }
+        }
+      }
     },
     onError: (error) => {
       showErrorToast(error, { title: 'Update Failed', context: 'Inventory Part' });
@@ -167,7 +215,8 @@ export const useInventoryParts = (inventoryType?: 'spare_parts' | 'consumables')
     isLoading,
     refetch,
     createPart: createPartMutation.mutateAsync,
-    updatePart: updatePartMutation.mutate,
+    updatePart: (params: { id: string; updates: InventoryPartUpdate; previousStock?: number }) => 
+      updatePartMutation.mutate(params),
     deletePart: deletePartMutation.mutate,
     createStockTransaction: createStockTransactionMutation.mutate,
     isCreating: createPartMutation.isPending,
