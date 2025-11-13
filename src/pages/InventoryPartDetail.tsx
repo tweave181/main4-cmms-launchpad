@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Form } from '@/components/ui/form';
-import { ArrowLeft, Edit, Trash2, Package, MapPin, Save, X } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ArrowLeft, Edit, Trash2, Package, MapPin, Save, X, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -66,6 +67,11 @@ const InventoryPartDetail: React.FC = () => {
       // This will be called by handleSave
     }
   });
+
+  // Watch form fields for validation warnings (must be after form declaration)
+  const quantityInStock = form.watch('quantity_in_stock');
+  const reorderThreshold = form.watch('reorder_threshold');
+  const showLowStockWarning = mode === 'edit' && quantityInStock < reorderThreshold;
 
   // Update form when part data changes
   useEffect(() => {
@@ -328,9 +334,19 @@ const InventoryPartDetail: React.FC = () => {
                   <div className="space-y-4">
                     <h3 className="font-medium">Stock Information</h3>
                     {mode === 'edit' ? (
-                      <Form {...form}>
-                        <InventoryPartQuantityFields control={form.control} />
-                      </Form>
+                      <>
+                        <Form {...form}>
+                          <InventoryPartQuantityFields control={form.control} />
+                        </Form>
+                        {showLowStockWarning && (
+                          <Alert variant="destructive" className="mt-4">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription>
+                              Warning: Current stock ({quantityInStock}) is below reorder threshold ({reorderThreshold})
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </>
                     ) : (
                       <div className="space-y-2">
                         <div className="flex justify-between">
