@@ -2,3 +2,6 @@ project_id = "mzpweuuvyuaawpttoqkn"
 
 [functions.preset-recommendations]
 verify_jwt = false
+
+[functions.send-auto-archive-notification]
+verify_jwt = false

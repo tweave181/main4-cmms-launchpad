@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth';
 import {
   Dialog,
   DialogContent,
@@ -168,6 +170,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const [lastScheduledRun, setLastScheduledRun] = useState<Date | null>(null);
   const [nextScheduledRun, setNextScheduledRun] = useState<Date | null>(null);
   const { toast } = useToast();
+  const { userProfile } = useAuth();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const focusedItemRef = React.useRef<HTMLDivElement>(null);
@@ -189,6 +192,64 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   const archivedPresets = React.useMemo(() => {
     return presets.filter(p => p.archived);
   }, [presets]);
+
+  // Send auto-archive notification email
+  const sendAutoArchiveNotification = async (archivedCandidates: FilterPreset[]) => {
+    if (!userProfile?.email || !userProfile?.name) {
+      console.log('User profile not available, skipping email notification');
+      return;
+    }
+
+    try {
+      const archivedPresetsData = archivedCandidates.map(preset => {
+        const lastUsedDate = preset.lastUsed ? new Date(preset.lastUsed) : new Date(preset.createdAt);
+        const daysSinceLastUse = Math.floor((Date.now() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        const reasons: string[] = [];
+        if (daysSinceLastUse >= inactivityDays) {
+          reasons.push('Inactivity');
+        }
+        if ((preset.usageCount || 0) < usageThreshold) {
+          reasons.push('Low usage');
+        }
+
+        return {
+          name: preset.name,
+          lastUsedDays: daysSinceLastUse,
+          usageCount: preset.usageCount || 0,
+          reason: reasons.join(', '),
+        };
+      });
+
+      const { error } = await supabase.functions.invoke('send-auto-archive-notification', {
+        body: {
+          recipientEmail: userProfile.email,
+          recipientName: userProfile.name,
+          archivedPresets: archivedPresetsData,
+          totalArchived: archivedCandidates.length,
+          archivedAt: new Date().toISOString(),
+          autoArchiveSettings: {
+            inactivityDays,
+            usageThreshold,
+            usageThresholdDays,
+          },
+        },
+      });
+
+      if (error) {
+        console.error('Failed to send email notification:', error);
+        toast({
+          title: 'Email Notification Failed',
+          description: 'Auto-archive completed but email notification could not be sent.',
+          variant: 'destructive',
+        });
+      } else {
+        console.log('Email notification sent successfully');
+      }
+    } catch (error) {
+      console.error('Error sending auto-archive notification:', error);
+    }
+  };
 
   // Get recently used presets (top 3)
   const recentlyUsedPresets = React.useMemo(() => {
@@ -604,7 +665,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   React.useEffect(() => {
     if (!scheduleEnabled || !autoArchiveEnabled) return;
 
-    const checkSchedule = () => {
+    const checkSchedule = async () => {
       const now = new Date();
       const next = nextScheduledRun;
 
@@ -614,18 +675,38 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
         // Apply auto-archive rules
         const candidates = checkAutoArchiveCandidates();
         if (candidates.length > 0) {
-          applyAutoArchiveRules();
+          // Archive without confirmation for scheduled runs
+          const candidateIds = new Set(candidates.map(c => c.id));
+          const updatedPresets = presets.map(p => 
+            candidateIds.has(p.id) ? { ...p, archived: true } : p
+          );
+
+          onUpdatePresets(updatedPresets);
+
+          // Add to action history
+          const newEntry = {
+            id: `auto-archive-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            action: 'archive' as const,
+            presetNames: candidates.map(c => c.name),
+            details: `Scheduled auto-archived ${candidates.length} preset${candidates.length > 1 ? 's' : ''}`,
+            userName: 'Auto-Archive (Scheduled)',
+          };
+          setActionHistory(prev => [newEntry, ...prev]);
+
+          // Send email notification
+          await sendAutoArchiveNotification(candidates);
+
+          toast({
+            title: 'Scheduled Auto-Archive Complete',
+            description: `Archived ${candidates.length} preset${candidates.length !== 1 ? 's' : ''}.`,
+          });
         }
 
         // Update last run and calculate next run
         setLastScheduledRun(now);
         const newNext = calculateNextRun();
         setNextScheduledRun(newNext);
-
-        toast({
-          title: 'Scheduled Auto-Archive Complete',
-          description: `Archived ${candidates.length} preset${candidates.length !== 1 ? 's' : ''}.`,
-        });
       }
     };
 
@@ -636,7 +717,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
     checkSchedule();
 
     return () => clearInterval(interval);
-  }, [scheduleEnabled, autoArchiveEnabled, nextScheduledRun, calculateNextRun, toast]);
+  }, [scheduleEnabled, autoArchiveEnabled, nextScheduledRun, calculateNextRun, toast, sendAutoArchiveNotification]);
 
   const handleSave = () => {
     if (!presetName.trim()) {
@@ -1645,7 +1726,7 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
   };
 
   // Apply auto-archive rules
-  const applyAutoArchiveRules = () => {
+  const applyAutoArchiveRules = async () => {
     const candidates = checkAutoArchiveCandidates();
 
     if (candidates.length === 0) {
@@ -1683,6 +1764,9 @@ export const FilterPresetManager: React.FC<FilterPresetManagerProps> = ({
       userName: 'Auto-Archive',
     };
     setActionHistory(prev => [newEntry, ...prev]);
+
+    // Send email notification
+    await sendAutoArchiveNotification(candidates);
 
     toast({
       title: 'Auto-Archive Complete',
