@@ -29,6 +29,7 @@ export const EmailTemplatesSection: React.FC = () => {
       password_reset: 'bg-yellow-500',
       welcome: 'bg-purple-500',
       maintenance: 'bg-orange-500',
+      low_stock_alert: 'bg-red-500',
     };
 
     return (

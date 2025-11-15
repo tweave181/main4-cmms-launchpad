@@ -60,13 +60,50 @@ const handler = async (req: Request): Promise<Response> => {
     const recipientEmails = users.map(u => u.email).filter(Boolean) as string[];
     console.log(`Sending low stock alert to ${recipientEmails.length} recipients`);
 
-    // Calculate stock deficit
+    // Calculate stock deficit and severity
     const deficit = requestData.reorder_threshold - requestData.current_stock;
     const percentageLow = Math.round((requestData.current_stock / requestData.reorder_threshold) * 100);
     const severityColor = percentageLow < 50 ? '#ef4444' : percentageLow < 80 ? '#f97316' : '#eab308';
 
-    // Generate email HTML
-    const emailHtml = `
+    // Fetch email template for low_stock_alert
+    const { data: template } = await supabase
+      .from('email_templates')
+      .select('*')
+      .eq('tenant_id', requestData.tenant_id)
+      .eq('template_type', 'low_stock_alert')
+      .eq('is_active', true)
+      .order('is_default', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // Template variables for replacement
+    const variables = {
+      part_name: requestData.part_name,
+      sku: requestData.sku,
+      current_stock: requestData.current_stock.toString(),
+      reorder_threshold: requestData.reorder_threshold.toString(),
+      unit_of_measure: requestData.unit_of_measure,
+      deficit: deficit.toString(),
+      percentage_low: percentageLow.toString(),
+      severity_color: severityColor,
+      category: requestData.category || 'N/A',
+      supplier_name: requestData.supplier_name || 'N/A',
+      supplier_email: requestData.supplier_email || 'N/A',
+    };
+
+    let emailSubject: string;
+    let emailHtml: string;
+
+    if (template) {
+      // Use custom template and replace variables
+      console.log('Using custom template:', template.template_name);
+      emailSubject = replaceVariables(template.subject, variables);
+      emailHtml = replaceVariables(template.body_html, variables);
+    } else {
+      // Fallback to default template
+      console.log('Using default template');
+      emailSubject = `⚠️ Low Stock Alert: ${requestData.part_name}`;
+      emailHtml = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -149,12 +186,14 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
+    }
+
     // Send email to all recipients
     const emailPromises = recipientEmails.map(email => 
       resend.emails.send({
         from: 'Inventory Alerts <onboarding@resend.dev>',
         to: [email],
-        subject: `Low Stock Alert: ${requestData.part_name} - Reorder Required`,
+        subject: emailSubject,
         html: emailHtml,
       })
     );
@@ -197,5 +236,15 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 };
+
+// Helper function to replace template variables
+function replaceVariables(template: string, variables: Record<string, string>): string {
+  let result = template;
+  Object.entries(variables).forEach(([key, value]) => {
+    const regex = new RegExp(`{{${key}}}`, 'g');
+    result = result.replace(regex, value);
+  });
+  return result;
+}
 
 serve(handler);
