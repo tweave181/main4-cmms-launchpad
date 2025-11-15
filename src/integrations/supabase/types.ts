@@ -1101,6 +1101,7 @@ export type Database = {
           storage_locations: string[] | null
           supplier_id: string | null
           tenant_id: string
+          unit_cost: number | null
           unit_of_measure: Database["public"]["Enums"]["part_unit"]
           updated_at: string
         }
@@ -1120,6 +1121,7 @@ export type Database = {
           storage_locations?: string[] | null
           supplier_id?: string | null
           tenant_id: string
+          unit_cost?: number | null
           unit_of_measure?: Database["public"]["Enums"]["part_unit"]
           updated_at?: string
         }
@@ -1139,6 +1141,7 @@ export type Database = {
           storage_locations?: string[] | null
           supplier_id?: string | null
           tenant_id?: string
+          unit_cost?: number | null
           unit_of_measure?: Database["public"]["Enums"]["part_unit"]
           updated_at?: string
         }
@@ -1441,6 +1444,7 @@ export type Database = {
           created_at: string | null
           email_frequency: string | null
           id: string
+          low_stock_alerts_enabled: boolean | null
           maintenance_notifications_enabled: boolean | null
           security_alerts_enabled: boolean | null
           setting_type: string
@@ -1458,6 +1462,7 @@ export type Database = {
           created_at?: string | null
           email_frequency?: string | null
           id?: string
+          low_stock_alerts_enabled?: boolean | null
           maintenance_notifications_enabled?: boolean | null
           security_alerts_enabled?: boolean | null
           setting_type: string
@@ -1475,6 +1480,7 @@ export type Database = {
           created_at?: string | null
           email_frequency?: string | null
           id?: string
+          low_stock_alerts_enabled?: boolean | null
           maintenance_notifications_enabled?: boolean | null
           security_alerts_enabled?: boolean | null
           setting_type?: string
@@ -1563,6 +1569,8 @@ export type Database = {
           part_id: string
           quantity_used: number
           tenant_id: string
+          total_cost: number | null
+          unit_cost_at_use: number | null
           work_order_id: string
         }
         Insert: {
@@ -1571,6 +1579,8 @@ export type Database = {
           part_id: string
           quantity_used: number
           tenant_id: string
+          total_cost?: number | null
+          unit_cost_at_use?: number | null
           work_order_id: string
         }
         Update: {
@@ -1579,6 +1589,8 @@ export type Database = {
           part_id?: string
           quantity_used?: number
           tenant_id?: string
+          total_cost?: number | null
+          unit_cost_at_use?: number | null
           work_order_id?: string
         }
         Relationships: [
