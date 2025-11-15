@@ -45,14 +45,15 @@ export async function areLowStockAlertsEnabled(
       .select('low_stock_alerts_enabled')
       .eq('tenant_id', tenantId)
       .is('user_id', null)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error checking notification settings:', error);
       return true; // Default to enabled if settings don't exist
     }
 
-    return data?.low_stock_alerts_enabled ?? true;
+    // Type assertion for low_stock_alerts_enabled which exists in DB but may not be in types yet
+    return (data as any)?.low_stock_alerts_enabled ?? true;
   } catch (error) {
     console.error('Error in areLowStockAlertsEnabled:', error);
     return true; // Default to enabled on error
