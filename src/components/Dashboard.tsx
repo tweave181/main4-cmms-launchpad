@@ -5,6 +5,7 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { AdminPanel } from '@/components/dashboard/AdminPanel';
 import { UpcomingContractRenewals } from '@/components/dashboard/UpcomingContractRenewals';
+import { RecentEmailActivity } from '@/components/dashboard/RecentEmailActivity';
 
 
 const Dashboard: React.FC = () => {
@@ -21,6 +22,7 @@ const Dashboard: React.FC = () => {
           {/* Right Column */}
           <div className="space-y-6">
             <DashboardStats />
+            <RecentEmailActivity />
             <UpcomingContractRenewals />
             <AdminPanel />
         </div>
