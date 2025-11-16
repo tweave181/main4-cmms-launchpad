@@ -1092,6 +1092,7 @@ export type Database = {
           description: string | null
           id: string
           inventory_type: Database["public"]["Enums"]["inventory_type"]
+          last_alert_sent_at: string | null
           linked_asset_type: string | null
           name: string
           quantity_in_stock: number
@@ -1112,6 +1113,7 @@ export type Database = {
           description?: string | null
           id?: string
           inventory_type?: Database["public"]["Enums"]["inventory_type"]
+          last_alert_sent_at?: string | null
           linked_asset_type?: string | null
           name: string
           quantity_in_stock?: number
@@ -1132,6 +1134,7 @@ export type Database = {
           description?: string | null
           id?: string
           inventory_type?: Database["public"]["Enums"]["inventory_type"]
+          last_alert_sent_at?: string | null
           linked_asset_type?: string | null
           name?: string
           quantity_in_stock?: number
