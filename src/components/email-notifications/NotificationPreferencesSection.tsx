@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-
 interface NotificationFormData {
   contract_reminders_enabled: boolean;
   contract_reminder_days: number[];
@@ -25,16 +24,25 @@ interface NotificationFormData {
   low_stock_alert_days: number[];
   email_frequency: 'immediate' | 'daily_digest' | 'weekly_digest';
 }
-
 export const NotificationPreferencesSection: React.FC = () => {
-  const { data: settings, isLoading } = useNotificationSettings();
+  const {
+    data: settings,
+    isLoading
+  } = useNotificationSettings();
   const updateSettings = useUpdateNotificationSettings();
   const createSettings = useCreateNotificationSettings();
   const [newReminderDay, setNewReminderDay] = React.useState<string>('');
   const [isTestingLowStock, setIsTestingLowStock] = React.useState(false);
-  const { toast } = useToast();
-
-  const { register, handleSubmit, control, watch, setValue } = useForm<NotificationFormData>({
+  const {
+    toast
+  } = useToast();
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue
+  } = useForm<NotificationFormData>({
     defaultValues: {
       contract_reminders_enabled: settings?.contract_reminders_enabled ?? true,
       contract_reminder_days: settings?.contract_reminder_days ?? [7, 14, 30],
@@ -46,10 +54,9 @@ export const NotificationPreferencesSection: React.FC = () => {
       security_alerts_enabled: settings?.security_alerts_enabled ?? true,
       low_stock_alerts_enabled: settings?.low_stock_alerts_enabled ?? true,
       low_stock_alert_days: settings?.low_stock_alert_days ?? [1, 2, 3, 4, 5],
-      email_frequency: settings?.email_frequency ?? 'immediate',
-    },
+      email_frequency: settings?.email_frequency ?? 'immediate'
+    }
   });
-
   React.useEffect(() => {
     if (settings) {
       setValue('contract_reminders_enabled', settings.contract_reminders_enabled);
@@ -65,9 +72,7 @@ export const NotificationPreferencesSection: React.FC = () => {
       setValue('email_frequency', settings.email_frequency);
     }
   }, [settings, setValue]);
-
   const reminderDays = watch('contract_reminder_days');
-
   const addReminderDay = () => {
     const day = parseInt(newReminderDay);
     if (day > 0 && !reminderDays.includes(day)) {
@@ -75,27 +80,26 @@ export const NotificationPreferencesSection: React.FC = () => {
       setNewReminderDay('');
     }
   };
-
   const removeReminderDay = (day: number) => {
     setValue('contract_reminder_days', reminderDays.filter(d => d !== day));
   };
-
   const handleTestLowStockAlert = async () => {
     setIsTestingLowStock(true);
     try {
-      const { data, error } = await supabase.functions.invoke('check-low-stock');
-      
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('check-low-stock');
       if (error) throw error;
-      
       if (data.alerts_sent > 0) {
         toast({
           title: "Low Stock Check Complete",
-          description: `${data.alerts_sent} alert(s) sent successfully.`,
+          description: `${data.alerts_sent} alert(s) sent successfully.`
         });
       } else {
         toast({
           title: "Low Stock Check Complete",
-          description: data.message || "No alerts needed at this time.",
+          description: data.message || "No alerts needed at this time."
         });
       }
     } catch (error) {
@@ -103,33 +107,32 @@ export const NotificationPreferencesSection: React.FC = () => {
       toast({
         title: "Test Failed",
         description: "Failed to run low stock check. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsTestingLowStock(false);
     }
   };
-
   const onSubmit = (data: NotificationFormData) => {
     if (settings?.id) {
-      updateSettings.mutate({ id: settings.id, data });
+      updateSettings.mutate({
+        id: settings.id,
+        data
+      });
     } else {
-      createSettings.mutate({ data });
+      createSettings.mutate({
+        data
+      });
     }
   };
-
   if (isLoading) {
-    return (
-      <Card>
+    return <Card>
         <CardContent className="flex items-center justify-center p-6">
           <Loader2 className="h-6 w-6 animate-spin" />
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card>
+  return <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Bell className="h-5 w-5" />
@@ -152,33 +155,20 @@ export const NotificationPreferencesSection: React.FC = () => {
                     Send reminders when contracts are approaching expiry
                   </p>
                 </div>
-                <Controller
-                  control={control}
-                  name="contract_reminders_enabled"
-                  render={({ field }) => (
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  )}
-                />
+                <Controller control={control} name="contract_reminders_enabled" render={({
+                field
+              }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
               </div>
 
               <div className="space-y-2">
                 <Label>Reminder Days Before Expiry</Label>
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {reminderDays.map((day) => (
-                    <Badge key={day} variant="secondary" className="cursor-pointer" onClick={() => removeReminderDay(day)}>
+                  {reminderDays.map(day => <Badge key={day} variant="secondary" className="cursor-pointer" onClick={() => removeReminderDay(day)}>
                       {day} days ×
-                    </Badge>
-                  ))}
+                    </Badge>)}
                 </div>
                 <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    min="1"
-                    placeholder="Add days"
-                    value={newReminderDay}
-                    onChange={(e) => setNewReminderDay(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addReminderDay())}
-                  />
+                  <Input type="number" min="1" placeholder="Add days" value={newReminderDay} onChange={e => setNewReminderDay(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addReminderDay())} />
                   <Button type="button" onClick={addReminderDay} variant="outline">
                     Add
                   </Button>
@@ -196,33 +186,24 @@ export const NotificationPreferencesSection: React.FC = () => {
                     Show popup notifications in the application
                   </p>
                 </div>
-                <Controller
-                  control={control}
-                  name="toast_notifications_enabled"
-                  render={({ field }) => (
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  )}
-                />
+                <Controller control={control} name="toast_notifications_enabled" render={({
+                field
+              }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="toast_duration">Toast Duration (ms)</Label>
-                  <Input
-                    id="toast_duration"
-                    type="number"
-                    {...register('toast_duration', { valueAsNumber: true })}
-                    placeholder="5000"
-                  />
+                  <Input id="toast_duration" type="number" {...register('toast_duration', {
+                  valueAsNumber: true
+                })} placeholder="5000" />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="toast_position">Toast Position</Label>
-                  <Controller
-                    control={control}
-                    name="toast_position"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
+                  <Controller control={control} name="toast_position" render={({
+                  field
+                }) => <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -232,9 +213,7 @@ export const NotificationPreferencesSection: React.FC = () => {
                           <SelectItem value="bottom-left">Bottom Left</SelectItem>
                           <SelectItem value="bottom-right">Bottom Right</SelectItem>
                         </SelectContent>
-                      </Select>
-                    )}
-                  />
+                      </Select>} />
                 </div>
               </div>
             </div>
@@ -245,97 +224,73 @@ export const NotificationPreferencesSection: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label>System Notifications</Label>
-                  <Controller
-                    control={control}
-                    name="system_notifications_enabled"
-                    render={({ field }) => (
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    )}
-                  />
+                  <Controller control={control} name="system_notifications_enabled" render={({
+                  field
+                }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <Label>Maintenance Notifications</Label>
-                  <Controller
-                    control={control}
-                    name="maintenance_notifications_enabled"
-                    render={({ field }) => (
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    )}
-                  />
+                  <Controller control={control} name="maintenance_notifications_enabled" render={({
+                  field
+                }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <Label>Security Alerts</Label>
-                  <Controller
-                    control={control}
-                    name="security_alerts_enabled"
-                    render={({ field }) => (
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    )}
-                  />
+                  <Controller control={control} name="security_alerts_enabled" render={({
+                  field
+                }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label>Low Stock Alerts</Label>
-                    <Controller
-                      control={control}
-                      name="low_stock_alerts_enabled"
-                      render={({ field }) => (
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
-                      )}
-                    />
+                    <Controller control={control} name="low_stock_alerts_enabled" render={({
+                    field
+                  }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
                   </div>
-                  <Controller
-                    control={control}
-                    name="low_stock_alert_days"
-                    render={({ field }) => {
-                      const lowStockEnabled = watch('low_stock_alerts_enabled');
-                      const days = [
-                        { label: 'Sun', value: 0 },
-                        { label: 'Mon', value: 1 },
-                        { label: 'Tue', value: 2 },
-                        { label: 'Wed', value: 3 },
-                        { label: 'Thu', value: 4 },
-                        { label: 'Fri', value: 5 },
-                        { label: 'Sat', value: 6 },
-                      ];
-                      
-                      const toggleDay = (dayValue: number) => {
-                        const currentDays = field.value || [];
-                        if (currentDays.includes(dayValue)) {
-                          field.onChange(currentDays.filter(d => d !== dayValue));
-                        } else {
-                          field.onChange([...currentDays, dayValue].sort());
-                        }
-                      };
-
-                      return (
-                        <div className="space-y-2">
+                  <Controller control={control} name="low_stock_alert_days" render={({
+                  field
+                }) => {
+                  const lowStockEnabled = watch('low_stock_alerts_enabled');
+                  const days = [{
+                    label: 'Sun',
+                    value: 0
+                  }, {
+                    label: 'Mon',
+                    value: 1
+                  }, {
+                    label: 'Tue',
+                    value: 2
+                  }, {
+                    label: 'Wed',
+                    value: 3
+                  }, {
+                    label: 'Thu',
+                    value: 4
+                  }, {
+                    label: 'Fri',
+                    value: 5
+                  }, {
+                    label: 'Sat',
+                    value: 6
+                  }];
+                  const toggleDay = (dayValue: number) => {
+                    const currentDays = field.value || [];
+                    if (currentDays.includes(dayValue)) {
+                      field.onChange(currentDays.filter(d => d !== dayValue));
+                    } else {
+                      field.onChange([...currentDays, dayValue].sort());
+                    }
+                  };
+                  return <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            {days.map(day => (
-                              <Button
-                                key={day.value}
-                                type="button"
-                                variant={field.value?.includes(day.value) ? 'default' : 'outline'}
-                                size="sm"
-                                disabled={!lowStockEnabled}
-                                onClick={() => toggleDay(day.value)}
-                                className="w-12"
-                              >
+                            {days.map(day => <Button key={day.value} type="button" variant={field.value?.includes(day.value) ? 'default' : 'outline'} size="sm" disabled={!lowStockEnabled} onClick={() => toggleDay(day.value)} className="w-12">
                                 {day.label}
-                              </Button>
-                            ))}
+                              </Button>)}
                           </div>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            disabled={!lowStockEnabled || isTestingLowStock}
-                            onClick={handleTestLowStockAlert}
-                            className="mt-2"
-                          >
+                          <Button type="button" variant="secondary" size="sm" disabled={!lowStockEnabled || isTestingLowStock} onClick={handleTestLowStockAlert} className="mt-2 bg-lime-600 hover:bg-lime-500 text-base">
                             {isTestingLowStock && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Test Low Stock Alerts
                           </Button>
@@ -345,21 +300,17 @@ export const NotificationPreferencesSection: React.FC = () => {
                           <p className="text-sm text-muted-foreground">
                             Receive email notifications when inventory reaches reorder threshold
                           </p>
-                        </div>
-                      );
-                    }}
-                  />
+                        </div>;
+                }} />
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email_frequency">Email Notification Frequency</Label>
-              <Controller
-                control={control}
-                name="email_frequency"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+              <Controller control={control} name="email_frequency" render={({
+              field
+            }) => <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -368,20 +319,15 @@ export const NotificationPreferencesSection: React.FC = () => {
                       <SelectItem value="daily_digest">Daily Digest</SelectItem>
                       <SelectItem value="weekly_digest">Weekly Digest</SelectItem>
                     </SelectContent>
-                  </Select>
-                )}
-              />
+                  </Select>} />
             </div>
           </div>
 
           <Button type="submit" disabled={updateSettings.isPending || createSettings.isPending}>
-            {(updateSettings.isPending || createSettings.isPending) && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
+            {(updateSettings.isPending || createSettings.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Preferences
           </Button>
         </form>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
