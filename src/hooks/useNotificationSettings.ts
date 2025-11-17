@@ -17,6 +17,7 @@ export interface NotificationSettings {
   maintenance_notifications_enabled: boolean;
   security_alerts_enabled: boolean;
   low_stock_alerts_enabled: boolean;
+  low_stock_alert_days: number[];
   email_frequency: 'immediate' | 'daily_digest' | 'weekly_digest';
   created_at: string;
   updated_at: string;
@@ -32,6 +33,7 @@ export interface NotificationSettingsFormData {
   maintenance_notifications_enabled?: boolean;
   security_alerts_enabled?: boolean;
   low_stock_alerts_enabled?: boolean;
+  low_stock_alert_days?: number[];
   email_frequency?: 'immediate' | 'daily_digest' | 'weekly_digest';
 }
 

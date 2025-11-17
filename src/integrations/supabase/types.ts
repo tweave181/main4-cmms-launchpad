@@ -1447,6 +1447,7 @@ export type Database = {
           created_at: string | null
           email_frequency: string | null
           id: string
+          low_stock_alert_days: number[] | null
           low_stock_alerts_enabled: boolean | null
           maintenance_notifications_enabled: boolean | null
           security_alerts_enabled: boolean | null
@@ -1465,6 +1466,7 @@ export type Database = {
           created_at?: string | null
           email_frequency?: string | null
           id?: string
+          low_stock_alert_days?: number[] | null
           low_stock_alerts_enabled?: boolean | null
           maintenance_notifications_enabled?: boolean | null
           security_alerts_enabled?: boolean | null
@@ -1483,6 +1485,7 @@ export type Database = {
           created_at?: string | null
           email_frequency?: string | null
           id?: string
+          low_stock_alert_days?: number[] | null
           low_stock_alerts_enabled?: boolean | null
           maintenance_notifications_enabled?: boolean | null
           security_alerts_enabled?: boolean | null
