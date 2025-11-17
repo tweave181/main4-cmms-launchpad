@@ -20,6 +20,7 @@ interface NotificationFormData {
   maintenance_notifications_enabled: boolean;
   security_alerts_enabled: boolean;
   low_stock_alerts_enabled: boolean;
+  low_stock_alert_days: number[];
   email_frequency: 'immediate' | 'daily_digest' | 'weekly_digest';
 }
 
@@ -40,6 +41,7 @@ export const NotificationPreferencesSection: React.FC = () => {
       maintenance_notifications_enabled: settings?.maintenance_notifications_enabled ?? true,
       security_alerts_enabled: settings?.security_alerts_enabled ?? true,
       low_stock_alerts_enabled: settings?.low_stock_alerts_enabled ?? true,
+      low_stock_alert_days: settings?.low_stock_alert_days ?? [1, 2, 3, 4, 5],
       email_frequency: settings?.email_frequency ?? 'immediate',
     },
   });
@@ -55,6 +57,7 @@ export const NotificationPreferencesSection: React.FC = () => {
       setValue('maintenance_notifications_enabled', settings.maintenance_notifications_enabled);
       setValue('security_alerts_enabled', settings.security_alerts_enabled);
       setValue('low_stock_alerts_enabled', settings.low_stock_alerts_enabled);
+      setValue('low_stock_alert_days', settings.low_stock_alert_days ?? [1, 2, 3, 4, 5]);
       setValue('email_frequency', settings.email_frequency);
     }
   }, [settings, setValue]);
@@ -239,19 +242,64 @@ export const NotificationPreferencesSection: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
                     <Label>Low Stock Alerts</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive email notifications when inventory reaches reorder threshold
-                    </p>
+                    <Controller
+                      control={control}
+                      name="low_stock_alerts_enabled"
+                      render={({ field }) => (
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      )}
+                    />
                   </div>
                   <Controller
                     control={control}
-                    name="low_stock_alerts_enabled"
-                    render={({ field }) => (
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    )}
+                    name="low_stock_alert_days"
+                    render={({ field }) => {
+                      const lowStockEnabled = watch('low_stock_alerts_enabled');
+                      const days = [
+                        { label: 'Sun', value: 0 },
+                        { label: 'Mon', value: 1 },
+                        { label: 'Tue', value: 2 },
+                        { label: 'Wed', value: 3 },
+                        { label: 'Thu', value: 4 },
+                        { label: 'Fri', value: 5 },
+                        { label: 'Sat', value: 6 },
+                      ];
+                      
+                      const toggleDay = (dayValue: number) => {
+                        const currentDays = field.value || [];
+                        if (currentDays.includes(dayValue)) {
+                          field.onChange(currentDays.filter(d => d !== dayValue));
+                        } else {
+                          field.onChange([...currentDays, dayValue].sort());
+                        }
+                      };
+
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            {days.map(day => (
+                              <Button
+                                key={day.value}
+                                type="button"
+                                variant={field.value?.includes(day.value) ? 'default' : 'outline'}
+                                size="sm"
+                                disabled={!lowStockEnabled}
+                                onClick={() => toggleDay(day.value)}
+                                className="w-12"
+                              >
+                                {day.label}
+                              </Button>
+                            ))}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Receive email notifications when inventory reaches reorder threshold
+                          </p>
+                        </div>
+                      );
+                    }}
                   />
                 </div>
               </div>
