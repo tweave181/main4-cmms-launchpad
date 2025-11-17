@@ -10,6 +10,8 @@ import { useForm } from 'react-hook-form';
 import { Mail, TestTube, HelpCircle, Loader2 } from 'lucide-react';
 import { useProgramSettings, useUpdateProgramSettings } from '@/hooks/useProgramSettings';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth';
 interface EmailConfigFormData {
   email_provider: string;
   email_from_name: string;
@@ -21,11 +23,13 @@ interface EmailConfigFormData {
   email_signature?: string;
 }
 export const EmailConfigurationSection: React.FC = () => {
+  const { userProfile } = useAuth();
   const {
     data: settings,
     isLoading
   } = useProgramSettings();
   const updateSettings = useUpdateProgramSettings();
+  const [isTestingConnection, setIsTestingConnection] = React.useState(false);
   const {
     register,
     handleSubmit,
@@ -69,6 +73,48 @@ export const EmailConfigurationSection: React.FC = () => {
         toast.error('Failed to save email configuration');
       }
     });
+  };
+
+  const handleTestConnection = async () => {
+    try {
+      setIsTestingConnection(true);
+      
+      const fromName = watch("email_from_name") || settings?.email_from_name || "System";
+      const fromAddress = watch("email_from_address") || settings?.email_from_address || userProfile?.email || "";
+      const recipientEmail = settings?.system_contact_email || userProfile?.email;
+
+      if (!recipientEmail) {
+        toast.error("No recipient email configured. Please set a system contact email in Program Settings.");
+        return;
+      }
+
+      console.log("Testing email connection...");
+
+      const { data, error } = await supabase.functions.invoke("test-email-connection", {
+        body: {
+          recipient_email: recipientEmail,
+          from_name: fromName,
+          from_address: fromAddress,
+        },
+      });
+
+      if (error) {
+        console.error("Test email error:", error);
+        toast.error(`Failed to send test email: ${error.message}`);
+        return;
+      }
+
+      if (data?.success) {
+        toast.success(`Test email sent successfully to ${recipientEmail}! Check your inbox.`);
+      } else {
+        toast.error(data?.error || "Failed to send test email");
+      }
+    } catch (error: any) {
+      console.error("Test connection error:", error);
+      toast.error(`Error testing connection: ${error.message}`);
+    } finally {
+      setIsTestingConnection(false);
+    }
   };
   if (isLoading) {
     return <Card>
@@ -219,9 +265,18 @@ export const EmailConfigurationSection: React.FC = () => {
                 {updateSettings.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Configuration
               </Button>
-              <Button type="button" variant="outline">
-                <TestTube className="mr-2 h-4 w-4" />
-                Test Connection
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={handleTestConnection}
+                disabled={isTestingConnection}
+              >
+                {isTestingConnection ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <TestTube className="mr-2 h-4 w-4" />
+                )}
+                {isTestingConnection ? "Sending..." : "Test Connection"}
               </Button>
             </div>
           </form>
