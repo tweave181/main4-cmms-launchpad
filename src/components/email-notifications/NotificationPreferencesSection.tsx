@@ -9,6 +9,8 @@ import { Bell, Loader2 } from 'lucide-react';
 import { useNotificationSettings, useUpdateNotificationSettings, useCreateNotificationSettings } from '@/hooks/useNotificationSettings';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NotificationFormData {
   contract_reminders_enabled: boolean;
@@ -29,6 +31,8 @@ export const NotificationPreferencesSection: React.FC = () => {
   const updateSettings = useUpdateNotificationSettings();
   const createSettings = useCreateNotificationSettings();
   const [newReminderDay, setNewReminderDay] = React.useState<string>('');
+  const [isTestingLowStock, setIsTestingLowStock] = React.useState(false);
+  const { toast } = useToast();
 
   const { register, handleSubmit, control, watch, setValue } = useForm<NotificationFormData>({
     defaultValues: {
@@ -74,6 +78,36 @@ export const NotificationPreferencesSection: React.FC = () => {
 
   const removeReminderDay = (day: number) => {
     setValue('contract_reminder_days', reminderDays.filter(d => d !== day));
+  };
+
+  const handleTestLowStockAlert = async () => {
+    setIsTestingLowStock(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-low-stock');
+      
+      if (error) throw error;
+      
+      if (data.alerts_sent > 0) {
+        toast({
+          title: "Low Stock Check Complete",
+          description: `${data.alerts_sent} alert(s) sent successfully.`,
+        });
+      } else {
+        toast({
+          title: "Low Stock Check Complete",
+          description: data.message || "No alerts needed at this time.",
+        });
+      }
+    } catch (error) {
+      console.error('Error testing low stock alerts:', error);
+      toast({
+        title: "Test Failed",
+        description: "Failed to run low stock check. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTestingLowStock(false);
+    }
   };
 
   const onSubmit = (data: NotificationFormData) => {
@@ -294,6 +328,20 @@ export const NotificationPreferencesSection: React.FC = () => {
                               </Button>
                             ))}
                           </div>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={!lowStockEnabled || isTestingLowStock}
+                            onClick={handleTestLowStockAlert}
+                            className="mt-2"
+                          >
+                            {isTestingLowStock && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Test Low Stock Alerts
+                          </Button>
+                          <p className="text-xs text-muted-foreground">
+                            Manually trigger low stock check (respects 24-hour alert cooldown)
+                          </p>
                           <p className="text-sm text-muted-foreground">
                             Receive email notifications when inventory reaches reorder threshold
                           </p>
