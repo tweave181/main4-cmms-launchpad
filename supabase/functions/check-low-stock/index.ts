@@ -32,12 +32,21 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get all parts that are below reorder threshold
-    const { data: lowStockParts, error: partsError } = await supabase
+    // Get all parts and filter those below reorder threshold
+    const { data: allParts, error: partsError } = await supabase
       .from('inventory_parts')
       .select('id, name, sku, quantity_in_stock, reorder_threshold, unit_of_measure, category, last_alert_sent_at, tenant_id, supplier_id')
-      .lte('quantity_in_stock', supabase.rpc('reorder_threshold'))
       .order('tenant_id');
+    
+    if (partsError) {
+      console.error('Error fetching inventory parts:', partsError);
+      throw partsError;
+    }
+
+    // Filter parts where quantity_in_stock <= reorder_threshold
+    const lowStockParts = allParts?.filter(part => 
+      part.quantity_in_stock <= part.reorder_threshold
+    ) || [];
 
     if (partsError) {
       console.error('Error fetching low stock parts:', partsError);
