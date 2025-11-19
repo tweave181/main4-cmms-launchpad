@@ -60,8 +60,37 @@ export const EmailConfigurationSection: React.FC = () => {
     }
   }, [settings, setValue]);
   const emailProvider = watch('email_provider');
-  const onSubmit = (data: EmailConfigFormData) => {
+  const onSubmit = async (data: EmailConfigFormData) => {
     if (!settings?.id) return;
+
+    // Verify domain before saving
+    try {
+      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke("verify-email-domain", {
+        body: {
+          email_address: data.email_from_address,
+        },
+      });
+
+      if (verifyError) {
+        console.error("Domain verification error:", verifyError);
+        toast.error(`Failed to verify domain: ${verifyError.message}`);
+        return;
+      }
+
+      if (!verifyResult.verified) {
+        toast.error(verifyResult.message || "Email domain is not verified in Resend. Please verify your domain before saving.");
+        return;
+      }
+
+      // Domain is verified, proceed with saving
+      toast.success(verifyResult.message || "Domain verified successfully");
+    } catch (error: any) {
+      console.error("Domain verification failed:", error);
+      toast.error("Failed to verify email domain. Please check your configuration.");
+      return;
+    }
+
+    // Save the configuration
     updateSettings.mutate({
       id: settings.id,
       data
