@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const RecentEmailActivity: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -125,20 +126,14 @@ export const RecentEmailActivity: React.FC = () => {
             <p>No emails sent yet</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {emailLogs.map((log) => (
-              <div
-                key={log.id}
-                className="flex items-start gap-3 p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors"
-              >
-                <div className="flex-shrink-0 mt-1">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Mail className="h-5 w-5 text-primary" />
-                  </div>
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
+          <ScrollArea className="h-[270px]">
+            <div className="space-y-3 pr-4">
+              {emailLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="flex flex-col gap-1 p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">
                         {log.recipient_name || log.recipient_email}
@@ -154,18 +149,17 @@ export const RecentEmailActivity: React.FC = () => {
                     </span>
                   </div>
                   
-                  <p className="text-sm text-foreground mb-2 line-clamp-1">
-                    {log.subject}
-                  </p>
-                  
                   <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm text-foreground truncate flex-1">
+                      {log.subject}
+                    </p>
                     {getStatusBadge(log.delivery_status)}
                     {getTemplateTypeBadge(log.template_type)}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollArea>
         )}
       </CardContent>
     </Card>
