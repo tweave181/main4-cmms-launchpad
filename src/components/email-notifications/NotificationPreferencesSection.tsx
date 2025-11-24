@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth';
 interface NotificationFormData {
   contract_reminders_enabled: boolean;
   contract_reminder_days: number[];
@@ -25,6 +26,7 @@ interface NotificationFormData {
   email_frequency: 'immediate' | 'daily_digest' | 'weekly_digest';
 }
 export const NotificationPreferencesSection: React.FC = () => {
+  const { userProfile } = useAuth();
   const {
     data: settings,
     isLoading
@@ -89,7 +91,11 @@ export const NotificationPreferencesSection: React.FC = () => {
       const {
         data,
         error
-      } = await supabase.functions.invoke('check-low-stock');
+      } = await supabase.functions.invoke('check-low-stock', {
+        body: {
+          tenant_id: userProfile?.tenant_id,
+        },
+      });
       if (error) throw error;
       if (data.alerts_sent > 0) {
         toast({

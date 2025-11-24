@@ -124,6 +124,7 @@ export const EmailConfigurationSection: React.FC = () => {
           recipient_email: recipientEmail,
           from_name: fromName,
           from_address: fromAddress,
+          tenant_id: userProfile?.tenant_id,
         },
       });
 
