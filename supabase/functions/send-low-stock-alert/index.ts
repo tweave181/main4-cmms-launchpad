@@ -39,7 +39,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Get notification recipients (admins and inventory managers)
     const { data: users, error: usersError } = await supabase
       .from('users')
-      .select('email, name')
+      .select('id, email, name')
       .eq('tenant_id', requestData.tenant_id)
       .eq('role', 'admin')
       .not('email', 'is', null);
@@ -95,12 +95,10 @@ const handler = async (req: Request): Promise<Response> => {
     let emailHtml: string;
 
     if (template) {
-      // Use custom template and replace variables
       console.log('Using custom template:', template.template_name);
       emailSubject = replaceVariables(template.subject, variables);
       emailHtml = replaceVariables(template.body_html, variables);
     } else {
-      // Fallback to default template
       console.log('Using default template');
       emailSubject = `⚠️ Low Stock Alert: ${requestData.part_name}`;
       emailHtml = `
@@ -188,29 +186,54 @@ const handler = async (req: Request): Promise<Response> => {
 
     }
 
-    // Send email to all recipients
-    const emailPromises = recipientEmails.map(email => 
-      resend.emails.send({
-        from: 'Inventory Alerts <onboarding@resend.dev>',
-        to: [email],
-        subject: emailSubject,
-        html: emailHtml,
-      })
-    );
+    // Send email to all recipients and log each one
+    const emailPromises = users.map(async (user) => {
+      try {
+        const emailResult = await resend.emails.send({
+          from: 'Inventory Alerts <onboarding@resend.dev>',
+          to: [user.email!],
+          subject: emailSubject,
+          html: emailHtml,
+        });
+
+        // Log to email_delivery_log
+        await supabase
+          .from('email_delivery_log')
+          .insert({
+            tenant_id: requestData.tenant_id,
+            recipient_email: user.email,
+            recipient_user_id: user.id,
+            subject: emailSubject,
+            template_id: template?.id,
+            delivery_status: 'sent',
+            sent_at: new Date().toISOString(),
+          });
+
+        return { success: true, email: user.email };
+      } catch (error) {
+        // Log failed email
+        await supabase
+          .from('email_delivery_log')
+          .insert({
+            tenant_id: requestData.tenant_id,
+            recipient_email: user.email,
+            recipient_user_id: user.id,
+            subject: emailSubject,
+            template_id: template?.id,
+            delivery_status: 'failed',
+            error_message: error instanceof Error ? error.message : 'Unknown error',
+          });
+
+        return { success: false, email: user.email, error };
+      }
+    });
 
     const results = await Promise.allSettled(emailPromises);
     
-    const successCount = results.filter(r => r.status === 'fulfilled').length;
-    const failureCount = results.filter(r => r.status === 'rejected').length;
+    const successCount = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+    const failureCount = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length;
 
     console.log(`Email results: ${successCount} sent, ${failureCount} failed`);
-
-    // Log failures
-    results.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        console.error(`Failed to send email to ${recipientEmails[index]}:`, result.reason);
-      }
-    });
 
     return new Response(
       JSON.stringify({ 

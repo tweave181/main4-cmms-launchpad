@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,18 +16,20 @@ interface TestEmailRequest {
   recipient_email: string;
   from_name: string;
   from_address: string;
+  tenant_id: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
   try {
     console.log("Test email connection request received");
 
-    const { recipient_email, from_name, from_address }: TestEmailRequest = await req.json();
+    const { recipient_email, from_name, from_address, tenant_id }: TestEmailRequest = await req.json();
 
     console.log(`Sending test email to: ${recipient_email}, from: ${from_name} <${from_address}>`);
 
@@ -50,6 +55,21 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     console.log("Test email sent successfully:", emailResponse);
+
+    // Log to email_delivery_log
+    const { error: logError } = await supabase
+      .from('email_delivery_log')
+      .insert({
+        tenant_id: tenant_id,
+        recipient_email: recipient_email,
+        subject: "🧪 Test Email - Email Configuration",
+        delivery_status: 'sent',
+        sent_at: new Date().toISOString(),
+      });
+
+    if (logError) {
+      console.error('Error logging email:', logError);
+    }
 
     return new Response(JSON.stringify({ 
       success: true,
