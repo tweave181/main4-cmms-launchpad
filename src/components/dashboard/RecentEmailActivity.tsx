@@ -6,9 +6,12 @@ import { useRecentEmailActivity } from '@/hooks/useRecentEmailActivity';
 import { useAuth } from '@/contexts/auth';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export const RecentEmailActivity: React.FC = () => {
   const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const { data: emailLogs, isLoading, error } = useRecentEmailActivity();
 
   // Only render for admin users
@@ -84,10 +87,19 @@ export const RecentEmailActivity: React.FC = () => {
   return (
     <Card className="rounded-2xl shadow-sm border border-border">
       <CardHeader className="pb-4">
-        <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
-          <Mail className="h-6 w-6 text-primary" />
-          <span>Recent Email Activity</span>
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
+            <Mail className="h-6 w-6 text-primary" />
+            <span>Recent Email Activity</span>
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/admin/email-logs')}
+          >
+            View All
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (

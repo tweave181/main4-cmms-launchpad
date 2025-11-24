@@ -45,6 +45,7 @@ import AdminSettings from "./pages/AdminSettings";
 import Preferences from "./pages/Preferences";
 import AddressCardTest from "./pages/AddressCardTest";
 import ChecklistLibrary from "./pages/ChecklistLibrary";
+import EmailLogs from "./pages/EmailLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -91,6 +92,7 @@ function App() {
                                <Route path="/system-audit-log" element={<SystemAuditLog />} />
                               <Route path="/settings" element={<AdminSettings />} />
                               <Route path="/preferences" element={<Preferences />} />
+                              <Route path="/admin/email-logs" element={<EmailLogs />} />
                               
                               {/* New Preferences Routes */}
                               <Route path="/admin/preferences/company" element={<Companies />} />

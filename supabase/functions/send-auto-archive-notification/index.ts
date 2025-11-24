@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,6 +22,8 @@ interface ArchivedPreset {
 interface AutoArchiveNotificationRequest {
   recipientEmail: string;
   recipientName: string;
+  recipientUserId: string;
+  tenantId: string;
   archivedPresets: ArchivedPreset[];
   totalArchived: number;
   archivedAt: string;
@@ -30,15 +35,18 @@ interface AutoArchiveNotificationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
     const {
       recipientEmail,
       recipientName,
+      recipientUserId,
+      tenantId,
       archivedPresets,
       totalArchived,
       archivedAt,
@@ -46,6 +54,8 @@ const handler = async (req: Request): Promise<Response> => {
     }: AutoArchiveNotificationRequest = await req.json();
 
     console.log(`Sending auto-archive notification to ${recipientEmail}`);
+
+    const emailSubject = `🔔 Auto-Archive Complete: ${totalArchived} Preset${totalArchived !== 1 ? "s" : ""} Archived`;
 
     // Generate preset list HTML
     const presetListHtml = archivedPresets
@@ -198,16 +208,41 @@ const handler = async (req: Request): Promise<Response> => {
     const { data, error } = await resend.emails.send({
       from: "Inventory Management <onboarding@resend.dev>",
       to: [recipientEmail],
-      subject: `🔔 Auto-Archive Complete: ${totalArchived} Preset${totalArchived !== 1 ? "s" : ""} Archived`,
+      subject: emailSubject,
       html: emailHtml,
     });
 
     if (error) {
       console.error("Error sending email:", error);
+      
+      // Log failed email
+      await supabase
+        .from('email_delivery_log')
+        .insert({
+          tenant_id: tenantId,
+          recipient_email: recipientEmail,
+          recipient_user_id: recipientUserId,
+          subject: emailSubject,
+          delivery_status: 'failed',
+          error_message: error.message || 'Unknown error',
+        });
+
       throw error;
     }
 
     console.log("Email sent successfully:", data);
+
+    // Log successful email
+    await supabase
+      .from('email_delivery_log')
+      .insert({
+        tenant_id: tenantId,
+        recipient_email: recipientEmail,
+        recipient_user_id: recipientUserId,
+        subject: emailSubject,
+        delivery_status: 'sent',
+        sent_at: new Date().toISOString(),
+      });
 
     return new Response(
       JSON.stringify({

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarGroup, SidebarGroupLabel, SidebarGroupContent } from '@/components/ui/sidebar';
-import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText, BookOpen, FolderOpen, ChevronDown, ChevronRight } from 'lucide-react';
+import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText, BookOpen, FolderOpen, ChevronDown, ChevronRight, Mail } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
@@ -28,6 +28,7 @@ export const AppSidebar = () => {
     { icon: Users, label: 'User Management', href: '/users' },
     { icon: MapPin, label: 'Addresses', href: '/addresses' },
     { icon: ScrollText, label: 'Service Contracts', href: '/admin/service-contracts' },
+    { icon: Mail, label: 'Email Logs', href: '/admin/email-logs' },
     { icon: FileText, label: 'System Audit Log', href: '/system-audit-log' },
     { icon: BookOpen, label: 'Checklist Library', href: '/admin/checklist-library' },
     { icon: Settings, label: 'System Settings', href: '/settings' },
