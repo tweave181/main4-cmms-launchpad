@@ -29,20 +29,23 @@ export const useDashboardStats = () => {
     enabled: !!userProfile?.tenant_id,
   });
 
-  const { data: totalAssets = 0 } = useQuery({
-    queryKey: ['dashboard-total-assets'],
+  const { data: overdueScheduledTasks = 0 } = useQuery({
+    queryKey: ['dashboard-overdue-scheduled-tasks'],
     queryFn: async () => {
       if (!userProfile?.tenant_id) {
         throw new Error('No tenant found');
       }
 
+      const today = new Date().toISOString().split('T')[0];
       const { count, error } = await supabase
-        .from('assets')
+        .from('preventive_maintenance_schedules')
         .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', userProfile.tenant_id);
+        .eq('tenant_id', userProfile.tenant_id)
+        .eq('is_active', true)
+        .lt('next_due_date', today); // Overdue (before today)
 
       if (error) {
-        console.error('Error fetching total assets count:', error);
+        console.error('Error fetching overdue scheduled tasks count:', error);
         throw error;
       }
 
@@ -51,24 +54,23 @@ export const useDashboardStats = () => {
     enabled: !!userProfile?.tenant_id,
   });
 
-  const { data: scheduledTasks = 0 } = useQuery({
-    queryKey: ['dashboard-scheduled-tasks'],
+  const { data: dueTodayScheduledTasks = 0 } = useQuery({
+    queryKey: ['dashboard-due-today-scheduled-tasks'],
     queryFn: async () => {
       if (!userProfile?.tenant_id) {
         throw new Error('No tenant found');
       }
 
-      // Get count of outstanding PM schedules where next_due_date is in the past or today
-      // and last_completed_date is null or before next_due_date
+      const today = new Date().toISOString().split('T')[0];
       const { count, error } = await supabase
         .from('preventive_maintenance_schedules')
         .select('*', { count: 'exact', head: true })
         .eq('tenant_id', userProfile.tenant_id)
         .eq('is_active', true)
-        .lte('next_due_date', new Date().toISOString().split('T')[0]); // Due today or overdue
+        .eq('next_due_date', today); // Due today
 
       if (error) {
-        console.error('Error fetching scheduled tasks count:', error);
+        console.error('Error fetching due today scheduled tasks count:', error);
         throw error;
       }
 
@@ -79,7 +81,7 @@ export const useDashboardStats = () => {
 
   return {
     openWorkOrders,
-    totalAssets,
-    scheduledTasks,
+    overdueScheduledTasks,
+    dueTodayScheduledTasks,
   };
 };
