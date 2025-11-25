@@ -39,7 +39,7 @@ export const useDashboardStats = () => {
       const today = new Date().toISOString().split('T')[0];
       const { count, error } = await supabase
         .from('preventive_maintenance_schedules')
-        .select('*', { count: 'exact', head: true })
+        .select('*, pm_schedule_assets!inner(asset_id)', { count: 'exact', head: true })
         .eq('tenant_id', userProfile.tenant_id)
         .eq('is_active', true)
         .lt('next_due_date', today); // Overdue (before today)
@@ -64,7 +64,7 @@ export const useDashboardStats = () => {
       const today = new Date().toISOString().split('T')[0];
       const { count, error } = await supabase
         .from('preventive_maintenance_schedules')
-        .select('*', { count: 'exact', head: true })
+        .select('*, pm_schedule_assets!inner(asset_id)', { count: 'exact', head: true })
         .eq('tenant_id', userProfile.tenant_id)
         .eq('is_active', true)
         .eq('next_due_date', today); // Due today
