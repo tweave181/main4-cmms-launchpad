@@ -17,6 +17,7 @@ const Dashboard: React.FC = () => {
           <div className="space-y-6">
             <WelcomeCard />
             <QuickActions />
+            <AdminPanel />
           </div>
 
           {/* Right Column */}
@@ -24,7 +25,6 @@ const Dashboard: React.FC = () => {
             <DashboardStats />
             <RecentEmailActivity />
             <UpcomingContractRenewals />
-            <AdminPanel />
         </div>
     </div>
     </div>
