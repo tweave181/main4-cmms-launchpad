@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar, User, Tag } from 'lucide-react';
-import { usePMSchedules } from '@/hooks/usePreventiveMaintenance';
+import { useAllPMSchedules } from '@/hooks/usePreventiveMaintenance';
 import { format } from 'date-fns';
 
 const WorkSchedules: React.FC = () => {
   const navigate = useNavigate();
-  const { data: schedules = [], isLoading } = usePMSchedules();
+  const { data: schedules = [], isLoading } = useAllPMSchedules();
 
   if (isLoading) {
     return (
@@ -85,6 +85,13 @@ const WorkSchedules: React.FC = () => {
                           <Tag className="w-4 h-4" />
                           <span>
                             {schedule.assets?.length || 0} asset(s)
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                          <span>✓</span>
+                          <span>
+                            {schedule.checklist_items?.length || 0} checklist item(s)
                           </span>
                         </div>
                         
