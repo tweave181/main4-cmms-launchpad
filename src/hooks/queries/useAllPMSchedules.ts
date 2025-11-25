@@ -10,7 +10,7 @@ export const useAllPMSchedules = () => {
   return useQuery({
     queryKey: ['all-pm-schedules'],
     queryFn: async (): Promise<PMScheduleWithAssets[]> => {
-      console.log('Fetching ALL PM schedules with checklist items...');
+      console.log('Fetching ALL PM schedules...');
       
       const { data, error } = await supabase
         .from('preventive_maintenance_schedules')
@@ -24,15 +24,6 @@ export const useAllPMSchedules = () => {
               name,
               asset_tag
             )
-          ),
-          pm_schedule_checklist_items(
-            id,
-            pm_schedule_id,
-            item_text,
-            item_type,
-            sort_order,
-            created_at,
-            updated_at
           )
         `)
         .eq('tenant_id', userProfile?.tenant_id)
@@ -45,7 +36,7 @@ export const useAllPMSchedules = () => {
 
       console.log('All PM schedules fetched:', data);
       
-      // Transform the data to include assets and checklist items arrays
+      // Transform the data to include assets array
       const transformedData: PMScheduleWithAssets[] = data.map(schedule => ({
         ...schedule,
         frequency_type: schedule.frequency_type as 'daily' | 'weekly' | 'monthly' | 'custom',
@@ -56,10 +47,6 @@ export const useAllPMSchedules = () => {
           name: schedule.assigned_user.name,
           email: schedule.assigned_user.email
         } : undefined,
-        checklist_items: schedule.pm_schedule_checklist_items?.map(item => ({
-          ...item,
-          item_type: item.item_type as 'checkbox' | 'value'
-        })) || []
       }));
 
       return transformedData;

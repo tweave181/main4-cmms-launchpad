@@ -22,6 +22,7 @@ export const useDeletePMSchedule = () => {
     onSuccess: () => {
       showSuccessToast("Preventive maintenance schedule deleted successfully");
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['all-pm-schedules'] });
       queryClient.invalidateQueries({ queryKey: ['pm-schedules-calendar'] });
     },
     onError: (error) => {

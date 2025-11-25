@@ -29,19 +29,19 @@ export const useCreatePMSchedule = () => {
           frequency_value: data.frequency_value,
           frequency_unit: data.frequency_unit,
           next_due_date: data.next_due_date,
-          assigned_to: data.assigned_to,
+          assigned_to: data.assigned_to || null,
           is_active: data.is_active,
           created_by: userProfile.id,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (scheduleError) throw scheduleError;
 
       console.log('PM schedule created:', schedule);
 
-      // Link assets to the schedule
-      if (data.asset_ids.length > 0) {
+      // Link assets to the schedule (if any)
+      if (data.asset_ids && data.asset_ids.length > 0) {
         const assetLinks = data.asset_ids.map(assetId => ({
           pm_schedule_id: schedule.id,
           asset_id: assetId,
@@ -76,10 +76,12 @@ export const useCreatePMSchedule = () => {
 
       return schedule;
     },
-    onSuccess: () => {
+    onSuccess: (schedule) => {
       showSuccessToast("Preventive maintenance schedule created successfully");
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['all-pm-schedules'] });
       queryClient.invalidateQueries({ queryKey: ['pm-schedules-calendar'] });
+      return schedule;
     },
     onError: (error) => {
       showErrorToast(error, { title: 'Create Failed', context: 'PM Schedule' });

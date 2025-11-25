@@ -1,14 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar, User, Tag } from 'lucide-react';
-import { useAllPMSchedules } from '@/hooks/usePreventiveMaintenance';
+import { Plus, Calendar, User, Tag, Edit, Trash2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAllPMSchedules, useDeletePMSchedule } from '@/hooks/usePreventiveMaintenance';
+import { CreateWorkScheduleModal } from '@/components/maintenance/CreateWorkScheduleModal';
+import { EditWorkScheduleModal } from '@/components/maintenance/EditWorkScheduleModal';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import type { PMScheduleWithAssets } from '@/types/preventiveMaintenance';
 import { format } from 'date-fns';
 
 const WorkSchedules: React.FC = () => {
   const navigate = useNavigate();
   const { data: schedules = [], isLoading } = useAllPMSchedules();
+  const deleteSchedule = useDeletePMSchedule();
+  
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<PMScheduleWithAssets | null>(null);
+  const [deleteConfirmSchedule, setDeleteConfirmSchedule] = useState<PMScheduleWithAssets | null>(null);
 
   if (isLoading) {
     return (
@@ -29,7 +40,7 @@ const WorkSchedules: React.FC = () => {
             Manage all preventive maintenance schedule definitions
           </p>
         </div>
-        <Button onClick={() => navigate('/pm/new')}>
+        <Button onClick={() => setCreateModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Create Schedule
         </Button>
@@ -54,75 +65,145 @@ const WorkSchedules: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-2">
-              {schedules.map((schedule) => (
-                <div
-                  key={schedule.id}
-                  onClick={() => navigate(`/pm/${schedule.id}`)}
-                  className="p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{schedule.name}</h3>
-                        {!schedule.is_active && (
-                          <span className="text-xs px-2 py-1 bg-muted rounded-full">
-                            Inactive
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>
-                            {schedule.frequency_type === 'custom' 
-                              ? `Every ${schedule.frequency_value} ${schedule.frequency_unit}`
-                              : schedule.frequency_type}
-                          </span>
+              {schedules.map((schedule) => {
+                const canDelete = (schedule.assets?.length || 0) === 0;
+                
+                return (
+                  <div
+                    key={schedule.id}
+                    className="p-4 border rounded-lg transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div 
+                        className="flex-1 cursor-pointer hover:bg-accent/50 rounded p-2 -m-2"
+                        onClick={() => navigate(`/pm/${schedule.id}`)}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-lg">{schedule.name}</h3>
+                          {!schedule.is_active && (
+                            <span className="text-xs px-2 py-1 bg-muted rounded-full">
+                              Inactive
+                            </span>
+                          )}
                         </div>
                         
-                        <div className="flex items-center gap-1">
-                          <Tag className="w-4 h-4" />
-                          <span>
-                            {schedule.assets?.length || 0} asset(s)
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-1">
-                          <span>✓</span>
-                          <span>
-                            {schedule.checklist_items?.length || 0} checklist item(s)
-                          </span>
-                        </div>
-                        
-                        {schedule.assigned_user && (
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
-                            <User className="w-4 h-4" />
-                            <span>{schedule.assigned_user.name}</span>
+                            <Calendar className="w-4 h-4" />
+                            <span>
+                              {schedule.frequency_type === 'custom' 
+                                ? `Every ${schedule.frequency_value} ${schedule.frequency_unit}`
+                                : schedule.frequency_type}
+                            </span>
                           </div>
-                        )}
+                          
+                          <div className="flex items-center gap-1">
+                            <Tag className="w-4 h-4" />
+                            <span>
+                              {schedule.assets?.length || 0} asset(s)
+                            </span>
+                          </div>
+                          
+                          {schedule.assigned_user && (
+                            <div className="flex items-center gap-1">
+                              <User className="w-4 h-4" />
+                              <span>{schedule.assigned_user.name}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="mt-2 text-sm">
+                          <span className="text-muted-foreground">Next Due: </span>
+                          <span className={
+                            new Date(schedule.next_due_date) < new Date()
+                              ? 'text-destructive font-medium'
+                              : new Date(schedule.next_due_date).toDateString() === new Date().toDateString()
+                              ? 'text-amber-600 font-medium'
+                              : 'text-foreground'
+                          }>
+                            {format(new Date(schedule.next_due_date), 'PPP')}
+                          </span>
+                        </div>
                       </div>
                       
-                      <div className="mt-2 text-sm">
-                        <span className="text-muted-foreground">Next Due: </span>
-                        <span className={
-                          new Date(schedule.next_due_date) < new Date()
-                            ? 'text-destructive font-medium'
-                            : new Date(schedule.next_due_date).toDateString() === new Date().toDateString()
-                            ? 'text-amber-600 font-medium'
-                            : 'text-foreground'
-                        }>
-                          {format(new Date(schedule.next_due_date), 'PPP')}
-                        </span>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedSchedule(schedule);
+                            setEditModalOpen(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                        
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (canDelete) {
+                                      setDeleteConfirmSchedule(schedule);
+                                    }
+                                  }}
+                                  disabled={!canDelete}
+                                  className={!canDelete ? 'opacity-50' : 'hover:bg-destructive/10 hover:text-destructive'}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {canDelete 
+                                ? 'Delete schedule' 
+                                : `Cannot delete - ${schedule.assets?.length} asset(s) linked`}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
       </Card>
+
+      <CreateWorkScheduleModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+      />
+
+      {selectedSchedule && (
+        <EditWorkScheduleModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          schedule={selectedSchedule}
+        />
+      )}
+
+      <ConfirmationDialog
+        isOpen={deleteConfirmSchedule !== null}
+        onClose={() => setDeleteConfirmSchedule(null)}
+        onConfirm={() => {
+          if (deleteConfirmSchedule) {
+            deleteSchedule.mutate(deleteConfirmSchedule.id);
+            setDeleteConfirmSchedule(null);
+          }
+        }}
+        title="Delete Work Schedule"
+        description={`Are you sure you want to delete "${deleteConfirmSchedule?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="destructive"
+      />
     </div>
   );
 };
