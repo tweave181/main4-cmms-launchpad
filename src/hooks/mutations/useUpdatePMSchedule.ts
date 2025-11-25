@@ -21,7 +21,7 @@ export const useUpdatePMSchedule = () => {
           frequency_value: data.frequency_value,
           frequency_unit: data.frequency_unit,
           next_due_date: data.next_due_date,
-          assigned_to: data.assigned_to,
+          assigned_to: data.assigned_to || null,
           is_active: data.is_active,
         })
         .eq('id', id);
@@ -81,6 +81,7 @@ export const useUpdatePMSchedule = () => {
     onSuccess: () => {
       showSuccessToast("Preventive maintenance schedule updated successfully");
       queryClient.invalidateQueries({ queryKey: ['pm-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['all-pm-schedules'] });
       queryClient.invalidateQueries({ queryKey: ['pm-schedules-calendar'] });
     },
     onError: (error) => {
