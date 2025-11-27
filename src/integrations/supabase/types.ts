@@ -1849,6 +1849,7 @@ export type Database = {
       preventive_maintenance_schedules: {
         Row: {
           assigned_to: string | null
+          checklist_record_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -1866,6 +1867,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          checklist_record_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -1883,6 +1885,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          checklist_record_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -1904,6 +1907,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventive_maintenance_schedules_checklist_record_id_fkey"
+            columns: ["checklist_record_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_records"
             referencedColumns: ["id"]
           },
           {
