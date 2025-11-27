@@ -38,8 +38,8 @@ export interface PMScheduleFormData {
   name: string;
   description?: string;
   instructions?: string;
-  frequency_type: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
-  frequency_value: number;
+  frequency_type?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
+  frequency_value?: number;
   frequency_unit?: 'days' | 'weeks' | 'months' | 'years';
   next_due_date: string;
   asset_ids: string[];
