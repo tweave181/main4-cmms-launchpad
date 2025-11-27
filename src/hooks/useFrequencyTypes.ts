@@ -34,9 +34,10 @@ export const useCreateFrequencyType = () => {
 
   return useMutation({
     mutationFn: async (data: { name: string; description?: string; sort_order: number; is_active: boolean }) => {
+      // tenant_id is now nullable for global frequency types
       const { data: result, error } = await supabase
         .from('frequency_types')
-        .insert([data as any])
+        .insert([{ ...data, tenant_id: null }])
         .select()
         .single();
 
