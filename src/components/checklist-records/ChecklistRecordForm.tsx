@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { ChecklistRecordFormData } from "@/hooks/useChecklistRecords";
 import { useCategories } from "@/hooks/useCategories";
+import { useFrequencyTypes } from "@/hooks/useFrequencyTypes";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -46,6 +47,7 @@ export function ChecklistRecordForm({
   submitLabel = "Create Record",
 }: ChecklistRecordFormProps) {
   const { categories } = useCategories();
+  const { data: frequencyTypes = [] } = useFrequencyTypes();
   
   const form = useForm<ChecklistRecordFormData>({
     resolver: zodResolver(formSchema),
@@ -135,9 +137,20 @@ export function ChecklistRecordForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Frequency Type</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Daily, Weekly, Monthly" {...field} />
-                </FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {frequencyTypes.map((freq) => (
+                      <SelectItem key={freq.id} value={freq.name}>
+                        {freq.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormDescription>
                   Recommended maintenance frequency
                 </FormDescription>

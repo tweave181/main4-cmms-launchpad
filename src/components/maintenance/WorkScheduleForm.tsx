@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { PMAssetSelector } from './PMAssetSelector';
-import { FrequencyControl, type FrequencyValue } from './FrequencyControl';
 import { useUsers } from '@/hooks/usePreventiveMaintenance';
 import { useChecklistRecords } from '@/hooks/useChecklistRecords';
 import type { PMScheduleFormData } from '@/types/preventiveMaintenance';
@@ -21,9 +20,6 @@ const workScheduleSchema = z.object({
   name: z.string().min(1, 'Schedule name is required'),
   description: z.string().optional(),
   instructions: z.string().optional(),
-  frequency_type: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'custom']),
-  frequency_value: z.number().min(1, 'Frequency value must be at least 1'),
-  frequency_unit: z.enum(['days', 'weeks', 'months', 'years']).optional(),
   next_due_date: z.string().min(1, 'Next due date is required'),
   asset_ids: z.array(z.string()), // No .min(1) - assets are optional
   assigned_to: z.string().optional(),
@@ -55,14 +51,14 @@ export const WorkScheduleForm: React.FC<WorkScheduleFormProps> = ({
       name: initialData?.name || '',
       description: initialData?.description || '',
       instructions: initialData?.instructions || '',
-      frequency_type: initialData?.frequency_type || 'monthly',
-      frequency_value: initialData?.frequency_value || 1,
-      frequency_unit: initialData?.frequency_unit || 'months',
       next_due_date: initialData?.next_due_date || '',
       asset_ids: initialData?.asset_ids || [],
       assigned_to: initialData?.assigned_to || '',
       checklist_record_id: initialData?.checklist_record_id || '',
       is_active: initialData?.is_active ?? true,
+      frequency_type: 'monthly',
+      frequency_value: 1,
+      frequency_unit: 'months',
       checklist_items: [],
     },
   });
@@ -192,22 +188,6 @@ export const WorkScheduleForm: React.FC<WorkScheduleFormProps> = ({
               <FormMessage />
             </FormItem>
           )}
-        />
-
-        <FrequencyControl
-          value={{
-            frequency_type: form.watch('frequency_type'),
-            frequency_value: form.watch('frequency_value'),
-            frequency_unit: form.watch('frequency_unit'),
-          }}
-          onChange={(value: FrequencyValue) => {
-            form.setValue('frequency_type', value.frequency_type);
-            form.setValue('frequency_value', value.frequency_value);
-            form.setValue('frequency_unit', value.frequency_unit);
-          }}
-          error={form.formState.errors.frequency_type?.message || 
-                 form.formState.errors.frequency_value?.message ||
-                 form.formState.errors.frequency_unit?.message}
         />
 
         <FormField
