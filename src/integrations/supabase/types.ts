@@ -584,6 +584,60 @@ export type Database = {
           },
         ]
       }
+      checklist_records: {
+        Row: {
+          asset_type: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          frequency_type: string | null
+          id: string
+          is_active: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          asset_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          frequency_type?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          asset_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          frequency_type?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comment_status_options: {
         Row: {
           created_at: string
