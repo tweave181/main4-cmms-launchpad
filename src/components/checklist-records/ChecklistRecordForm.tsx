@@ -14,7 +14,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ChecklistRecordFormData } from "@/hooks/useChecklistRecords";
+import { useCategories } from "@/hooks/useCategories";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -37,6 +45,8 @@ export function ChecklistRecordForm({
   onCancel,
   submitLabel = "Create Record",
 }: ChecklistRecordFormProps) {
+  const { categories } = useCategories();
+  
   const form = useForm<ChecklistRecordFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -97,9 +107,20 @@ export function ChecklistRecordForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Asset Type</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Pump, HVAC, Motor" {...field} />
-                </FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormDescription>
                   Type of asset this checklist is designed for
                 </FormDescription>
