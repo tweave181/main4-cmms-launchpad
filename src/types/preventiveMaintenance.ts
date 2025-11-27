@@ -45,11 +45,12 @@ export interface PMScheduleFormData {
   asset_ids: string[];
   assigned_to?: string;
   is_active: boolean;
+  checklist_record_id?: string;
   checklist_items: Array<{
     item_text: string;
     item_type: 'checkbox' | 'value';
     sort_order: number;
-  }>; // Deprecated - kept for backward compatibility
+  }>;
 }
 
 export interface PMScheduleWithAssets extends PreventiveMaintenanceSchedule {
