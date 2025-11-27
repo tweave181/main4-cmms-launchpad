@@ -584,6 +584,45 @@ export type Database = {
           },
         ]
       }
+      checklist_record_lines: {
+        Row: {
+          checklist_line_id: string
+          checklist_record_id: string
+          created_at: string
+          id: string
+          sort_order: number
+        }
+        Insert: {
+          checklist_line_id: string
+          checklist_record_id: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+        }
+        Update: {
+          checklist_line_id?: string
+          checklist_record_id?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_record_lines_checklist_line_id_fkey"
+            columns: ["checklist_line_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_item_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_record_lines_checklist_record_id_fkey"
+            columns: ["checklist_record_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checklist_records: {
         Row: {
           asset_type: string | null
