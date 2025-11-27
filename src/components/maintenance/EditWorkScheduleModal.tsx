@@ -7,7 +7,6 @@ import {
 } from '@/components/ui/dialog';
 import { WorkScheduleForm } from './WorkScheduleForm';
 import { useUpdatePMSchedule } from '@/hooks/usePreventiveMaintenance';
-import { usePMScheduleTemplateItems, useAddTemplateItemsToSchedule, useRemoveTemplateItemFromSchedule } from '@/hooks/usePMScheduleTemplateItems';
 import type { PMScheduleFormData, PMScheduleWithAssets } from '@/types/preventiveMaintenance';
 
 interface EditWorkScheduleModalProps {
@@ -22,9 +21,6 @@ export const EditWorkScheduleModal: React.FC<EditWorkScheduleModalProps> = ({
   schedule,
 }) => {
   const updateSchedule = useUpdatePMSchedule();
-  const { data: existingTemplateItems = [] } = usePMScheduleTemplateItems(schedule.id);
-  const addTemplateItems = useAddTemplateItemsToSchedule();
-  const removeTemplateItem = useRemoveTemplateItemFromSchedule();
 
   const initialData: Partial<PMScheduleFormData> = {
     name: schedule.name,
@@ -36,40 +32,16 @@ export const EditWorkScheduleModal: React.FC<EditWorkScheduleModalProps> = ({
     next_due_date: schedule.next_due_date,
     asset_ids: schedule.assets?.map(a => a.id) || [],
     assigned_to: schedule.assigned_to || '',
+    checklist_record_id: (schedule as any).checklist_record_id || '',
     is_active: schedule.is_active,
   };
 
-  const handleSubmit = async (data: PMScheduleFormData, templateItemIds: string[]) => {
+  const handleSubmit = async (data: PMScheduleFormData) => {
     try {
-      // Update the schedule
       await updateSchedule.mutateAsync({
         id: schedule.id,
         data,
       });
-
-      // Handle template items changes
-      const existingIds = existingTemplateItems.map(item => item.template_item_id);
-      const newIds = templateItemIds.filter(id => !existingIds.includes(id));
-      const removedItems = existingTemplateItems.filter(item => !templateItemIds.includes(item.template_item_id));
-
-      // Add new template items
-      if (newIds.length > 0) {
-        await addTemplateItems.mutateAsync({
-          scheduleId: schedule.id,
-          templateIds: newIds,
-        });
-      }
-
-      // Remove deleted template items (except safety-critical ones)
-      for (const item of removedItems) {
-        if (!item.template?.safety_critical) {
-          await removeTemplateItem.mutateAsync({
-            scheduleId: schedule.id,
-            itemId: item.id,
-          });
-        }
-      }
-
       onOpenChange(false);
     } catch (error) {
       console.error('Error updating work schedule:', error);
@@ -85,9 +57,8 @@ export const EditWorkScheduleModal: React.FC<EditWorkScheduleModalProps> = ({
         <WorkScheduleForm
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}
-          loading={updateSchedule.isPending || addTemplateItems.isPending || removeTemplateItem.isPending}
+          loading={updateSchedule.isPending}
           initialData={initialData}
-          initialTemplateItems={existingTemplateItems}
         />
       </DialogContent>
     </Dialog>

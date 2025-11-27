@@ -9,13 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { PMAssetSelector } from './PMAssetSelector';
-import { SelectChecklistFromLibrary } from './SelectChecklistFromLibrary';
-import { SelectedChecklistItems } from './SelectedChecklistItems';
 import { FrequencyControl, type FrequencyValue } from './FrequencyControl';
 import { useUsers } from '@/hooks/usePreventiveMaintenance';
+import { useChecklistRecords } from '@/hooks/useChecklistRecords';
 import type { PMScheduleFormData } from '@/types/preventiveMaintenance';
-import type { ChecklistItemTemplate, PMScheduleTemplateItem } from '@/types/checklistTemplate';
-import { Plus, AlertCircle } from 'lucide-react';
+import { AlertCircle, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Schema for work schedule form - assets are OPTIONAL
@@ -29,15 +27,15 @@ const workScheduleSchema = z.object({
   next_due_date: z.string().min(1, 'Next due date is required'),
   asset_ids: z.array(z.string()), // No .min(1) - assets are optional
   assigned_to: z.string().optional(),
+  checklist_record_id: z.string().min(1, 'Checklist record is required'),
   is_active: z.boolean(),
 });
 
 interface WorkScheduleFormProps {
-  onSubmit: (data: PMScheduleFormData, templateItemIds: string[]) => void;
+  onSubmit: (data: PMScheduleFormData) => void;
   onCancel: () => void;
   loading: boolean;
   initialData?: Partial<PMScheduleFormData>;
-  initialTemplateItems?: PMScheduleTemplateItem[];
 }
 
 export const WorkScheduleForm: React.FC<WorkScheduleFormProps> = ({
@@ -45,14 +43,13 @@ export const WorkScheduleForm: React.FC<WorkScheduleFormProps> = ({
   onCancel,
   loading,
   initialData,
-  initialTemplateItems = [],
 }) => {
   const { data: users = [] } = useUsers();
-  const [libraryOpen, setLibraryOpen] = React.useState(false);
-  const [selectedTemplateItems, setSelectedTemplateItems] = React.useState<PMScheduleTemplateItem[]>(initialTemplateItems);
-  const [checklistError, setChecklistError] = React.useState<string>('');
+  const { data: checklistRecords = [], isLoading: recordsLoading } = useChecklistRecords();
   
-  const form = useForm<Omit<PMScheduleFormData, 'checklist_items'>>({
+  const activeRecords = checklistRecords.filter(r => r.is_active);
+  
+  const form = useForm<PMScheduleFormData>({
     resolver: zodResolver(workScheduleSchema),
     defaultValues: {
       name: initialData?.name || '',
@@ -64,55 +61,21 @@ export const WorkScheduleForm: React.FC<WorkScheduleFormProps> = ({
       next_due_date: initialData?.next_due_date || '',
       asset_ids: initialData?.asset_ids || [],
       assigned_to: initialData?.assigned_to || '',
+      checklist_record_id: initialData?.checklist_record_id || '',
       is_active: initialData?.is_active ?? true,
+      checklist_items: [],
     },
   });
 
-  const handleSubmit = (data: Omit<PMScheduleFormData, 'checklist_items'>) => {
-    // Validate checklist items
-    if (selectedTemplateItems.length === 0) {
-      setChecklistError('Please add at least one checklist item from the library');
-      return;
-    }
-    
-    setChecklistError('');
-    
+  const handleSubmit = (data: PMScheduleFormData) => {
     // Convert "unassigned" back to empty string for the API
     const submitData: PMScheduleFormData = {
       ...data,
       assigned_to: data.assigned_to === 'unassigned' ? '' : data.assigned_to,
-      checklist_items: [], // Not used anymore
     };
     
-    const templateItemIds = selectedTemplateItems.map(item => item.template_item_id);
-    onSubmit(submitData, templateItemIds);
+    onSubmit(submitData);
   };
-
-  const handleSelectFromLibrary = (templates: ChecklistItemTemplate[]) => {
-    const newItems: PMScheduleTemplateItem[] = templates.map((template, index) => ({
-      id: `temp-${Date.now()}-${index}`,
-      pm_schedule_id: '',
-      template_item_id: template.id,
-      sort_order: selectedTemplateItems.length + index + 1,
-      created_at: new Date().toISOString(),
-      template: template,
-    }));
-    
-    setSelectedTemplateItems([...selectedTemplateItems, ...newItems]);
-    setChecklistError('');
-  };
-
-  const handleRemoveItem = (itemId: string) => {
-    setSelectedTemplateItems(items => items.filter(i => i.id !== itemId));
-  };
-
-  const handleReorderItems = (reorderedItems: PMScheduleTemplateItem[]) => {
-    setSelectedTemplateItems(reorderedItems);
-  };
-
-  const safetyCriticalCount = selectedTemplateItems.filter(
-    item => item.template?.safety_critical
-  ).length;
 
   return (
     <Form {...form}>
@@ -288,65 +251,52 @@ export const WorkScheduleForm: React.FC<WorkScheduleFormProps> = ({
           />
         </div>
 
-        {/* Checklist Items Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-sm font-medium">
-                Maintenance Checklist *
-              </label>
+        {/* Checklist Record Selection */}
+        <FormField
+          control={form.control}
+          name="checklist_record_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Checklist Record *</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                value={field.value}
+                disabled={recordsLoading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={recordsLoading ? "Loading records..." : "Select a checklist record"} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {activeRecords.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No active checklist records available.</p>
+                      <p className="text-xs mt-1">Create one first in Checklist Records.</p>
+                    </div>
+                  ) : (
+                    activeRecords.map((record) => (
+                      <SelectItem key={record.id} value={record.id}>
+                        <div className="flex flex-col">
+                          <span>{record.name}</span>
+                          {(record.asset_type || record.frequency_type) && (
+                            <span className="text-xs text-muted-foreground">
+                              {[record.asset_type, record.frequency_type].filter(Boolean).join(' • ')}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
               <p className="text-xs text-muted-foreground mt-1">
-                Select reusable checklist items from the library
+                The checklist record defines what work should be done for this schedule
               </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setLibraryOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add from Library
-            </Button>
-          </div>
-
-          {checklistError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{checklistError}</AlertDescription>
-            </Alert>
+              <FormMessage />
+            </FormItem>
           )}
-
-          {selectedTemplateItems.length > 0 ? (
-            <div className="space-y-2">
-              <div className="text-xs text-muted-foreground">
-                {selectedTemplateItems.length} item{selectedTemplateItems.length !== 1 ? 's' : ''} selected
-                {safetyCriticalCount > 0 && (
-                  <span className="text-destructive font-medium ml-1">
-                    ({safetyCriticalCount} safety-critical)
-                  </span>
-                )}
-              </div>
-              <SelectedChecklistItems
-                items={selectedTemplateItems}
-                onRemove={handleRemoveItem}
-                onReorder={handleReorderItems}
-              />
-            </div>
-          ) : (
-            <div className="border-2 border-dashed rounded-lg p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                No checklist items selected. Click "Add from Library" to get started.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <SelectChecklistFromLibrary
-          open={libraryOpen}
-          onOpenChange={setLibraryOpen}
-          onSelect={handleSelectFromLibrary}
-          excludeIds={selectedTemplateItems.map(item => item.template_item_id)}
         />
 
         <div className="flex justify-start space-x-4 pt-4 border-t">
