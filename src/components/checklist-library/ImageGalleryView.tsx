@@ -68,7 +68,7 @@ export const ImageGalleryView: React.FC<ImageGalleryViewProps> = ({
     return (
       <Card className="p-8 text-center">
         <Camera className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <p className="text-muted-foreground">No images found in checklist library</p>
+        <p className="text-muted-foreground">No images found in checklist lines library</p>
       </Card>
     );
   }

@@ -67,7 +67,7 @@ export const SelectChecklistFromLibrary: React.FC<SelectChecklistFromLibraryProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Add Checklist Items from Library</DialogTitle>
+          <DialogTitle>Add Checklist Lines from Library</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">

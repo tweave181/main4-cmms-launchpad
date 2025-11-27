@@ -87,12 +87,12 @@ export default function ChecklistLibrary() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Checklist Library</h1>
-            <p className="text-muted-foreground">Manage reusable checklist items</p>
+            <h1 className="text-3xl font-bold">Checklist Lines Library</h1>
+            <p className="text-muted-foreground">Manage reusable checklist line items</p>
           </div>
           <Button onClick={() => setShowAddModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Item
+            Add Line
           </Button>
         </div>
 

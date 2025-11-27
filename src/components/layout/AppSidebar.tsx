@@ -31,7 +31,7 @@ export const AppSidebar = () => {
     { icon: Calendar, label: 'Work Schedules', href: '/admin/work-schedules' },
     { icon: Mail, label: 'Email Logs', href: '/admin/email-logs' },
     { icon: FileText, label: 'System Audit Log', href: '/system-audit-log' },
-    { icon: BookOpen, label: 'Checklist Library', href: '/admin/checklist-library' },
+    { icon: BookOpen, label: 'Checklist Lines Library', href: '/admin/checklist-library' },
     { icon: Settings, label: 'System Settings', href: '/settings' },
   ];
 
