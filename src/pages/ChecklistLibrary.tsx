@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Download, Grid, Table as TableIcon } from 'lucide-react';
+import { Plus, Search, Download, Grid, Table as TableIcon, FileText } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,7 +84,7 @@ export default function ChecklistLibrary() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Checklist Lines Library</h1>
@@ -97,7 +97,7 @@ export default function ChecklistLibrary() {
         </div>
 
         <Card>
-          <CardContent className="p-6 space-y-4">
+          <CardContent className="p-4 space-y-4">
             <div className="flex gap-4 items-center">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -180,65 +180,36 @@ export default function ChecklistLibrary() {
                         }}
                       />
                     </TableHead>
-                    <TableHead>Image</TableHead>
-                    <TableHead>Item Text</TableHead>
-                    <TableHead>Image Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Safety</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Item</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {templates.map((template) => (
-                    <TableRow key={template.id}>
-                      <TableCell>
+                    <TableRow 
+                      key={template.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => setEditingId(template.id)}
+                    >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedIds.has(template.id)}
                           onCheckedChange={() => toggleSelect(template.id)}
                         />
                       </TableCell>
-                      <TableCell>
-                        {template.image_url && (
-                          <img src={template.image_url} alt="" className="h-12 w-12 object-cover rounded" />
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">{template.item_text}</TableCell>
-                      <TableCell>
-                        {template.image_url ? (
-                          <ImageNameEditor
-                            templateId={template.id}
-                            currentName={template.image_name || template.item_text}
-                          />
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell><ChecklistTypeBadge type={template.item_type} /></TableCell>
-                      <TableCell>
-                        {template.safety_critical && (
-                          <span className="text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded">Critical</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {template.image_url && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={async () => {
-                                try {
-                                  await downloadSingleImage(template.image_url!, template.image_name || template.item_text);
-                                  toast.success('Image downloaded');
-                                } catch {
-                                  toast.error('Download failed');
-                                }
-                              }}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
+                      <TableCell className="w-full py-4">
+                        <div className="flex items-center gap-3">
+                          {template.image_url ? (
+                            <img 
+                              src={template.image_url} 
+                              alt={template.image_name || 'Checklist item'}
+                              className="h-12 w-12 object-cover rounded flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="h-12 w-12 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                              <FileText className="h-6 w-6 text-muted-foreground" />
+                            </div>
                           )}
-                          <Button variant="ghost" size="sm" onClick={() => setEditingId(template.id)}>Edit</Button>
-                          <Button variant="ghost" size="sm" onClick={() => setViewingUsageId(template.id)}>Usage</Button>
+                          <span className="font-medium text-base">{template.item_text}</span>
                         </div>
                       </TableCell>
                     </TableRow>
