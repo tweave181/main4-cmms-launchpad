@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Plus, Search, Download, Grid, Table as TableIcon, FileText } from 'lucide-react';
-import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -83,8 +82,7 @@ export default function ChecklistLibrary() {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-4">
+    <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Checklist Lines Library</h1>
@@ -219,7 +217,6 @@ export default function ChecklistLibrary() {
             )}
           </CardContent>
         </Card>
-      </div>
 
       <AddChecklistTemplateModal open={showAddModal} onOpenChange={setShowAddModal} />
       {editingId && (
@@ -228,6 +225,6 @@ export default function ChecklistLibrary() {
       {viewingUsageId && (
         <TemplateUsageModal templateId={viewingUsageId} open={!!viewingUsageId} onOpenChange={(open) => !open && setViewingUsageId(null)} />
       )}
-    </AppLayout>
+    </div>
   );
 }
