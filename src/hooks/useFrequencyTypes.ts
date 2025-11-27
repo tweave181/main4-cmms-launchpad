@@ -33,7 +33,7 @@ export const useCreateFrequencyType = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { name: string; description?: string; sort_order?: number; is_active?: boolean }) => {
+    mutationFn: async (data: { name: string; description?: string; sort_order: number; is_active: boolean }) => {
       const { data: result, error } = await supabase
         .from('frequency_types')
         .insert([data as any])
@@ -58,7 +58,7 @@ export const useUpdateFrequencyType = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<FrequencyType> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string; sort_order?: number; is_active?: boolean } }) => {
       const { error } = await supabase
         .from('frequency_types')
         .update(data)

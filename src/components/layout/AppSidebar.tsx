@@ -45,6 +45,7 @@ export const AppSidebar = () => {
     { icon: FolderOpen, label: 'Categories', href: '/admin/preferences/categories' },
     { icon: Tag, label: 'Spare Parts Categories', href: '/spare-parts-categories' },
     { icon: Cog, label: 'Asset Prefixes', href: '/admin/preferences/asset-prefixes' },
+    { icon: Calendar, label: 'Frequency Types', href: '/admin/preferences/frequency-types' },
   ];
 
   return (

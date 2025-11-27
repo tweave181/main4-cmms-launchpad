@@ -40,7 +40,7 @@ import {
   useUpdatePMSchedule,
   useUsers 
 } from '@/hooks/usePreventiveMaintenance';
-import { FrequencyControl, type FrequencyValue } from '@/components/maintenance/FrequencyControl';
+
 import { SelectChecklistFromLibrary } from '@/components/maintenance/SelectChecklistFromLibrary';
 import { SelectedChecklistItems } from '@/components/maintenance/SelectedChecklistItems';
 import { ChecklistTypeBadge } from '@/components/checklist-library/ChecklistTypeIcons';
@@ -65,9 +65,6 @@ const pmScheduleSchema = z.object({
   name: z.string().min(1, 'Schedule name is required'),
   description: z.string().optional(),
   instructions: z.string().optional(),
-  frequency_type: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'custom']),
-  frequency_value: z.number().min(1, 'Frequency value must be at least 1'),
-  frequency_unit: z.enum(['days', 'weeks', 'months', 'years']).optional(),
   next_due_date: z.string().min(1, 'Next due date is required'),
   asset_ids: z.array(z.string()).min(1, 'At least one asset must be selected'),
   assigned_to: z.string().optional(),
@@ -125,9 +122,6 @@ const PMScheduleDetail: React.FC = () => {
       name: '',
       description: '',
       instructions: '',
-      frequency_type: 'monthly',
-      frequency_value: 1,
-      frequency_unit: 'months',
       next_due_date: '',
       asset_ids: [],
       assigned_to: '',
@@ -155,9 +149,6 @@ const PMScheduleDetail: React.FC = () => {
         name: schedule.name,
         description: schedule.description || '',
         instructions: schedule.instructions || '',
-        frequency_type: schedule.frequency_type,
-        frequency_value: schedule.frequency_value,
-        frequency_unit: schedule.frequency_unit,
         next_due_date: schedule.next_due_date,
         asset_ids: assetIds,
         assigned_to: schedule.assigned_to || '',
@@ -172,41 +163,6 @@ const PMScheduleDetail: React.FC = () => {
   }, [schedule, form, isNew]);
 
   // Utility functions
-  const getFrequencyText = (formData: FormData) => {
-    const type = formData.frequency_type;
-    const value = formData.frequency_value;
-    
-    // Handle preset mappings for display
-    if (type === 'weekly' && value === 4) return 'Four Weekly';
-    if (type === 'monthly' && value === 6) return 'Six Monthly';
-    if (type === 'yearly' && value === 2) return 'Two Yearly';
-    if (type === 'monthly' && value === 3) return 'Quarterly';
-    
-    // Handle standard frequencies  
-    if (value === 1) {
-      switch (type) {
-        case 'daily': return 'Daily';
-        case 'weekly': return 'Weekly';
-        case 'monthly': return 'Monthly';
-        case 'yearly': return 'Yearly';
-        default: return 'Custom';
-      }
-    }
-    
-    // Handle custom frequencies
-    if (type === 'custom') {
-      return `Every ${value} ${formData.frequency_unit}`;
-    }
-    
-    // Handle other multi-value frequencies
-    const unit = type === 'daily' ? 'days' : 
-                type === 'weekly' ? 'weeks' : 
-                type === 'monthly' ? 'months' : 
-                type === 'yearly' ? 'years' : 'units';
-    
-    return `Every ${value} ${unit}`;
-  };
-
   const getDaysUntilDue = (dueDate: string) => {
     const today = new Date();
     const due = new Date(dueDate);
@@ -267,9 +223,6 @@ const PMScheduleDetail: React.FC = () => {
       name: data.name,
       description: data.description,
       instructions: data.instructions,
-      frequency_type: data.frequency_type,
-      frequency_value: data.frequency_value,
-      frequency_unit: data.frequency_unit,
       next_due_date: data.next_due_date,
       asset_ids: data.asset_ids,
       assigned_to: data.assigned_to === 'unassigned' ? '' : data.assigned_to,
@@ -564,16 +517,6 @@ const PMScheduleDetail: React.FC = () => {
                             </p>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center space-x-3">
-                          <Clock className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="text-sm font-medium">Frequency</p>
-                            <p className="text-sm text-muted-foreground">
-                              {getFrequencyText(formData)}
-                            </p>
-                          </div>
-                        </div>
 
                         {formData.assigned_to && (
                           <div className="flex items-center space-x-3">
@@ -631,21 +574,6 @@ const PMScheduleDetail: React.FC = () => {
                           )}
                         />
 
-                        <FrequencyControl
-                          value={{
-                            frequency_type: form.watch('frequency_type'),
-                            frequency_value: form.watch('frequency_value'),
-                            frequency_unit: form.watch('frequency_unit'),
-                          }}
-                          onChange={(value: FrequencyValue) => {
-                            form.setValue('frequency_type', value.frequency_type, { shouldDirty: true });
-                            form.setValue('frequency_value', value.frequency_value, { shouldDirty: true });
-                            form.setValue('frequency_unit', value.frequency_unit, { shouldDirty: true });
-                          }}
-                          error={form.formState.errors.frequency_type?.message || 
-                                 form.formState.errors.frequency_value?.message ||
-                                 form.formState.errors.frequency_unit?.message}
-                        />
 
                         <FormField
                           control={form.control}
