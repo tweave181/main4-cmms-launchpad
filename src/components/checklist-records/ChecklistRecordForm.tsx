@@ -24,6 +24,14 @@ import {
 import { ChecklistRecordFormData } from "@/hooks/useChecklistRecords";
 import { useCategories } from "@/hooks/useCategories";
 import { useFrequencyTypes } from "@/hooks/useFrequencyTypes";
+import { DayOfWeekSelector } from "./DayOfWeekSelector";
+
+const WORK_TIMING_OPTIONS = [
+  { value: "in_hours", label: "In Hours (Normal Working)" },
+  { value: "out_of_hours", label: "Out of Hours" },
+  { value: "at_night", label: "At Night" },
+  { value: "weekend", label: "Over the Weekend" },
+];
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -31,6 +39,8 @@ const formSchema = z.object({
   asset_type: z.string().optional(),
   frequency_type: z.string().optional(),
   is_active: z.boolean().default(true),
+  working_days: z.array(z.string()).default(["monday", "tuesday", "wednesday", "thursday", "friday"]),
+  work_timing: z.string().default("in_hours"),
 });
 
 interface ChecklistRecordFormProps {
@@ -57,8 +67,13 @@ export function ChecklistRecordForm({
       asset_type: initialData?.asset_type || "",
       frequency_type: initialData?.frequency_type || "",
       is_active: initialData?.is_active ?? true,
+      working_days: initialData?.working_days || ["monday", "tuesday", "wednesday", "thursday", "friday"],
+      work_timing: initialData?.work_timing || "in_hours",
     },
   });
+
+  const frequencyType = form.watch("frequency_type");
+  const showDaySelector = frequencyType?.toLowerCase() === "daily" || frequencyType?.toLowerCase() === "weekly";
 
   const handleSubmit = async (data: ChecklistRecordFormData) => {
     await onSubmit(data);
@@ -159,6 +174,56 @@ export function ChecklistRecordForm({
             )}
           />
         </div>
+
+        {showDaySelector && (
+          <FormField
+            control={form.control}
+            name="working_days"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Working Days</FormLabel>
+                <FormControl>
+                  <DayOfWeekSelector
+                    value={field.value || []}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Select which days this work should be carried out
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        <FormField
+          control={form.control}
+          name="work_timing"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Work To Be Carried Out</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select timing..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {WORK_TIMING_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                When should this maintenance work be carried out
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

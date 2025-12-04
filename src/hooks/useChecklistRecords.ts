@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccessToast, showErrorToast } from '@/utils/errorHandling';
+import { Json } from '@/integrations/supabase/types';
 
 export interface ChecklistRecord {
   id: string;
@@ -10,6 +11,8 @@ export interface ChecklistRecord {
   asset_type?: string;
   frequency_type?: string;
   is_active: boolean;
+  working_days?: string[];
+  work_timing?: string;
   created_by?: string;
   created_at: string;
   updated_at: string;
@@ -36,8 +39,17 @@ export interface ChecklistRecordFormData {
   asset_type?: string;
   frequency_type?: string;
   is_active: boolean;
+  working_days?: string[];
+  work_timing?: string;
   line_ids?: string[];
 }
+
+// Helper to parse JSON working_days from database
+const parseWorkingDays = (data: Json | null): string[] | undefined => {
+  if (!data) return undefined;
+  if (Array.isArray(data)) return data as string[];
+  return undefined;
+};
 
 export const useChecklistRecords = () => {
   return useQuery({
@@ -49,7 +61,10 @@ export const useChecklistRecords = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as ChecklistRecord[];
+      return data.map(record => ({
+        ...record,
+        working_days: parseWorkingDays(record.working_days),
+      })) as ChecklistRecord[];
     },
   });
 };
@@ -65,7 +80,10 @@ export const useChecklistRecord = (recordId: string) => {
         .single();
 
       if (error) throw error;
-      return data as ChecklistRecord;
+      return {
+        ...data,
+        working_days: parseWorkingDays(data.working_days),
+      } as ChecklistRecord;
     },
     enabled: !!recordId,
   });
@@ -123,6 +141,8 @@ export const useCreateChecklistRecord = () => {
           asset_type: data.asset_type,
           frequency_type: data.frequency_type,
           is_active: data.is_active,
+          working_days: data.working_days as unknown as Json,
+          work_timing: data.work_timing,
           created_by: user.id,
         })
         .select()
@@ -162,12 +182,14 @@ export const useUpdateChecklistRecord = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<ChecklistRecordFormData> }) => {
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       if (data.name) updateData.name = data.name;
       if (data.description !== undefined) updateData.description = data.description;
       if (data.asset_type !== undefined) updateData.asset_type = data.asset_type;
       if (data.frequency_type !== undefined) updateData.frequency_type = data.frequency_type;
       if (data.is_active !== undefined) updateData.is_active = data.is_active;
+      if (data.working_days !== undefined) updateData.working_days = data.working_days;
+      if (data.work_timing !== undefined) updateData.work_timing = data.work_timing;
 
       const { data: record, error } = await supabase
         .from('checklist_records')
