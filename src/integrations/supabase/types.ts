@@ -2844,6 +2844,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      initialize_tenant_defaults: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       insert_default_location_levels: {
         Args: { p_tenant_id: string }
         Returns: undefined
