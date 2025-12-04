@@ -49,6 +49,7 @@ import ChecklistRecords from "./pages/ChecklistRecords";
 import EmailLogs from "./pages/EmailLogs";
 import WorkSchedules from "./pages/WorkSchedules";
 import FrequencyTypeManager from "./pages/FrequencyTypeManager";
+import SystemAdminTenants from "./pages/SystemAdminTenants";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -112,6 +113,9 @@ function App() {
                                 <Route path="/spare-parts-categories" element={<SparePartsCategoryManager />} />
                                 <Route path="/admin/preferences/asset-prefixes" element={<AssetPrefixManager />} />
                                 <Route path="/admin/preferences/frequency-types" element={<FrequencyTypeManager />} />
+                              
+                              {/* System Admin Routes */}
+                              <Route path="/system-admin/tenants" element={<SystemAdminTenants />} />
                               
                               {/* Legacy Route Redirects */}
                               <Route path="/departments" element={<Navigate to="/admin/preferences/departments" replace />} />

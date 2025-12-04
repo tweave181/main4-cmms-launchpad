@@ -1,15 +1,17 @@
 
 import React, { useState } from 'react';
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarGroup, SidebarGroupLabel, SidebarGroupContent } from '@/components/ui/sidebar';
-import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText, BookOpen, FolderOpen, ChevronDown, ChevronRight, Mail } from 'lucide-react';
+import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText, BookOpen, FolderOpen, ChevronDown, ChevronRight, Mail, Shield } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
+import { useSimpleSystemAdminCheck } from '@/hooks/useSimpleSystemAdminCheck';
 
 export const AppSidebar = () => {
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const { organizationName } = useGlobalSettings();
+  const { isSystemAdmin } = useSimpleSystemAdminCheck(user);
   const [preferencesOpen, setPreferencesOpen] = useState(
     location.pathname.startsWith('/admin/preferences')
   );
@@ -120,6 +122,22 @@ export const AppSidebar = () => {
                   ))}
                 </div>
               )}
+            </>
+          )}
+
+          {isSystemAdmin && (
+            <>
+              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-4">
+                System Admin
+              </div>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === '/system-admin/tenants'}>
+                  <Link to="/system-admin/tenants" className="flex items-center space-x-3">
+                    <Shield className="h-4 w-4" />
+                    <span>Tenant Management</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </>
           )}
         </SidebarMenu>
