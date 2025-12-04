@@ -635,6 +635,8 @@ export type Database = {
           name: string
           tenant_id: string
           updated_at: string
+          work_timing: string | null
+          working_days: Json | null
         }
         Insert: {
           asset_type?: string | null
@@ -647,6 +649,8 @@ export type Database = {
           name: string
           tenant_id: string
           updated_at?: string
+          work_timing?: string | null
+          working_days?: Json | null
         }
         Update: {
           asset_type?: string | null
@@ -659,6 +663,8 @@ export type Database = {
           name?: string
           tenant_id?: string
           updated_at?: string
+          work_timing?: string | null
+          working_days?: Json | null
         }
         Relationships: [
           {

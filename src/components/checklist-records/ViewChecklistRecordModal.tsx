@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Plus, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, AlertTriangle, Clock, Calendar } from "lucide-react";
 import {
   useChecklistRecord,
   useChecklistRecordLines,
@@ -17,6 +17,14 @@ import {
   useRemoveLineFromRecord,
 } from "@/hooks/useChecklistRecords";
 import { SelectChecklistFromLibrary } from "@/components/maintenance/SelectChecklistFromLibrary";
+import { formatWorkingDays } from "./DayOfWeekSelector";
+
+const WORK_TIMING_LABELS: Record<string, string> = {
+  in_hours: "In Hours (Normal Working)",
+  out_of_hours: "Out of Hours",
+  at_night: "At Night",
+  weekend: "Over the Weekend",
+};
 
 interface ViewChecklistRecordModalProps {
   recordId: string;
@@ -50,6 +58,8 @@ export function ViewChecklistRecordModal({
   }
 
   const existingLineIds = lines?.map(l => l.checklist_line_id) || [];
+  const showScheduleInfo = record?.frequency_type?.toLowerCase() === "daily" || 
+                           record?.frequency_type?.toLowerCase() === "weekly";
 
   return (
     <>
@@ -66,18 +76,50 @@ export function ViewChecklistRecordModal({
           </DialogHeader>
 
           <div className="space-y-4 flex-1 overflow-y-auto">
-            {record?.asset_type && (
-              <div>
-                <span className="text-sm font-medium">Asset Type:</span>{" "}
-                <Badge variant="outline">{record.asset_type}</Badge>
+            <div className="flex flex-wrap gap-4">
+              {record?.asset_type && (
+                <div>
+                  <span className="text-sm font-medium">Asset Type:</span>{" "}
+                  <Badge variant="outline">{record.asset_type}</Badge>
+                </div>
+              )}
+              {record?.frequency_type && (
+                <div>
+                  <span className="text-sm font-medium">Frequency:</span>{" "}
+                  <Badge variant="outline">{record.frequency_type}</Badge>
+                </div>
+              )}
+            </div>
+
+            {/* Scheduling Information */}
+            <Card className="p-4 bg-muted/50">
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Scheduling
+              </h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                {showScheduleInfo && record?.working_days && (
+                  <div className="flex items-start gap-2">
+                    <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <span className="text-sm font-medium">Working Days:</span>
+                      <p className="text-sm text-muted-foreground">
+                        {formatWorkingDays(record.working_days)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-start gap-2">
+                  <Clock className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <span className="text-sm font-medium">Work Timing:</span>
+                    <p className="text-sm text-muted-foreground">
+                      {record?.work_timing ? WORK_TIMING_LABELS[record.work_timing] || record.work_timing : "In Hours (Default)"}
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
-            {record?.frequency_type && (
-              <div>
-                <span className="text-sm font-medium">Frequency:</span>{" "}
-                <Badge variant="outline">{record.frequency_type}</Badge>
-              </div>
-            )}
+            </Card>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">

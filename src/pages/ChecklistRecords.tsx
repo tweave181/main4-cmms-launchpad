@@ -2,11 +2,19 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, FileText, AlertCircle } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, AlertCircle, Clock } from "lucide-react";
 import { useChecklistRecords, useDeleteChecklistRecord } from "@/hooks/useChecklistRecords";
 import { CreateChecklistRecordModal } from "@/components/checklist-records/CreateChecklistRecordModal";
 import { EditChecklistRecordModal } from "@/components/checklist-records/EditChecklistRecordModal";
 import { ViewChecklistRecordModal } from "@/components/checklist-records/ViewChecklistRecordModal";
+import { formatWorkingDays } from "@/components/checklist-records/DayOfWeekSelector";
+
+const WORK_TIMING_SHORT: Record<string, string> = {
+  in_hours: "In Hours",
+  out_of_hours: "Out of Hours",
+  at_night: "Night",
+  weekend: "Weekend",
+};
 import {
   AlertDialog,
   AlertDialogAction,
@@ -101,6 +109,15 @@ export default function ChecklistRecords() {
                       <div className="flex items-center gap-2 text-sm">
                         <span className="text-muted-foreground">Frequency:</span>
                         <Badge variant="outline">{record.frequency_type}</Badge>
+                      </div>
+                    )}
+                    {record.work_timing && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-muted-foreground">{WORK_TIMING_SHORT[record.work_timing] || record.work_timing}</span>
+                        {(record.frequency_type?.toLowerCase() === "daily" || record.frequency_type?.toLowerCase() === "weekly") && record.working_days && (
+                          <span className="text-xs text-muted-foreground">• {formatWorkingDays(record.working_days)}</span>
+                        )}
                       </div>
                     )}
                     <div className="flex items-center gap-2 pt-2">
