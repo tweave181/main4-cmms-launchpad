@@ -24,7 +24,7 @@ export interface AuthContextType {
   tenant: Tenant | null;
   loading: boolean;
   ready: boolean;
-  signUp: (email: string, password: string, name: string, tenantName: string, tenantSlug: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, tenantName: string, tenantSlug: string, businessType?: string, invitationCode?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: boolean;

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,20 +6,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/components/ui/use-toast';
 import { handleError } from '@/utils/errorHandling';
+import InvitationCodeInput from './InvitationCodeInput';
+import BusinessTypeSelect from './BusinessTypeSelect';
 
 interface RegisterFormProps {
   onToggleMode: () => void;
+  onRegistrationComplete: (email: string) => void;
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
+const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode, onRegistrationComplete }) => {
   const [formData, setFormData] = useState({
+    invitationCode: '',
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
     tenantName: '',
-    tenantSlug: ''
+    tenantSlug: '',
+    businessType: '',
   });
+  const [isInvitationValid, setIsInvitationValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
 
@@ -44,9 +49,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { name, email, password, confirmPassword, tenantName, tenantSlug } = formData;
+    const { invitationCode, name, email, password, confirmPassword, tenantName, tenantSlug, businessType } = formData;
 
-    if (!name || !email || !password || !tenantName || !tenantSlug) {
+    if (!isInvitationValid) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid invitation code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!name || !email || !password || !tenantName || !tenantSlug || !businessType) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -75,11 +89,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
 
     setLoading(true);
     try {
-      await signUp(email, password, name, tenantName, tenantSlug);
-      toast({
-        title: "Success",
-        description: "Account created successfully! Please check your email to verify your account.",
-      });
+      await signUp(email, password, name, tenantName, tenantSlug, businessType, invitationCode);
+      onRegistrationComplete(email);
     } catch (error) {
       handleError(error, 'Registration', {
         showToast: true,
@@ -100,29 +111,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              name="name"
-              placeholder="Your full name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
+          <InvitationCodeInput
+            value={formData.invitationCode}
+            onChange={(value) => setFormData(prev => ({ ...prev, invitationCode: value }))}
+            onValidationChange={setIsInvitationValid}
+          />
+          
+          <div className="pt-2 border-t">
+            <BusinessTypeSelect
+              value={formData.businessType}
+              onChange={(value) => setFormData(prev => ({ ...prev, businessType: value }))}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="tenantName">Organization Name</Label>
             <Input
@@ -147,31 +148,58 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
+          
+          <div className="pt-2 border-t space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="Your full name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          
+          <Button type="submit" className="w-full" disabled={loading || !isInvitationValid}>
             {loading ? "Creating account..." : "Create Account"}
           </Button>
           <div className="text-center">
