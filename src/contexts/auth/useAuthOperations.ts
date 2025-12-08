@@ -33,6 +33,7 @@ export const useAuthOperations = () => {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             name: name,
             tenant_name: tenantName,

@@ -13,6 +13,7 @@ import { ContractNotificationWrapper } from "@/components/auth/ContractNotificat
 import { SessionTimeoutProvider } from "@/components/auth/SessionTimeoutProvider";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 import AuthPage from "@/components/auth/AuthPage";
+import AuthCallback from "./pages/AuthCallback";
 
 import Index from "./pages/Index";
 import Assets from "./pages/Assets";
@@ -69,6 +70,7 @@ function App() {
                 <ContractNotificationWrapper>
                   <Routes>
                      <Route path="/auth" element={<AuthPage />} />
+                     <Route path="/auth/callback" element={<AuthCallback />} />
                      <Route path="/*" element={
                        <ProtectedRoute>
                          <AppLayout>
