@@ -1,10 +1,32 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Add rate limit awareness to auth flows (signUp/signIn/signOut)
 export const useAuthOperations = () => {
-  const signUp = async (email: string, password: string, name: string, tenantName: string, tenantSlug: string) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    name: string, 
+    tenantName: string, 
+    tenantSlug: string,
+    businessType?: string,
+    invitationCode?: string
+  ) => {
     try {
+      // Validate invitation code if provided
+      if (invitationCode) {
+        const { data: validationResult, error: validationError } = await supabase.rpc(
+          'validate_tenant_invitation',
+          { p_code: invitationCode }
+        );
+
+        if (validationError) throw validationError;
+        
+        const result = validationResult as unknown as { valid: boolean; error?: string };
+        if (!result.valid) {
+          throw new Error(result.error || 'Invalid invitation code');
+        }
+      }
+
       // Use the trigger-based approach by passing metadata
       // The handle_new_user function will now properly set JWT claims
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -13,7 +35,9 @@ export const useAuthOperations = () => {
         options: {
           data: {
             name: name,
-            tenant_name: tenantName, // This will trigger tenant creation
+            tenant_name: tenantName,
+            business_type: businessType,
+            invitation_code: invitationCode,
             role: 'admin' // First user in tenant is admin
           }
         }
@@ -26,6 +50,20 @@ export const useAuthOperations = () => {
         }
         throw authError;
       }
+
+      // Consume the invitation code after successful signup
+      if (invitationCode && authData.user) {
+        // Get the tenant_id from the user's metadata
+        const tenantId = authData.user.user_metadata?.tenant_id;
+        if (tenantId) {
+          await supabase.rpc('consume_tenant_invitation', {
+            p_code: invitationCode,
+            p_user_id: authData.user.id,
+            p_tenant_id: tenantId
+          });
+        }
+      }
+
       console.log('Signup successful, user created:', authData.user?.id);
     } catch (error: any) {
       console.error('Signup error:', error);

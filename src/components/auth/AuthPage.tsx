@@ -1,10 +1,14 @@
-
 import React, { useState } from 'react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import EmailVerificationPending from './EmailVerificationPending';
+
+type AuthView = 'login' | 'register' | 'verification-pending';
 
 const AuthPage: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<AuthView>('login');
+  const [pendingEmail, setPendingEmail] = useState<string>('');
+  
   // Pull expired-session message from URL
   const [msg, setMsg] = React.useState<string | null>(null);
   React.useEffect(() => {
@@ -14,22 +18,42 @@ const AuthPage: React.FC = () => {
     }
   }, []);
 
-  const toggleMode = () => {
-    setIsLogin(!isLogin);
+  const handleToggleMode = () => {
+    setView(view === 'login' ? 'register' : 'login');
+  };
+
+  const handleRegistrationComplete = (email: string) => {
+    setPendingEmail(email);
+    setView('verification-pending');
+  };
+
+  const handleBackToLogin = () => {
+    setView('login');
+    setPendingEmail('');
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        {msg && (
+        {msg && view === 'login' && (
           <div className="mb-4 bg-amber-50 border border-amber-300 rounded py-2 px-3 text-amber-700 text-sm text-center">
             {msg}
           </div>
         )}
-        {isLogin ? (
-          <LoginForm onToggleMode={toggleMode} />
-        ) : (
-          <RegisterForm onToggleMode={toggleMode} />
+        {view === 'login' && (
+          <LoginForm onToggleMode={handleToggleMode} />
+        )}
+        {view === 'register' && (
+          <RegisterForm 
+            onToggleMode={handleToggleMode} 
+            onRegistrationComplete={handleRegistrationComplete}
+          />
+        )}
+        {view === 'verification-pending' && (
+          <EmailVerificationPending 
+            email={pendingEmail}
+            onBackToLogin={handleBackToLogin}
+          />
         )}
       </div>
     </div>

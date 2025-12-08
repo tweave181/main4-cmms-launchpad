@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { TenantOverviewCards } from '@/components/system-admin/TenantOverviewCards';
 import { TenantTable } from '@/components/system-admin/TenantTable';
 import { TenantDetailPanel } from '@/components/system-admin/TenantDetailPanel';
+import InvitationManagement from '@/components/system-admin/InvitationManagement';
 import { Shield } from 'lucide-react';
 
 const SystemAdminTenants = () => {
@@ -71,6 +72,8 @@ const SystemAdminTenants = () => {
         stats={data?.platformStats} 
         isLoading={isLoading} 
       />
+
+      <InvitationManagement />
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Tenants</h2>

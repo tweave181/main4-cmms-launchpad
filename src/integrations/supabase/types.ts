@@ -497,6 +497,33 @@ export type Database = {
         }
         Relationships: []
       }
+      business_types: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -2250,18 +2277,68 @@ export type Database = {
           },
         ]
       }
+      tenant_invitations: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          is_revoked: boolean | null
+          notes: string | null
+          tenant_id: string | null
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          expires_at: string
+          id?: string
+          is_revoked?: boolean | null
+          notes?: string | null
+          tenant_id?: string | null
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          is_revoked?: boolean | null
+          notes?: string | null
+          tenant_id?: string | null
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
+          business_type: string | null
           created_at: string
           id: string
           name: string
         }
         Insert: {
+          business_type?: string | null
           created_at?: string
           id?: string
           name: string
         }
         Update: {
+          business_type?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -2817,6 +2894,10 @@ export type Database = {
     Functions: {
       accept_invitation: { Args: { invitation_token: string }; Returns: string }
       check_contract_reminders: { Args: never; Returns: undefined }
+      consume_tenant_invitation: {
+        Args: { p_code: string; p_tenant_id: string; p_user_id: string }
+        Returns: boolean
+      }
       create_tenant_and_admin: {
         Args: {
           first_name?: string
@@ -2841,6 +2922,10 @@ export type Database = {
         Args: never
         Returns: undefined
       }
+      generate_tenant_invitation: {
+        Args: { p_expires_in_days?: number; p_notes?: string }
+        Returns: string
+      }
       generate_work_order_number: { Args: never; Returns: string }
       get_current_user_tenant_id: { Args: never; Returns: string }
       has_role: {
@@ -2862,6 +2947,7 @@ export type Database = {
       is_admin_in_tenant: { Args: never; Returns: boolean }
       is_current_user_admin: { Args: never; Returns: boolean }
       is_system_admin: { Args: never; Returns: boolean }
+      revoke_tenant_invitation: { Args: { p_code: string }; Returns: boolean }
       tenant_has_defaults: { Args: { p_tenant_id: string }; Returns: boolean }
       trigger_contract_reminder_emails: { Args: never; Returns: Json }
       user_has_any_permission: {
@@ -2872,6 +2958,7 @@ export type Database = {
         Args: { _action: string; _resource: string; _user_id: string }
         Returns: boolean
       }
+      validate_tenant_invitation: { Args: { p_code: string }; Returns: Json }
     }
     Enums: {
       app_role:
