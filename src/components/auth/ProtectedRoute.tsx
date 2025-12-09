@@ -1,17 +1,66 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, userProfile } = useAuth();
+  const tenantId = userProfile?.tenant_id;
   const location = useLocation();
+  const [setupCheck, setSetupCheck] = useState<'loading' | 'needs-setup' | 'done'>('loading');
 
-  if (loading) {
+  useEffect(() => {
+    const checkSetupStatus = async () => {
+      if (!tenantId || location.pathname === '/setup') {
+        setSetupCheck('done');
+        return;
+      }
+
+      try {
+        // Check if setup wizard was dismissed
+        const { data: settings } = await supabase
+          .from('program_settings')
+          .select('setup_wizard_dismissed')
+          .eq('tenant_id', tenantId)
+          .single();
+
+        if (settings?.setup_wizard_dismissed) {
+          setSetupCheck('done');
+          return;
+        }
+
+        // Check if tenant has minimum setup (at least 1 location OR 1 asset)
+        const [locationsResult, assetsResult] = await Promise.all([
+          supabase.from('locations').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+          supabase.from('assets').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+        ]);
+
+        const hasLocations = (locationsResult.count || 0) > 0;
+        const hasAssets = (assetsResult.count || 0) > 0;
+
+        if (!hasLocations && !hasAssets) {
+          setSetupCheck('needs-setup');
+        } else {
+          setSetupCheck('done');
+        }
+      } catch (error) {
+        console.error('Error checking setup status:', error);
+        setSetupCheck('done');
+      }
+    };
+
+    if (user && tenantId) {
+      checkSetupStatus();
+    } else if (!loading) {
+      setSetupCheck('done');
+    }
+  }, [tenantId, user, loading, location.pathname]);
+
+  if (loading || (user && setupCheck === 'loading')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -27,6 +76,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     }
     const redirectPath = `/auth?${searchParams.toString()}`;
     return <Navigate to={redirectPath} replace />;
+  }
+
+  // Redirect new tenants to setup wizard
+  if (setupCheck === 'needs-setup' && location.pathname !== '/setup') {
+    return <Navigate to="/setup" replace />;
   }
 
   return <>{children}</>;
