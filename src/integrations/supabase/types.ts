@@ -2021,6 +2021,7 @@ export type Database = {
           language: string | null
           logo_url: string | null
           organization_name: string | null
+          setup_wizard_dismissed: boolean | null
           smtp_host: string | null
           smtp_port: number | null
           smtp_secure: boolean | null
@@ -2044,6 +2045,7 @@ export type Database = {
           language?: string | null
           logo_url?: string | null
           organization_name?: string | null
+          setup_wizard_dismissed?: boolean | null
           smtp_host?: string | null
           smtp_port?: number | null
           smtp_secure?: boolean | null
@@ -2067,6 +2069,7 @@ export type Database = {
           language?: string | null
           logo_url?: string | null
           organization_name?: string | null
+          setup_wizard_dismissed?: boolean | null
           smtp_host?: string | null
           smtp_port?: number | null
           smtp_secure?: boolean | null

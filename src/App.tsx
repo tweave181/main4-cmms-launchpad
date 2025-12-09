@@ -14,6 +14,7 @@ import { SessionTimeoutProvider } from "@/components/auth/SessionTimeoutProvider
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 import AuthPage from "@/components/auth/AuthPage";
 import AuthCallback from "./pages/AuthCallback";
+import TenantSetup from "./pages/TenantSetup";
 
 import Index from "./pages/Index";
 import Assets from "./pages/Assets";
@@ -71,6 +72,7 @@ function App() {
                   <Routes>
                      <Route path="/auth" element={<AuthPage />} />
                      <Route path="/auth/callback" element={<AuthCallback />} />
+                     <Route path="/setup" element={<TenantSetup />} />
                      <Route path="/*" element={
                        <ProtectedRoute>
                          <AppLayout>
