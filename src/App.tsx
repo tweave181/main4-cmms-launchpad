@@ -33,6 +33,7 @@ import Companies from "./pages/Companies";
 import Addresses from "./pages/Addresses";
 import AddressDetail from "./pages/AddressDetail";
 import Locations from "./pages/Locations";
+import BulkLocationEntry from "./pages/BulkLocationEntry";
 import LocationLevels from "./pages/LocationLevels";
 import LocationLevelDetails from "./pages/LocationLevelDetails";
 import InventoryPartDetail from "./pages/InventoryPartDetail";
@@ -113,6 +114,7 @@ function App() {
                               <Route path="/admin/preferences/location-levels" element={<LocationLevels />} />
                               <Route path="/admin/preferences/location-levels/:id" element={<LocationLevelDetails />} />
                               <Route path="/admin/preferences/locations" element={<Locations />} />
+                              <Route path="/admin/preferences/locations/bulk" element={<BulkLocationEntry />} />
                                <Route path="/admin/preferences/categories" element={<CategoryManager />} />
                                 <Route path="/spare-parts-categories" element={<SparePartsCategoryManager />} />
                                 <Route path="/admin/preferences/asset-prefixes" element={<AssetPrefixManager />} />
