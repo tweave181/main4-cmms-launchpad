@@ -12,6 +12,7 @@ export interface TenantStats {
   id: string;
   name: string;
   created_at: string;
+  isTestSite: boolean;
   userCount: number;
   assetCount: number;
   workOrderCount: number;
@@ -143,6 +144,7 @@ export const useSystemAdminStats = () => {
             id: tenant.id,
             name: tenant.name,
             created_at: tenant.created_at,
+            isTestSite: tenant.is_test_site || false,
             userCount,
             assetCount,
             workOrderCount: workOrdersResult.count || 0,

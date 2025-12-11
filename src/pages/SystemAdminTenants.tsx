@@ -10,6 +10,7 @@ import { TenantTable } from '@/components/system-admin/TenantTable';
 import { TenantDetailPanel } from '@/components/system-admin/TenantDetailPanel';
 import InvitationManagement from '@/components/system-admin/InvitationManagement';
 import { Shield } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const SystemAdminTenants = () => {
   const { user } = useAuth();
@@ -53,6 +54,22 @@ const SystemAdminTenants = () => {
     }
   };
 
+  const handleToggleTestSite = async (tenantId: string, isTestSite: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('tenants')
+        .update({ is_test_site: isTestSite })
+        .eq('id', tenantId);
+
+      if (error) throw error;
+      toast.success(`Test site ${isTestSite ? 'enabled' : 'disabled'}`);
+      queryClient.invalidateQueries({ queryKey: ['systemAdminStats'] });
+    } catch (error) {
+      console.error('Failed to toggle test site:', error);
+      toast.error('Failed to update test site status');
+    }
+  };
+
   if (isCheckingAdmin) {
     return (
       <div className="flex items-center justify-center h-full py-20">
@@ -82,6 +99,7 @@ const SystemAdminTenants = () => {
           isLoading={isLoading}
           onViewTenant={handleViewTenant}
           onInitializeTenant={handleInitializeTenant}
+          onToggleTestSite={handleToggleTestSite}
           isInitializing={isInitializing}
         />
       </div>
