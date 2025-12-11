@@ -160,8 +160,8 @@ export const useTenantSetupStatus = () => {
                 : 'Define where your assets are located',
               isComplete: locationsCount > 0,
               count: locationsCount,
-              link: '/locations',
-              linkText: 'Add Location',
+              link: '/admin/preferences/locations/bulk',
+              linkText: 'Add Locations',
             },
             {
               id: 'first-asset',

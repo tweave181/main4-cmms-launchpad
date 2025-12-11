@@ -7,6 +7,24 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+// Routes allowed during setup phase - users can navigate to these even if setup isn't complete
+const SETUP_ALLOWED_ROUTES = [
+  '/admin/preferences/locations',
+  '/locations',
+  '/assets',
+  '/admin/users',
+  '/admin/preferences/departments',
+  '/admin/preferences/categories',
+  '/admin/preferences/location-levels',
+  '/admin/preferences/job-titles',
+  '/settings',
+  '/admin/checklist-library',
+  '/admin/checklist-records',
+  '/admin/work-schedules',
+  '/address-book',
+  '/admin/service-contracts',
+];
+
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading, userProfile } = useAuth();
   const tenantId = userProfile?.tenant_id;
@@ -78,8 +96,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to={redirectPath} replace />;
   }
 
-  // Redirect new tenants to setup wizard
-  if (setupCheck === 'needs-setup' && location.pathname !== '/setup') {
+  // Redirect new tenants to setup wizard (unless on an allowed setup route)
+  const isSetupAllowedRoute = SETUP_ALLOWED_ROUTES.some(route => 
+    location.pathname.startsWith(route)
+  );
+  
+  if (setupCheck === 'needs-setup' && location.pathname !== '/setup' && !isSetupAllowedRoute) {
     return <Navigate to="/setup" replace />;
   }
 
