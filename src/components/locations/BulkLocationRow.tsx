@@ -35,6 +35,7 @@ interface BulkLocationRowProps {
   onChange: (id: string, field: keyof BulkLocationData, value: string) => void;
   onRemove: (id: string) => void;
   errors?: Partial<Record<keyof BulkLocationData, boolean>>;
+  isLoadingParents?: boolean;
 }
 
 export const BulkLocationRow: React.FC<BulkLocationRowProps> = ({
@@ -46,6 +47,7 @@ export const BulkLocationRow: React.FC<BulkLocationRowProps> = ({
   onChange,
   onRemove,
   errors = {},
+  isLoadingParents = false,
 }) => {
   // Combine existing locations with previously entered new locations for parent dropdown
   const parentOptions = [
@@ -97,9 +99,10 @@ export const BulkLocationRow: React.FC<BulkLocationRowProps> = ({
         <Select
           value={data.parent_location_id}
           onValueChange={(value) => onChange(data.id, 'parent_location_id', value)}
+          disabled={isLoadingParents}
         >
           <SelectTrigger className="h-9">
-            <SelectValue placeholder="None (top level)" />
+            <SelectValue placeholder={isLoadingParents ? "Loading..." : "None (top level)"} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">None (top level)</SelectItem>
