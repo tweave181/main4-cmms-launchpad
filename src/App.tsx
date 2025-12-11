@@ -18,6 +18,7 @@ import TenantSetup from "./pages/TenantSetup";
 
 import Index from "./pages/Index";
 import Assets from "./pages/Assets";
+import BulkAssetEntry from "./pages/BulkAssetEntry";
 import WorkOrders from "./pages/WorkOrders";
 import Maintenance from "./pages/Maintenance";
 import MaintenanceJobDetail from "./pages/MaintenanceJobDetail";
@@ -78,9 +79,10 @@ function App() {
                        <ProtectedRoute>
                          <AppLayout>
                            <Routes>
-                             <Route path="/" element={<Index />} />
-                             <Route path="/assets" element={<Assets />} />
-                             <Route path="/work-orders" element={<WorkOrders />} />
+                              <Route path="/" element={<Index />} />
+                              <Route path="/assets" element={<Assets />} />
+                              <Route path="/assets/bulk" element={<BulkAssetEntry />} />
+                              <Route path="/work-orders" element={<WorkOrders />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/maintenance/:jobId" element={<MaintenanceJobDetail />} />
               <Route path="/pm/new" element={<PMScheduleDetail />} />
