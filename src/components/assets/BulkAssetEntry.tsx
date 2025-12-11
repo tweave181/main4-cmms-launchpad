@@ -17,8 +17,8 @@ const createEmptyRow = (): BulkAssetData => ({
   asset_tag: '',
   category_id: '',
   location_id: '',
-  status: 'Active',
-  priority: 'Medium',
+  status: 'active',
+  priority: 'medium',
   description: '',
 });
 
@@ -127,8 +127,8 @@ export const BulkAssetEntry: React.FC = () => {
         asset_tag: asset.asset_tag.trim() || null,
         category: categories.find(c => c.id === asset.category_id)?.name || null,
         location_id: asset.location_id || null,
-        status: asset.status as 'Active' | 'Inactive' | 'Under Maintenance' | 'Decommissioned',
-        priority: asset.priority as 'Low' | 'Medium' | 'High' | 'Critical',
+        status: asset.status as 'active' | 'inactive' | 'maintenance' | 'disposed',
+        priority: asset.priority as 'low' | 'medium' | 'high' | 'critical',
         description: asset.description.trim() || null,
       }));
 

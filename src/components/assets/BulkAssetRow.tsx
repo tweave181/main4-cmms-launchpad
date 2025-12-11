@@ -38,17 +38,17 @@ interface BulkAssetRowProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'Active', label: 'Active' },
-  { value: 'Inactive', label: 'Inactive' },
-  { value: 'Under Maintenance', label: 'Under Maintenance' },
-  { value: 'Decommissioned', label: 'Decommissioned' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'maintenance', label: 'Under Maintenance' },
+  { value: 'disposed', label: 'Disposed' },
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: 'Low', label: 'Low' },
-  { value: 'Medium', label: 'Medium' },
-  { value: 'High', label: 'High' },
-  { value: 'Critical', label: 'Critical' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'critical', label: 'Critical' },
 ];
 
 export const BulkAssetRow: React.FC<BulkAssetRowProps> = ({
