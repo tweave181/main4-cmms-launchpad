@@ -49,7 +49,7 @@ export const BulkLocationEntry: React.FC = () => {
   });
 
   // Fetch existing locations for parent dropdown
-  const { data: existingLocations = [] } = useQuery({
+  const { data: existingLocations = [], isLoading: isLoadingLocations } = useQuery({
     queryKey: ['locations', tenantId],
     queryFn: async () => {
       if (!tenantId) return [];
@@ -62,6 +62,7 @@ export const BulkLocationEntry: React.FC = () => {
       return data || [];
     },
     enabled: !!tenantId,
+    staleTime: 0, // Always refetch to get latest data
   });
 
   const handleChange = useCallback((id: string, field: keyof BulkLocationData, value: string) => {
@@ -240,6 +241,7 @@ export const BulkLocationEntry: React.FC = () => {
                       onChange={handleChange}
                       onRemove={handleRemove}
                       errors={errors[row.id]}
+                      isLoadingParents={isLoadingLocations}
                     />
                   ))}
                 </tbody>

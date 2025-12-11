@@ -58,7 +58,8 @@ export const SetupSection: React.FC<SetupSectionProps> = ({
             <SetupItem 
               key={item.id} 
               item={item} 
-              showAction={!section.isAutoConfigured}
+              showAction={true}
+              isAutoConfigured={section.isAutoConfigured}
             />
           ))}
         </div>

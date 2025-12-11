@@ -8,9 +8,13 @@ import type { SetupItem as SetupItemType } from '@/hooks/useTenantSetupStatus';
 interface SetupItemProps {
   item: SetupItemType;
   showAction?: boolean;
+  isAutoConfigured?: boolean;
 }
 
-export const SetupItem: React.FC<SetupItemProps> = ({ item, showAction = true }) => {
+export const SetupItem: React.FC<SetupItemProps> = ({ item, showAction = true, isAutoConfigured = false }) => {
+  // For auto-configured items, only show View link (no action button for incomplete)
+  const showViewOnly = isAutoConfigured;
+  
   return (
     <div 
       className={cn(
@@ -48,7 +52,18 @@ export const SetupItem: React.FC<SetupItemProps> = ({ item, showAction = true })
         </div>
       </div>
       
-      {showAction && item.link && !item.isComplete && (
+      {/* For auto-configured items, always show View link */}
+      {showAction && item.link && showViewOnly && (
+        <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
+          <Link to={item.link}>
+            {item.linkText || 'View'}
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </Button>
+      )}
+      
+      {/* For regular items: show action button when incomplete */}
+      {showAction && item.link && !showViewOnly && !item.isComplete && (
         <Button variant="ghost" size="sm" asChild className="gap-1">
           <Link to={item.link}>
             {item.linkText || 'Configure'}
@@ -57,7 +72,8 @@ export const SetupItem: React.FC<SetupItemProps> = ({ item, showAction = true })
         </Button>
       )}
       
-      {showAction && item.link && item.isComplete && (
+      {/* For regular items: show View link when complete */}
+      {showAction && item.link && !showViewOnly && item.isComplete && (
         <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
           <Link to={item.link}>
             View
