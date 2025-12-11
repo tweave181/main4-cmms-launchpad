@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TenantStats } from '@/hooks/useSystemAdminStats';
-import { Eye, Settings, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Eye, Settings, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 
 interface TenantTableProps {
   tenants: TenantStats[];
@@ -34,6 +34,35 @@ export const TenantTable = ({
       </div>
     );
   }
+
+  const getSetupBadge = (tenant: TenantStats) => {
+    const { status, percentComplete } = tenant.setupProgress;
+    
+    if (status === 'complete') {
+      return (
+        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Complete
+        </Badge>
+      );
+    }
+    
+    if (status === 'in_progress') {
+      return (
+        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-200">
+          <Clock className="h-3 w-3 mr-1" />
+          {percentComplete}%
+        </Badge>
+      );
+    }
+    
+    return (
+      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">
+        <AlertTriangle className="h-3 w-3 mr-1" />
+        Not Started
+      </Badge>
+    );
+  };
 
   return (
     <div className="rounded-md border">
@@ -72,17 +101,7 @@ export const TenantTable = ({
                 </TableCell>
                 <TableCell className="text-center">{tenant.locationCount}</TableCell>
                 <TableCell className="text-center">
-                  {tenant.hasDefaults ? (
-                    <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Complete
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">
-                      <AlertTriangle className="h-3 w-3 mr-1" />
-                      Incomplete
-                    </Badge>
-                  )}
+                  {getSetupBadge(tenant)}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
