@@ -2332,18 +2332,21 @@ export type Database = {
           business_type: string | null
           created_at: string
           id: string
+          is_test_site: boolean
           name: string
         }
         Insert: {
           business_type?: string | null
           created_at?: string
           id?: string
+          is_test_site?: boolean
           name: string
         }
         Update: {
           business_type?: string | null
           created_at?: string
           id?: string
+          is_test_site?: boolean
           name?: string
         }
         Relationships: []
@@ -2950,6 +2953,7 @@ export type Database = {
       is_admin_in_tenant: { Args: never; Returns: boolean }
       is_current_user_admin: { Args: never; Returns: boolean }
       is_system_admin: { Args: never; Returns: boolean }
+      is_test_site_user: { Args: never; Returns: boolean }
       revoke_tenant_invitation: { Args: { p_code: string }; Returns: boolean }
       tenant_has_defaults: { Args: { p_tenant_id: string }; Returns: boolean }
       trigger_contract_reminder_emails: { Args: never; Returns: Json }

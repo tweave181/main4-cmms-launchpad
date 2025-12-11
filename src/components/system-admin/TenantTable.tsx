@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -17,6 +18,7 @@ interface TenantTableProps {
   isLoading: boolean;
   onViewTenant: (tenant: TenantStats) => void;
   onInitializeTenant: (tenantId: string) => void;
+  onToggleTestSite: (tenantId: string, isTestSite: boolean) => void;
   isInitializing: boolean;
 }
 
@@ -25,6 +27,7 @@ export const TenantTable = ({
   isLoading,
   onViewTenant,
   onInitializeTenant,
+  onToggleTestSite,
   isInitializing
 }: TenantTableProps) => {
   if (isLoading) {
@@ -76,13 +79,14 @@ export const TenantTable = ({
             <TableHead className="text-center">Work Orders</TableHead>
             <TableHead className="text-center">Locations</TableHead>
             <TableHead className="text-center">Setup</TableHead>
+            <TableHead className="text-center">Test Site</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {tenants.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                 No tenants found
               </TableCell>
             </TableRow>
@@ -102,6 +106,12 @@ export const TenantTable = ({
                 <TableCell className="text-center">{tenant.locationCount}</TableCell>
                 <TableCell className="text-center">
                   {getSetupBadge(tenant)}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Switch
+                    checked={tenant.isTestSite || false}
+                    onCheckedChange={(checked) => onToggleTestSite(tenant.id, checked)}
+                  />
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
