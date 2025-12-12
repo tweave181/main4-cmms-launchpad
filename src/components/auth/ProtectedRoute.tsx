@@ -11,6 +11,7 @@ interface ProtectedRouteProps {
 const SETUP_ALLOWED_ROUTES = [
   '/admin/preferences/locations',
   '/locations',
+  '/admin/preferences/asset-prefixes',
   '/assets',
   '/assets/bulk',
   '/users',

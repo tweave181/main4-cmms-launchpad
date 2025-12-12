@@ -52,6 +52,7 @@ export const useTenantSetupStatus = () => {
         jobTitlesResult,
         programSettingsResult,
         locationsResult,
+        assetPrefixesResult,
         assetsResult,
         usersResult,
         checklistItemsResult,
@@ -67,6 +68,7 @@ export const useTenantSetupStatus = () => {
         supabase.from('job_titles').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
         supabase.from('program_settings').select('id, setup_wizard_dismissed').eq('tenant_id', tenantId).single(),
         supabase.from('locations').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+        supabase.from('asset_tag_prefixes').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
         supabase.from('assets').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
         supabase.from('users').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
         supabase.from('checklist_item_templates').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
@@ -86,6 +88,7 @@ export const useTenantSetupStatus = () => {
       const jobTitlesCount = jobTitlesResult.count || 0;
       const hasSettings = !!programSettingsResult.data;
       const locationsCount = locationsResult.count || 0;
+      const assetPrefixesCount = assetPrefixesResult.count || 0;
       const assetsCount = assetsResult.count || 0;
       const usersCount = usersResult.count || 0;
       const checklistItemsCount = checklistItemsResult.count || 0;
@@ -162,6 +165,17 @@ export const useTenantSetupStatus = () => {
               count: locationsCount,
               link: '/admin/preferences/locations/bulk',
               linkText: 'Add Locations',
+            },
+            {
+              id: 'asset-prefixes',
+              title: 'Configure Asset Tag Prefixes',
+              description: assetPrefixesCount > 0 
+                ? `${assetPrefixesCount} prefix${assetPrefixesCount > 1 ? 'es' : ''} configured` 
+                : 'Set up prefixes to generate asset tags (requires categories)',
+              isComplete: assetPrefixesCount > 0,
+              count: assetPrefixesCount,
+              link: '/admin/preferences/asset-prefixes',
+              linkText: 'Configure Prefixes',
             },
             {
               id: 'first-asset',
@@ -260,8 +274,8 @@ export const useTenantSetupStatus = () => {
       );
       const percentComplete = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
-      // Consider fully setup if at least location and asset are created
-      const isFullySetup = locationsCount > 0 && assetsCount > 0;
+      // Consider fully setup if at least location, asset prefix, and asset are created
+      const isFullySetup = locationsCount > 0 && assetPrefixesCount > 0 && assetsCount > 0;
 
       return {
         tenantName,
