@@ -2899,6 +2899,36 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { invitation_token: string }; Returns: string }
+      admin_get_all_tenants_stats: {
+        Args: never
+        Returns: {
+          addresses_count: number
+          asset_count: number
+          categories_count: number
+          checklist_items_count: number
+          checklist_records_count: number
+          contract_count: number
+          created_at: string
+          departments_count: number
+          has_defaults: boolean
+          has_settings: boolean
+          id: string
+          inventory_count: number
+          is_test_site: boolean
+          job_titles_count: number
+          location_count: number
+          location_levels_count: number
+          name: string
+          open_work_order_count: number
+          pm_schedule_count: number
+          user_count: number
+          work_order_count: number
+        }[]
+      }
+      assign_system_admin_role: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       check_contract_reminders: { Args: never; Returns: undefined }
       consume_tenant_invitation: {
         Args: { p_code: string; p_tenant_id: string; p_user_id: string }
@@ -2954,6 +2984,10 @@ export type Database = {
       is_current_user_admin: { Args: never; Returns: boolean }
       is_system_admin: { Args: never; Returns: boolean }
       is_test_site_user: { Args: never; Returns: boolean }
+      remove_system_admin_role: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       revoke_tenant_invitation: { Args: { p_code: string }; Returns: boolean }
       tenant_has_defaults: { Args: { p_tenant_id: string }; Returns: boolean }
       trigger_contract_reminder_emails: { Args: never; Returns: Json }
