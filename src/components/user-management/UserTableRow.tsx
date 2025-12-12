@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { UserRoleBadge } from './UserRoleBadge';
 import { UserEmploymentBadge } from './UserEmploymentBadge';
 import { UserPermissionsOverride } from '@/components/permissions/UserPermissionsOverride';
+import { SystemAdminRoleToggle } from './SystemAdminRoleToggle';
 import { useAuth } from '@/contexts/auth';
 import { Button } from '@/components/ui/button';
 import type { Database } from '@/integrations/supabase/types';
@@ -82,6 +83,11 @@ export const UserTableRow: React.FC<UserTableRowProps> = ({
       <TableCell className="cursor-pointer" onClick={() => onUserClick(user)}>
         {format(new Date(user.created_at), 'MMM d, yyyy')}
       </TableCell>
+      {isSystemAdmin && (
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <SystemAdminRoleToggle userId={user.id} userName={user.name} />
+        </TableCell>
+      )}
       <TableCell onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2">
           {isSystemAdmin && (

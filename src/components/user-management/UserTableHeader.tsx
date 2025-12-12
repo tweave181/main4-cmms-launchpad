@@ -1,7 +1,12 @@
 import React from 'react';
 import { TableHeader, TableHead, TableRow } from '@/components/ui/table';
+import { useAuth } from '@/contexts/auth';
+
 export const UserTableHeader: React.FC = () => {
-  return <TableHeader>
+  const { isSystemAdmin } = useAuth();
+  
+  return (
+    <TableHeader>
       <TableRow className="bg-gray-300">
         <TableHead className="bg-gray-300">Name</TableHead>
         <TableHead className="bg-gray-300">Email</TableHead>
@@ -14,7 +19,9 @@ export const UserTableHeader: React.FC = () => {
         <TableHead>Time Tracking</TableHead>
         <TableHead>Last Login</TableHead>
         <TableHead>Joined</TableHead>
-        
+        {isSystemAdmin && <TableHead>System Admin</TableHead>}
+        <TableHead>Actions</TableHead>
       </TableRow>
-    </TableHeader>;
+    </TableHeader>
+  );
 };
