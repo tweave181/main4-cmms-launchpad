@@ -42,6 +42,7 @@ import AddressBook from "./pages/AddressBook";
 import ServiceContracts from "./pages/ServiceContracts";
 import ServiceContractDetail from "./pages/ServiceContractDetail";
 import AssetPrefixManager from "./pages/AssetPrefixManager";
+import BulkPrefixEntry from "./pages/BulkPrefixEntry";
 import CategoryManager from "./pages/CategoryManager";
 import SparePartsCategoryManager from "./pages/SparePartsCategoryManager";
 import SystemAuditLog from "./pages/SystemAuditLog";
@@ -120,6 +121,7 @@ function App() {
                                <Route path="/admin/preferences/categories" element={<CategoryManager />} />
                                 <Route path="/spare-parts-categories" element={<SparePartsCategoryManager />} />
                                 <Route path="/admin/preferences/asset-prefixes" element={<AssetPrefixManager />} />
+                                <Route path="/admin/preferences/asset-prefixes/bulk" element={<BulkPrefixEntry />} />
                                 <Route path="/admin/preferences/frequency-types" element={<FrequencyTypeManager />} />
                               
                               {/* System Admin Routes */}
