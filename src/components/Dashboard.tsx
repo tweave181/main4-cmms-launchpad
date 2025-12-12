@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { WelcomeCard } from '@/components/dashboard/WelcomeCard';
 import { QuickActions } from '@/components/dashboard/QuickActions';
@@ -6,11 +5,12 @@ import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { AdminPanel } from '@/components/dashboard/AdminPanel';
 import { UpcomingContractRenewals } from '@/components/dashboard/UpcomingContractRenewals';
 import { RecentEmailActivity } from '@/components/dashboard/RecentEmailActivity';
-
+import { SetupReminderBanner } from '@/components/dashboard/SetupReminderBanner';
 
 const Dashboard: React.FC = () => {
   return (
     <div className="p-6">
+      <SetupReminderBanner />
         {/* Main Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column */}

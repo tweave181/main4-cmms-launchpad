@@ -2899,6 +2899,19 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { invitation_token: string }; Returns: string }
+      admin_get_all_system_admins: {
+        Args: never
+        Returns: {
+          assigned_by: string
+          assigned_by_name: string
+          email: string
+          role_assigned_at: string
+          tenant_id: string
+          tenant_name: string
+          user_id: string
+          user_name: string
+        }[]
+      }
       admin_get_all_tenants_stats: {
         Args: never
         Returns: {
