@@ -174,8 +174,12 @@ export const useTenantSetupStatus = () => {
                 : 'Set up prefixes to generate asset tags (requires categories)',
               isComplete: assetPrefixesCount > 0,
               count: assetPrefixesCount,
-              link: '/admin/preferences/asset-prefixes',
-              linkText: 'Configure Prefixes',
+              link: assetPrefixesCount === 0 && categoriesCount > 0 
+                ? '/admin/preferences/asset-prefixes/bulk' 
+                : '/admin/preferences/asset-prefixes',
+              linkText: assetPrefixesCount === 0 && categoriesCount > 0 
+                ? 'Bulk Setup Prefixes' 
+                : 'Configure Prefixes',
             },
             {
               id: 'first-asset',

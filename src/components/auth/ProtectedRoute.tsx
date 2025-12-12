@@ -12,6 +12,7 @@ const SETUP_ALLOWED_ROUTES = [
   '/admin/preferences/locations',
   '/locations',
   '/admin/preferences/asset-prefixes',
+  '/admin/preferences/asset-prefixes/bulk',
   '/assets',
   '/assets/bulk',
   '/users',

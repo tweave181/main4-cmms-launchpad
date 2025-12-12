@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus } from 'lucide-react';
+import { Settings, Plus, TableProperties } from 'lucide-react';
+import { useUnlinkedCategories } from '@/components/asset-prefixes/hooks/useUnlinkedCategories';
 import { AssetPrefixList } from '@/components/asset-prefixes/AssetPrefixList';
 import { AssetPrefixForm } from '@/components/asset-prefixes/AssetPrefixForm';
 import { AssetPrefixAuditLog } from '@/components/asset-prefixes/AssetPrefixAuditLog';
@@ -13,10 +15,14 @@ import type { Database } from '@/integrations/supabase/types';
 type AssetTagPrefix = Database['public']['Tables']['asset_tag_prefixes']['Row'];
 
 const AssetPrefixManager: React.FC = () => {
+  const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPrefix, setEditingPrefix] = useState<AssetTagPrefix | null>(null);
   
   const { prefixes, isLoading, refetch, deletePrefix } = useAssetPrefixes();
+  const { data: unlinkedCategories } = useUnlinkedCategories();
+  
+  const hasUnlinkedCategories = (unlinkedCategories?.length || 0) > 0;
 
   const handleCreatePrefix = () => {
     console.log('Create new prefix clicked');
@@ -89,10 +95,22 @@ const AssetPrefixManager: React.FC = () => {
                   <Settings className="h-6 w-6 text-primary" />
                   <span>Asset Tag Prefix Manager</span>
                 </CardTitle>
-                <Button onClick={handleCreatePrefix} className="rounded-2xl">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Prefix
-                </Button>
+                <div className="flex gap-2">
+                  {hasUnlinkedCategories && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/admin/preferences/asset-prefixes/bulk')}
+                      className="rounded-2xl"
+                    >
+                      <TableProperties className="w-4 h-4 mr-2" />
+                      Bulk Setup ({unlinkedCategories?.length})
+                    </Button>
+                  )}
+                  <Button onClick={handleCreatePrefix} className="rounded-2xl">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Prefix
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
