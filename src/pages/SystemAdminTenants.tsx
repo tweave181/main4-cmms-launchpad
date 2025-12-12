@@ -9,6 +9,7 @@ import { TenantOverviewCards } from '@/components/system-admin/TenantOverviewCar
 import { TenantTable } from '@/components/system-admin/TenantTable';
 import { TenantDetailPanel } from '@/components/system-admin/TenantDetailPanel';
 import InvitationManagement from '@/components/system-admin/InvitationManagement';
+import { SystemAdminUsersTable } from '@/components/system-admin/SystemAdminUsersTable';
 import { Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -91,6 +92,8 @@ const SystemAdminTenants = () => {
       />
 
       <InvitationManagement />
+
+      <SystemAdminUsersTable />
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Tenants</h2>
