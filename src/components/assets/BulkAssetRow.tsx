@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 export interface BulkAssetData {
   id: string;
   name: string;
+  prefix_id: string;
   asset_tag: string;
   category_id: string;
   location_id: string;
@@ -26,15 +27,25 @@ interface Location {
   location_code: string;
 }
 
+interface AssetTagPrefix {
+  id: string;
+  prefix_letter: string;
+  number_code: string;
+  description: string;
+}
+
 interface BulkAssetRowProps {
   index: number;
   data: BulkAssetData;
   categories: Category[];
   locations: Location[];
+  prefixes: AssetTagPrefix[];
   onChange: (id: string, field: keyof BulkAssetData, value: string) => void;
+  onPrefixChange: (id: string, prefixId: string) => void;
   onRemove: (id: string) => void;
   errors?: Partial<Record<keyof BulkAssetData, boolean>>;
   isLoadingLocations?: boolean;
+  isLoadingPrefixes?: boolean;
 }
 
 const STATUS_OPTIONS = [
@@ -56,10 +67,13 @@ export const BulkAssetRow: React.FC<BulkAssetRowProps> = ({
   data,
   categories,
   locations,
+  prefixes,
   onChange,
+  onPrefixChange,
   onRemove,
   errors = {},
   isLoadingLocations = false,
+  isLoadingPrefixes = false,
 }) => {
   return (
     <tr className="border-b border-border hover:bg-muted/30">
@@ -73,12 +87,26 @@ export const BulkAssetRow: React.FC<BulkAssetRowProps> = ({
         />
       </td>
       <td className="p-2">
-        <Input
-          value={data.asset_tag}
-          onChange={(e) => onChange(data.id, 'asset_tag', e.target.value)}
-          placeholder="Tag (optional)"
-          className="w-28"
-        />
+        <Select
+          value={data.prefix_id}
+          onValueChange={(value) => onPrefixChange(data.id, value)}
+        >
+          <SelectTrigger className={`w-32 ${errors.asset_tag ? 'border-destructive' : ''}`}>
+            <SelectValue placeholder={isLoadingPrefixes ? 'Loading...' : 'Select...'} />
+          </SelectTrigger>
+          <SelectContent>
+            {prefixes.map((prefix) => (
+              <SelectItem key={prefix.id} value={prefix.id}>
+                {prefix.prefix_letter}{prefix.number_code}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </td>
+      <td className="p-2">
+        <div className="px-3 py-2 text-sm bg-muted rounded-md min-w-[80px] font-mono">
+          {data.asset_tag || '—'}
+        </div>
       </td>
       <td className="p-2">
         <Select

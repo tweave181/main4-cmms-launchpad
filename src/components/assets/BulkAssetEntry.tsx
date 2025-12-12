@@ -2,18 +2,20 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft, Save, Lightbulb } from 'lucide-react';
+import { Plus, ArrowLeft, Save, Lightbulb, AlertCircle } from 'lucide-react';
 import { BulkAssetRow, BulkAssetData } from './BulkAssetRow';
 import { useAuth } from '@/contexts/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const generateId = () => crypto.randomUUID();
 
 const createEmptyRow = (): BulkAssetData => ({
   id: generateId(),
   name: '',
+  prefix_id: '',
   asset_tag: '',
   category_id: '',
   location_id: '',
@@ -21,6 +23,13 @@ const createEmptyRow = (): BulkAssetData => ({
   priority: 'medium',
   description: '',
 });
+
+interface AssetTagPrefix {
+  id: string;
+  prefix_letter: string;
+  number_code: string;
+  description: string;
+}
 
 export const BulkAssetEntry: React.FC = () => {
   const navigate = useNavigate();
@@ -66,6 +75,70 @@ export const BulkAssetEntry: React.FC = () => {
     staleTime: 0,
   });
 
+  // Fetch asset tag prefixes
+  const { data: prefixes = [], isLoading: isLoadingPrefixes } = useQuery({
+    queryKey: ['asset-tag-prefixes', tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+      const { data, error } = await supabase
+        .from('asset_tag_prefixes')
+        .select('id, prefix_letter, number_code, description')
+        .eq('tenant_id', tenantId)
+        .order('prefix_letter')
+        .order('number_code');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!tenantId,
+  });
+
+  // Fetch existing assets to determine next sequence numbers
+  const { data: existingAssets = [] } = useQuery({
+    queryKey: ['existing-asset-tags', tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+      const { data, error } = await supabase
+        .from('assets')
+        .select('asset_tag')
+        .eq('tenant_id', tenantId)
+        .not('asset_tag', 'is', null);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!tenantId,
+  });
+
+  // Calculate the next sequence number for a prefix
+  const getNextSequence = useCallback((prefixId: string, currentRows: BulkAssetData[]): string => {
+    const prefix = prefixes.find(p => p.id === prefixId);
+    if (!prefix) return '';
+
+    const prefixTag = `${prefix.prefix_letter}${prefix.number_code}/`;
+    
+    // Get sequences from existing assets in DB
+    const dbSequences = existingAssets
+      .map(a => a.asset_tag)
+      .filter((tag): tag is string => tag?.startsWith(prefixTag) ?? false)
+      .map(tag => parseInt(tag.split('/')[1], 10))
+      .filter(n => !isNaN(n));
+
+    // Get sequences already used in current rows
+    const rowSequences = currentRows
+      .filter(r => r.prefix_id === prefixId && r.asset_tag)
+      .map(r => parseInt(r.asset_tag.split('/')[1], 10))
+      .filter(n => !isNaN(n));
+
+    const allUsed = new Set([...dbSequences, ...rowSequences]);
+    
+    // Find next available sequence (1-999)
+    for (let i = 1; i <= 999; i++) {
+      if (!allUsed.has(i)) {
+        return `${prefixTag}${i.toString().padStart(3, '0')}`;
+      }
+    }
+    return '';
+  }, [prefixes, existingAssets]);
+
   const handleChange = useCallback((id: string, field: keyof BulkAssetData, value: string) => {
     setRows(prev => prev.map(row => 
       row.id === id ? { ...row, [field]: value } : row
@@ -75,6 +148,25 @@ export const BulkAssetEntry: React.FC = () => {
       [id]: { ...prev[id], [field]: false }
     }));
   }, []);
+
+  const handlePrefixChange = useCallback((id: string, prefixId: string) => {
+    setRows(prev => {
+      const newRows = prev.map(row => {
+        if (row.id === id) {
+          // Calculate the next sequence, considering other rows' tags
+          const otherRows = prev.filter(r => r.id !== id);
+          const asset_tag = getNextSequence(prefixId, otherRows);
+          return { ...row, prefix_id: prefixId, asset_tag };
+        }
+        return row;
+      });
+      return newRows;
+    });
+    setErrors(prev => ({
+      ...prev,
+      [id]: { ...prev[id], asset_tag: false }
+    }));
+  }, [getNextSequence]);
 
   const handleRemove = useCallback((id: string) => {
     setRows(prev => prev.filter(row => row.id !== id));
@@ -108,6 +200,11 @@ export const BulkAssetEntry: React.FC = () => {
         isValid = false;
       }
 
+      if (!row.asset_tag) {
+        rowErrors.asset_tag = true;
+        isValid = false;
+      }
+
       if (Object.keys(rowErrors).length > 0) {
         newErrors[row.id] = rowErrors;
       }
@@ -124,7 +221,7 @@ export const BulkAssetEntry: React.FC = () => {
       const assetsData = assetsToSave.map(asset => ({
         tenant_id: tenantId,
         name: asset.name.trim(),
-        asset_tag: asset.asset_tag.trim() || null,
+        asset_tag: asset.asset_tag,
         category: categories.find(c => c.id === asset.category_id)?.name || null,
         location_id: asset.location_id || null,
         status: asset.status as 'active' | 'inactive' | 'maintenance' | 'disposed',
@@ -143,6 +240,7 @@ export const BulkAssetEntry: React.FC = () => {
     onSuccess: (savedAssets) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['tenant-setup-status'] });
+      queryClient.invalidateQueries({ queryKey: ['existing-asset-tags'] });
       toast.success(`Successfully created ${savedAssets.length} asset${savedAssets.length > 1 ? 's' : ''}`);
       navigate('/setup');
     },
@@ -158,12 +256,14 @@ export const BulkAssetEntry: React.FC = () => {
     }
 
     if (!validateRows()) {
-      toast.error('Please fill in all required fields (Name)');
+      toast.error('Please fill in all required fields (Name and Tag)');
       return;
     }
 
     saveMutation.mutate(filledRows);
   };
+
+  const noPrefixesConfigured = prefixes.length === 0 && !isLoadingPrefixes;
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -178,11 +278,28 @@ export const BulkAssetEntry: React.FC = () => {
           </div>
         </div>
 
+        {noPrefixesConfigured && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              No asset tag prefixes configured. Please{' '}
+              <Button 
+                variant="link" 
+                className="p-0 h-auto text-destructive underline"
+                onClick={() => navigate('/admin/preferences/asset-prefixes/bulk')}
+              >
+                configure prefixes first
+              </Button>{' '}
+              before creating assets.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Asset Details</CardTitle>
             <CardDescription>
-              Enter your assets below. Name is the only required field.
+              Enter your assets below. Name and Tag are required fields.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -192,7 +309,8 @@ export const BulkAssetEntry: React.FC = () => {
                   <tr className="border-b border-border bg-muted/50">
                     <th className="p-2 text-left text-sm font-medium text-muted-foreground w-10">#</th>
                     <th className="p-2 text-left text-sm font-medium">Name *</th>
-                    <th className="p-2 text-left text-sm font-medium w-28">Tag</th>
+                    <th className="p-2 text-left text-sm font-medium w-32">Prefix *</th>
+                    <th className="p-2 text-left text-sm font-medium w-24">Tag</th>
                     <th className="p-2 text-left text-sm font-medium w-36">Category</th>
                     <th className="p-2 text-left text-sm font-medium w-40">Location</th>
                     <th className="p-2 text-left text-sm font-medium w-32">Status</th>
@@ -209,10 +327,13 @@ export const BulkAssetEntry: React.FC = () => {
                       data={row}
                       categories={categories}
                       locations={locations}
+                      prefixes={prefixes}
                       onChange={handleChange}
+                      onPrefixChange={handlePrefixChange}
                       onRemove={handleRemove}
                       errors={errors[row.id]}
                       isLoadingLocations={isLoadingLocations}
+                      isLoadingPrefixes={isLoadingPrefixes}
                     />
                   ))}
                 </tbody>
@@ -233,8 +354,8 @@ export const BulkAssetEntry: React.FC = () => {
             <div className="flex items-start gap-2 mt-6 p-3 bg-muted/50 rounded-lg">
               <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-muted-foreground">
-                <strong>Tip:</strong> Create locations first, then you can assign assets to them. 
-                Category and Location help organize your assets for easier management.
+                <strong>Tip:</strong> Select a prefix to auto-generate a unique asset tag. 
+                Each prefix can have up to 999 assets.
               </p>
             </div>
           </CardContent>
@@ -246,7 +367,7 @@ export const BulkAssetEntry: React.FC = () => {
           </Button>
           <Button 
             onClick={handleSave} 
-            disabled={filledRows.length === 0 || saveMutation.isPending}
+            disabled={filledRows.length === 0 || saveMutation.isPending || noPrefixesConfigured}
           >
             <Save className="h-4 w-4 mr-2" />
             {saveMutation.isPending 
