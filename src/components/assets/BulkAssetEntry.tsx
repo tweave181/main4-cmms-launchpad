@@ -29,6 +29,7 @@ interface AssetTagPrefix {
   prefix_letter: string;
   number_code: string;
   description: string;
+  category_id: string | null;
 }
 
 export const BulkAssetEntry: React.FC = () => {
@@ -82,7 +83,7 @@ export const BulkAssetEntry: React.FC = () => {
       if (!tenantId) return [];
       const { data, error } = await supabase
         .from('asset_tag_prefixes')
-        .select('id, prefix_letter, number_code, description')
+        .select('id, prefix_letter, number_code, description, category_id')
         .eq('tenant_id', tenantId)
         .order('prefix_letter')
         .order('number_code');
@@ -113,12 +114,19 @@ export const BulkAssetEntry: React.FC = () => {
     const prefix = prefixes.find(p => p.id === prefixId);
     if (!prefix) return '';
 
-    const prefixTag = `${prefix.prefix_letter}${prefix.number_code}/`;
+    // Format: E1/ (no leading zeros on prefix number)
+    const prefixNumber = parseInt(prefix.number_code, 10).toString();
+    const prefixTag = `${prefix.prefix_letter}${prefixNumber}/`;
     
-    // Get sequences from existing assets in DB
+    // Get sequences from existing assets in DB (check both old format E001/ and new format E1/)
     const dbSequences = existingAssets
       .map(a => a.asset_tag)
-      .filter((tag): tag is string => tag?.startsWith(prefixTag) ?? false)
+      .filter((tag): tag is string => {
+        if (!tag) return false;
+        // Match both E1/ and E001/ format
+        const oldFormat = `${prefix.prefix_letter}${prefix.number_code}/`;
+        return tag.startsWith(prefixTag) || tag.startsWith(oldFormat);
+      })
       .map(tag => parseInt(tag.split('/')[1], 10))
       .filter(n => !isNaN(n));
 
@@ -156,7 +164,10 @@ export const BulkAssetEntry: React.FC = () => {
           // Calculate the next sequence, considering other rows' tags
           const otherRows = prev.filter(r => r.id !== id);
           const asset_tag = getNextSequence(prefixId, otherRows);
-          return { ...row, prefix_id: prefixId, asset_tag };
+          // Auto-set category from prefix
+          const prefix = prefixes.find(p => p.id === prefixId);
+          const category_id = prefix?.category_id || '';
+          return { ...row, prefix_id: prefixId, asset_tag, category_id };
         }
         return row;
       });
@@ -166,7 +177,7 @@ export const BulkAssetEntry: React.FC = () => {
       ...prev,
       [id]: { ...prev[id], asset_tag: false }
     }));
-  }, [getNextSequence]);
+  }, [getNextSequence, prefixes]);
 
   const handleRemove = useCallback((id: string) => {
     setRows(prev => prev.filter(row => row.id !== id));
@@ -309,7 +320,7 @@ export const BulkAssetEntry: React.FC = () => {
                   <tr className="border-b border-border bg-muted/50">
                     <th className="p-2 text-left text-sm font-medium text-muted-foreground w-10">#</th>
                     <th className="p-2 text-left text-sm font-medium">Name *</th>
-                    <th className="p-2 text-left text-sm font-medium w-32">Prefix *</th>
+                    <th className="p-2 text-left text-sm font-medium w-52">Prefix *</th>
                     <th className="p-2 text-left text-sm font-medium w-24">Tag</th>
                     <th className="p-2 text-left text-sm font-medium w-36">Category</th>
                     <th className="p-2 text-left text-sm font-medium w-40">Location</th>
