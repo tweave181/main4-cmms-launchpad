@@ -321,18 +321,7 @@ export const BulkAssetEntry: React.FC = () => {
                   <tr className="border-b border-border bg-muted/50">
                     <th className="p-2 text-left text-sm font-medium text-muted-foreground w-10">#</th>
                     <th className="p-2 text-left text-sm font-medium">Name *</th>
-                    <th className="p-2 text-center text-sm font-medium w-36">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Tag className="h-4 w-4 mx-auto text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Asset Tag Prefix (required)</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </th>
+                    <th className="p-2 text-center text-sm font-medium w-12">Prefix</th>
                     <th className="p-2 text-left text-sm font-medium w-20">Tag</th>
                     <th className="p-2 text-left text-sm font-medium w-36">Category</th>
                     <th className="p-2 text-left text-sm font-medium w-40">Location</th>
