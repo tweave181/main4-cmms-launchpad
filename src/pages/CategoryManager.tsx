@@ -1,17 +1,21 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tag, Plus, Loader2 } from 'lucide-react';
+import { Tag, Plus, Loader2, Download, Upload } from 'lucide-react';
 import { CategoryList } from '@/components/categories/CategoryList';
 import { CategoryForm } from '@/components/categories/CategoryForm';
+import { CategoryImportModal } from '@/components/categories/CategoryImportModal';
 import { useCategories, Category } from '@/hooks/useCategories';
+import { useAuth } from '@/contexts/auth';
+import { generateCSV, downloadCSV } from '@/utils/csvUtils';
 
 const CategoryManager: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   
   const { categories, isLoading } = useCategories();
+  const { isAdmin } = useAuth();
 
   const handleCreateCategory = () => {
     setEditingCategory(null);
@@ -26,6 +30,16 @@ const CategoryManager: React.FC = () => {
   const handleFormClose = () => {
     setIsFormOpen(false);
     setEditingCategory(null);
+  };
+
+  const handleExport = () => {
+    const csvData: string[][] = [
+      ['Category Name', 'Description'],
+      ...categories.map(cat => [cat.name, cat.description || ''])
+    ];
+    const csv = generateCSV(csvData);
+    const date = new Date().toISOString().split('T')[0];
+    downloadCSV(csv, `categories-${date}.csv`);
   };
 
   if (isLoading) {
@@ -47,10 +61,24 @@ const CategoryManager: React.FC = () => {
               <Tag className="h-6 w-6 text-primary" />
               <span>Category Manager</span>
             </CardTitle>
-            <Button onClick={handleCreateCategory} className="rounded-2xl">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Category
-            </Button>
+            <div className="flex items-center gap-2">
+              {isAdmin && (
+                <>
+                  <Button variant="outline" onClick={handleExport} className="rounded-2xl">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsImportOpen(true)} className="rounded-2xl">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import
+                  </Button>
+                </>
+              )}
+              <Button onClick={handleCreateCategory} className="rounded-2xl">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Category
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -73,6 +101,11 @@ const CategoryManager: React.FC = () => {
           onClose={handleFormClose}
         />
       )}
+
+      <CategoryImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+      />
     </div>
   );
 };

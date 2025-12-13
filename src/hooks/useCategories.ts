@@ -142,6 +142,44 @@ export const useCategories = () => {
     },
   });
 
+  const importCategories = useMutation({
+    mutationFn: async (categoriesData: { name: string; description?: string }[]) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+
+      if (userError) throw userError;
+      if (!userData?.tenant_id) throw new Error('User tenant not found');
+
+      const categoriesToInsert = categoriesData.map(cat => ({
+        name: cat.name,
+        description: cat.description || null,
+        tenant_id: userData.tenant_id
+      }));
+
+      const { data, error } = await supabase
+        .from('categories')
+        .insert(categoriesToInsert)
+        .select();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success(`${data.length} ${data.length === 1 ? 'category' : 'categories'} imported successfully`);
+    },
+    onError: (error) => {
+      console.error('Error importing categories:', error);
+      toast.error('Failed to import categories');
+    },
+  });
+
   return {
     categories,
     isLoading,
@@ -150,5 +188,6 @@ export const useCategories = () => {
     createCategory,
     updateCategory,
     deleteCategory,
+    importCategories,
   };
 };
