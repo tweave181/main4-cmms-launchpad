@@ -2,7 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Tag } from 'lucide-react';
 
 export interface BulkAssetData {
   id: string;
@@ -92,8 +92,8 @@ export const BulkAssetRow: React.FC<BulkAssetRowProps> = ({
           value={data.prefix_id}
           onValueChange={(value) => onPrefixChange(data.id, value)}
         >
-          <SelectTrigger className={`w-36 ${errors.asset_tag ? 'border-destructive' : ''}`}>
-            <SelectValue placeholder={isLoadingPrefixes ? 'Loading...' : 'Select...'} />
+          <SelectTrigger className={`w-10 h-10 p-0 justify-center ${errors.asset_tag ? 'border-destructive' : ''}`}>
+            <Tag className="h-4 w-4 text-muted-foreground" />
           </SelectTrigger>
           <SelectContent>
             {prefixes.map((prefix) => (
