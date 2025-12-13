@@ -32,6 +32,7 @@ interface AssetTagPrefix {
   prefix_letter: string;
   number_code: string;
   description: string;
+  category_id: string | null;
 }
 
 interface BulkAssetRowProps {
@@ -91,13 +92,13 @@ export const BulkAssetRow: React.FC<BulkAssetRowProps> = ({
           value={data.prefix_id}
           onValueChange={(value) => onPrefixChange(data.id, value)}
         >
-          <SelectTrigger className={`w-32 ${errors.asset_tag ? 'border-destructive' : ''}`}>
+          <SelectTrigger className={`w-52 ${errors.asset_tag ? 'border-destructive' : ''}`}>
             <SelectValue placeholder={isLoadingPrefixes ? 'Loading...' : 'Select...'} />
           </SelectTrigger>
           <SelectContent>
             {prefixes.map((prefix) => (
               <SelectItem key={prefix.id} value={prefix.id}>
-                {prefix.prefix_letter}{prefix.number_code}
+                {prefix.prefix_letter}{parseInt(prefix.number_code, 10)} - {prefix.description}
               </SelectItem>
             ))}
           </SelectContent>
@@ -109,21 +110,9 @@ export const BulkAssetRow: React.FC<BulkAssetRowProps> = ({
         </div>
       </td>
       <td className="p-2">
-        <Select
-          value={data.category_id}
-          onValueChange={(value) => onChange(data.id, 'category_id', value)}
-        >
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="Select..." />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="px-3 py-2 text-sm bg-muted rounded-md min-w-[120px]">
+          {categories.find(c => c.id === data.category_id)?.name || '—'}
+        </div>
       </td>
       <td className="p-2">
         <Select
