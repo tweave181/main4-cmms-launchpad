@@ -40,7 +40,9 @@ export const TopBar: React.FC = () => {
         description: "You've been securely logged out"
       });
       // Navigate to auth page to prevent remaining on protected routes
-      navigate('/auth', { replace: true });
+      navigate('/auth', {
+        replace: true
+      });
     } catch (error: any) {
       // Log error for debugging but show user-friendly message
       console.error('Logout error:', error);
@@ -51,11 +53,13 @@ export const TopBar: React.FC = () => {
         description: "You've been securely logged out"
       });
       // Still navigate to auth to ensure user exits the app UI
-      navigate('/auth', { replace: true });
+      navigate('/auth', {
+        replace: true
+      });
     }
   };
   return <header className="border-b bg-white shadow-sm">
-      <div className="flex items-center justify-between h-16 px-[14px]">
+      <div className="flex items-center justify-between h-16 px-[14px] bg-indigo-100">
         <div className="flex items-center space-x-4">
           <SidebarTrigger />
           {loading || !ready ? <div className="hidden md:block">
