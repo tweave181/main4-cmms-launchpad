@@ -92,7 +92,7 @@ export const BulkAssetRow: React.FC<BulkAssetRowProps> = ({
           value={data.prefix_id}
           onValueChange={(value) => onPrefixChange(data.id, value)}
         >
-          <SelectTrigger className={`w-52 ${errors.asset_tag ? 'border-destructive' : ''}`}>
+          <SelectTrigger className={`w-36 ${errors.asset_tag ? 'border-destructive' : ''}`}>
             <SelectValue placeholder={isLoadingPrefixes ? 'Loading...' : 'Select...'} />
           </SelectTrigger>
           <SelectContent>
@@ -105,7 +105,7 @@ export const BulkAssetRow: React.FC<BulkAssetRowProps> = ({
         </Select>
       </td>
       <td className="p-2">
-        <div className="px-3 py-2 text-sm bg-muted rounded-md min-w-[80px] font-mono">
+        <div className="px-3 py-2 text-sm bg-muted rounded-md min-w-[70px] font-mono">
           {data.asset_tag || '—'}
         </div>
       </td>
