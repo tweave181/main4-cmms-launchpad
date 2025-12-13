@@ -95,13 +95,13 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
         description: category?.description || '',
         createPrefix: false,
         prefix_letter: DEFAULT_PREFIX_LETTER,
-        number_code: nextNumber?.toString() || '1',
+        number_code: '1',
         prefix_description: category?.name || '',
       });
       setCreatePrefix(false);
       setPrefixLetter(DEFAULT_PREFIX_LETTER);
     }
-  }, [isOpen, category, form, nextNumber]);
+  }, [isOpen, category, form]);
 
   const handlePrefixLetterChange = (value: string) => {
     const letter = value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 1);
