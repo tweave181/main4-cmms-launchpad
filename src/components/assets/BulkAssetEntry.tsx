@@ -325,7 +325,6 @@ export const BulkAssetEntry: React.FC = () => {
                     <th className="p-2 text-left text-sm font-medium w-20">Tag</th>
                     <th className="p-2 text-left text-sm font-medium w-36">Category</th>
                     <th className="p-2 text-left text-sm font-medium w-40">Location</th>
-                    <th className="p-2 text-left text-sm font-medium w-32">Status</th>
                     <th className="p-2 text-left text-sm font-medium w-28">Priority</th>
                     <th className="p-2 text-left text-sm font-medium">Description</th>
                     <th className="p-2 w-10"></th>

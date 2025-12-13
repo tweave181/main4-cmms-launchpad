@@ -133,23 +133,6 @@ export const BulkAssetRow: React.FC<BulkAssetRowProps> = ({
       </td>
       <td className="p-2">
         <Select
-          value={data.status}
-          onValueChange={(value) => onChange(data.id, 'status', value)}
-        >
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </td>
-      <td className="p-2">
-        <Select
           value={data.priority}
           onValueChange={(value) => onChange(data.id, 'priority', value)}
         >
