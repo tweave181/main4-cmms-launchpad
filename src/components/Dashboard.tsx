@@ -8,7 +8,7 @@ import { RecentEmailActivity } from '@/components/dashboard/RecentEmailActivity'
 import { SetupReminderBanner } from '@/components/dashboard/SetupReminderBanner';
 const Dashboard: React.FC = () => {
   return <div className="p-6">
-      <SetupReminderBanner />
+      <SetupReminderBanner className="bg-amber-300" />
         {/* Main Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column */}
