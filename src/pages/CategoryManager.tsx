@@ -8,6 +8,8 @@ import { CategoryImportModal } from '@/components/categories/CategoryImportModal
 import { useCategories, Category } from '@/hooks/useCategories';
 import { useAuth } from '@/contexts/auth';
 import { generateCSV, downloadCSV } from '@/utils/csvUtils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const CategoryManager: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -15,7 +17,21 @@ const CategoryManager: React.FC = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   
   const { categories, isLoading } = useCategories();
-  const { isAdmin } = useAuth();
+  const { isAdmin, userProfile } = useAuth();
+  
+  const { data: tenantName } = useQuery({
+    queryKey: ['tenant-name', userProfile?.tenant_id],
+    queryFn: async () => {
+      if (!userProfile?.tenant_id) return null;
+      const { data } = await supabase
+        .from('tenants')
+        .select('name')
+        .eq('id', userProfile.tenant_id)
+        .single();
+      return data?.name || null;
+    },
+    enabled: !!userProfile?.tenant_id,
+  });
 
   const handleCreateCategory = () => {
     setEditingCategory(null);
@@ -39,7 +55,8 @@ const CategoryManager: React.FC = () => {
     ];
     const csv = generateCSV(csvData);
     const date = new Date().toISOString().split('T')[0];
-    downloadCSV(csv, `categories-${date}.csv`);
+    const siteName = tenantName || 'export';
+    downloadCSV(csv, `${siteName}-categories-${date}.csv`);
   };
 
   if (isLoading) {
