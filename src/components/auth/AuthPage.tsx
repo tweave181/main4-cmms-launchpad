@@ -34,18 +34,18 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row lg:items-center">
+    <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center gap-8 p-4 lg:p-8 bg-background">
       {/* Branding Image Section */}
-      <div className="h-48 lg:h-auto lg:w-1/2 flex items-center justify-center bg-background">
+      <div className="hidden lg:block">
         <img 
           src={main4Branding} 
           alt="Main4 - CMMS Software Developed by Engineers for Engineers"
-          className="max-h-[500px] w-auto object-contain"
+          className="max-h-[500px] w-auto object-contain rounded-lg"
         />
       </div>
       
       {/* Form Section */}
-      <div className="flex-1 lg:w-1/2 flex items-center justify-center bg-background p-4">
+      <div className="flex items-center justify-center bg-background p-4">
         <div className="w-full max-w-md">
           {msg && view === 'login' && (
             <div className="mb-4 bg-amber-50 border border-amber-300 rounded py-2 px-3 text-amber-700 text-sm text-center">
