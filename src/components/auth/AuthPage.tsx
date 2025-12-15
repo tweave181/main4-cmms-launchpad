@@ -35,7 +35,7 @@ const AuthPage: React.FC = () => {
       
       {/* Form Section */}
       <div className="flex items-center justify-center bg-background p-4 py-[30px] px-px">
-        <div className="w-full max-w-md py-[30px]">
+        <div className="w-full max-w-md py-[30px] border-2 border-solid">
           {msg && view === 'login' && <div className="mb-4 bg-amber-50 border border-amber-300 rounded py-2 px-3 text-amber-700 text-sm text-center">
               {msg}
             </div>}
