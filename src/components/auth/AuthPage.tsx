@@ -36,7 +36,7 @@ const AuthPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row lg:items-center">
       {/* Branding Image Section */}
-      <div className="h-48 lg:h-auto lg:w-1/2 flex items-center justify-center bg-slate-900">
+      <div className="h-48 lg:h-auto lg:w-1/2 flex items-center justify-center bg-background">
         <img 
           src={main4Branding} 
           alt="Main4 - CMMS Software Developed by Engineers for Engineers"
