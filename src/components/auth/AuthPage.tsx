@@ -34,13 +34,13 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-screen flex flex-col lg:flex-row lg:items-center">
       {/* Branding Image Section */}
-      <div className="h-64 lg:h-auto lg:w-1/2 lg:min-h-screen">
+      <div className="h-48 lg:h-auto lg:w-1/2 flex items-center justify-center bg-slate-900 lg:bg-transparent p-4 lg:p-8">
         <img 
           src={main4Branding} 
           alt="Main4 - CMMS Software Developed by Engineers for Engineers"
-          className="w-full h-full object-cover"
+          className="max-h-[500px] w-auto object-contain"
         />
       </div>
       
