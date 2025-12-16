@@ -1,42 +1,27 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useSparePartsCategories, type SparePartsCategory } from '@/hooks/useSparePartsCategories';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-
 interface SparePartsCategoryListProps {
   categories: SparePartsCategory[];
   onEditCategory: (category: SparePartsCategory) => void;
   showInactive?: boolean;
 }
-
 export const SparePartsCategoryList: React.FC<SparePartsCategoryListProps> = ({
   categories,
   onEditCategory,
-  showInactive = false,
+  showInactive = false
 }) => {
-  const { deleteCategory, updateCategory } = useSparePartsCategories();
+  const {
+    deleteCategory,
+    updateCategory
+  } = useSparePartsCategories();
   const [categoryToDelete, setCategoryToDelete] = React.useState<SparePartsCategory | null>(null);
-
-  const filteredCategories = showInactive 
-    ? categories 
-    : categories.filter(cat => cat.is_active);
-
+  const filteredCategories = showInactive ? categories : categories.filter(cat => cat.is_active);
   const handleDeleteCategory = async () => {
     if (categoryToDelete) {
       try {
@@ -47,45 +32,36 @@ export const SparePartsCategoryList: React.FC<SparePartsCategoryListProps> = ({
       }
     }
   };
-
   const handleToggleActive = async (category: SparePartsCategory) => {
     try {
       await updateCategory.mutateAsync({
         id: category.id,
-        is_active: !category.is_active,
+        is_active: !category.is_active
       });
     } catch (error) {
       console.error('Error toggling category status:', error);
     }
   };
-
   if (filteredCategories.length === 0) {
-    return (
-      <div className="text-center py-8">
+    return <div className="text-center py-8">
         <p className="text-muted-foreground">
-          {showInactive 
-            ? 'No categories found.' 
-            : 'No active categories found. Try showing inactive categories or create a new one.'}
+          {showInactive ? 'No categories found.' : 'No active categories found. Try showing inactive categories or create a new one.'}
         </p>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <>
+  return <>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="bg-slate-300">Description</TableHead>
+            <TableHead className="bg-slate-300">Status</TableHead>
+            <TableHead className="bg-slate-300">Created</TableHead>
+            <TableHead className="w-[50px] bg-slate-300"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredCategories.map((category) => (
-            <TableRow key={category.id}>
+          {filteredCategories.map(category => <TableRow key={category.id}>
               <TableCell className="font-medium">{category.name}</TableCell>
               <TableCell className="text-muted-foreground">
                 {category.description || 'No description'}
@@ -111,42 +87,25 @@ export const SparePartsCategoryList: React.FC<SparePartsCategoryListProps> = ({
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleToggleActive(category)}>
-                      {category.is_active ? (
-                        <>
+                      {category.is_active ? <>
                           <EyeOff className="mr-2 h-4 w-4" />
                           Deactivate
-                        </>
-                      ) : (
-                        <>
+                        </> : <>
                           <Eye className="mr-2 h-4 w-4" />
                           Activate
-                        </>
-                      )}
+                        </>}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setCategoryToDelete(category)}
-                      className="text-destructive"
-                    >
+                    <DropdownMenuItem onClick={() => setCategoryToDelete(category)} className="text-destructive">
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
-            </TableRow>
-          ))}
+            </TableRow>)}
         </TableBody>
       </Table>
 
-      <ConfirmationDialog
-        isOpen={!!categoryToDelete}
-        onClose={() => setCategoryToDelete(null)}
-        onConfirm={handleDeleteCategory}
-        title="Delete Category"
-        description={`Are you sure you want to delete "${categoryToDelete?.name}"? This action cannot be undone and will fail if the category is currently in use.`}
-        confirmText="Delete"
-        cancelText="Cancel"
-      />
-    </>
-  );
+      <ConfirmationDialog isOpen={!!categoryToDelete} onClose={() => setCategoryToDelete(null)} onConfirm={handleDeleteCategory} title="Delete Category" description={`Are you sure you want to delete "${categoryToDelete?.name}"? This action cannot be undone and will fail if the category is currently in use.`} confirmText="Delete" cancelText="Cancel" />
+    </>;
 };
