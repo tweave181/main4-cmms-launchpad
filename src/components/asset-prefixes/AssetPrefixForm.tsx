@@ -101,6 +101,7 @@ export const AssetPrefixForm: React.FC<AssetPrefixFormProps> = ({
               isPrefixInUse={isPrefixInUse}
               isDuplicate={isDuplicate}
               form={form}
+              isEditing={isEditing}
             />
 
             <div className="flex justify-between pt-4">
