@@ -127,7 +127,7 @@ export const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 bg-sky-300">
             Main Menu
           </div>
           {menuItems.map(item => <SidebarMenuItem key={item.href}>
