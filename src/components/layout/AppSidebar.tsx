@@ -44,7 +44,7 @@ export const AppSidebar = () => {
     { icon: Briefcase, label: 'Job Titles', href: '/admin/preferences/job-titles' },
     { icon: MapPin, label: 'Location Levels', href: '/admin/preferences/location-levels' },
     { icon: MapPin, label: 'Locations', href: '/admin/preferences/locations' },
-    { icon: FolderOpen, label: 'Categories', href: '/admin/preferences/categories' },
+    { icon: FolderOpen, label: 'Asset Categories', href: '/admin/preferences/categories' },
     { icon: Tag, label: 'Spare Parts Categories', href: '/spare-parts-categories' },
     { icon: Cog, label: 'Asset Prefixes', href: '/admin/preferences/asset-prefixes' },
     { icon: Calendar, label: 'Frequency Types', href: '/admin/preferences/frequency-types' },
