@@ -23,12 +23,14 @@ interface CategorySelectorProps {
   control: Control<any>;
   name: string;
   required?: boolean;
+  disabled?: boolean;
 }
 
 export const CategorySelector: React.FC<CategorySelectorProps> = ({
   control,
   name,
   required = false,
+  disabled = false,
 }) => {
   const { categories, isLoading } = useCategories();
 
@@ -47,7 +49,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               field.onChange(value || null);
             }} 
             value={field.value || ''}
-            disabled={isLoading}
+            disabled={isLoading || disabled}
           >
             <FormControl>
               <SelectTrigger>

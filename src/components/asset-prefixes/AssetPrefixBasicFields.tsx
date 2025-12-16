@@ -58,7 +58,7 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
   // Get current form values for preview
   const formValues = form.watch();
   const previewPrefix = formValues.prefix_letter || 'X';
-  const previewNumber = (parseInt(formValues.number_code || '0') || 0).toString().padStart(3, '0');
+  const previewNumber = (parseInt(formValues.number_code || '0') || 0).toString();
 
   return (
     <TooltipProvider>
@@ -180,6 +180,7 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
       <CategorySelector 
         control={control}
         name="category_id"
+        disabled={isPrefixInUse}
       />
 
       <FormField
