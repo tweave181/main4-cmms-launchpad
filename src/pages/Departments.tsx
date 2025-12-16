@@ -35,14 +35,13 @@ const Departments: React.FC = () => {
   }
   return <div className="p-6">
       <Card className="rounded-2xl shadow-sm border border-gray-200">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
+        <CardHeader className="pb-4 border-card">
+          <div className="flex items-center justify-between bg-slate-300">
             <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
               <Building className="h-6 w-6 text-primary" />
               <span>Departments List</span>
             </CardTitle>
-            <Button onClick={handleCreateDepartment} className="rounded-2xl">
-              <Plus className="w-4 h-4 mr-2" />
+            <Button onClick={handleCreateDepartment} className="rounded-2xl">Add New Department<Plus className="w-4 h-4 mr-2" />
               Add Department
             </Button>
           </div>
