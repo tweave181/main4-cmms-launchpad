@@ -110,11 +110,11 @@ const AssetPrefixManager: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <AssetPrefixList prefixes={prefixes} onEditPrefix={handleEditPrefix} onDeletePrefix={deletePrefix} />
+          <AssetPrefixList prefixes={prefixes} onEditPrefix={handleEditPrefix} />
         </CardContent>
       </Card>
 
-      <AssetPrefixForm prefix={editingPrefix} isOpen={isFormOpen} onClose={handleFormClose} onSuccess={handleFormSuccess} />
+      <AssetPrefixForm prefix={editingPrefix} isOpen={isFormOpen} onClose={handleFormClose} onSuccess={handleFormSuccess} onDelete={deletePrefix} />
     </div>
   );
 };

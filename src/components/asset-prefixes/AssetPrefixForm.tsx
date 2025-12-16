@@ -9,8 +9,16 @@ import {
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
 import { useAssetPrefixForm } from './useAssetPrefixForm';
 import { AssetPrefixBasicFields } from './AssetPrefixBasicFields';
+import { toast } from '@/hooks/use-toast';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { Database } from '@/integrations/supabase/types';
 
 type AssetTagPrefix = Database['public']['Tables']['asset_tag_prefixes']['Row'];
@@ -20,6 +28,7 @@ interface AssetPrefixFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onDelete?: (id: string) => Promise<void>;
 }
 
 export const AssetPrefixForm: React.FC<AssetPrefixFormProps> = ({
@@ -27,6 +36,7 @@ export const AssetPrefixForm: React.FC<AssetPrefixFormProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  onDelete,
 }) => {
   const { form, onSubmit, isEditing, isLoading, isPrefixInUse, isDuplicate } = useAssetPrefixForm({ 
     prefix, 
@@ -36,6 +46,37 @@ export const AssetPrefixForm: React.FC<AssetPrefixFormProps> = ({
   const handleClose = () => {
     form.reset();
     onClose();
+  };
+
+  const handleDelete = async () => {
+    if (!prefix || !onDelete) return;
+    
+    if (isPrefixInUse) {
+      toast({
+        title: 'Cannot Delete Prefix',
+        description: 'This prefix is currently used by assets. Please reassign or remove these assets first.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete the prefix "${prefix.prefix_letter}${parseInt(prefix.number_code)}"?`)) {
+      try {
+        await onDelete(prefix.id);
+        toast({
+          title: 'Success',
+          description: 'Asset tag prefix deleted successfully'
+        });
+        handleClose();
+      } catch (error) {
+        console.error('Error deleting prefix:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete asset tag prefix. Please try again.',
+          variant: 'destructive'
+        });
+      }
+    }
   };
 
   return (
@@ -62,13 +103,41 @@ export const AssetPrefixForm: React.FC<AssetPrefixFormProps> = ({
               form={form}
             />
 
-            <div className="flex justify-start space-x-4 pt-4">
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading || isDuplicate}>
-                {isLoading ? 'Saving...' : (isEditing ? 'Update Prefix' : 'Create Prefix')}
-              </Button>
+            <div className="flex justify-between pt-4">
+              <div>
+                {isEditing && onDelete && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button 
+                            type="button" 
+                            variant="destructive" 
+                            onClick={handleDelete}
+                            disabled={isPrefixInUse}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {isPrefixInUse && (
+                        <TooltipContent>
+                          <p>Cannot delete - prefix is used by assets</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+              <div className="flex space-x-4">
+                <Button type="button" variant="outline" onClick={handleClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading || isDuplicate}>
+                  {isLoading ? 'Saving...' : (isEditing ? 'Update Prefix' : 'Create Prefix')}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>
