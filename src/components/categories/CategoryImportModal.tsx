@@ -35,7 +35,7 @@ export const CategoryImportModal: React.FC<CategoryImportModalProps> = ({
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { importCategories } = useCategories();
+  const { categories: existingCategories, importCategories } = useCategories();
 
   const resetState = () => {
     setFile(null);
@@ -65,9 +65,10 @@ export const CategoryImportModal: React.FC<CategoryImportModalProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const parseCSV = (content: string): ParsedCategory[] => {
+  const parseCSV = (content: string, existingCategoryNames: Set<string>): ParsedCategory[] => {
     const lines = content.split('\n').filter(line => line.trim());
     const categories: ParsedCategory[] = [];
+    const seenNamesInFile = new Set<string>();
     
     // Skip header row
     for (let i = 1; i < lines.length; i++) {
@@ -88,6 +89,7 @@ export const CategoryImportModal: React.FC<CategoryImportModalProps> = ({
       
       const name = values[0] || '';
       const description = values[1] || '';
+      const nameLower = name.toLowerCase();
       
       let isValid = true;
       let error: string | undefined;
@@ -98,8 +100,15 @@ export const CategoryImportModal: React.FC<CategoryImportModalProps> = ({
       } else if (name.length > 100) {
         isValid = false;
         error = 'Name must be 100 characters or less';
+      } else if (existingCategoryNames.has(nameLower)) {
+        isValid = false;
+        error = 'Already exists';
+      } else if (seenNamesInFile.has(nameLower)) {
+        isValid = false;
+        error = 'Duplicate in file';
       }
       
+      seenNamesInFile.add(nameLower);
       categories.push({ name, description, isValid, error });
     }
     
@@ -115,7 +124,10 @@ export const CategoryImportModal: React.FC<CategoryImportModalProps> = ({
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result as string;
-      const parsed = parseCSV(content);
+      const existingNames = new Set(
+        (existingCategories || []).map(c => c.name.toLowerCase())
+      );
+      const parsed = parseCSV(content, existingNames);
       setParsedCategories(parsed);
       setShowPreview(true);
     };
