@@ -10,6 +10,8 @@ export interface Category {
   description?: string;
   created_at: string;
   updated_at: string;
+  prefix_letter?: string | null;
+  prefix_number_code?: string | null;
 }
 
 interface CreateCategoryData {
@@ -29,11 +31,28 @@ export const useCategories = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select(`
+          *,
+          asset_tag_prefixes!category_id (
+            prefix_letter,
+            number_code
+          )
+        `)
         .order('name');
       
       if (error) throw error;
-      return data as Category[];
+      
+      // Flatten the prefix data into each category
+      return (data || []).map((cat: any) => ({
+        id: cat.id,
+        tenant_id: cat.tenant_id,
+        name: cat.name,
+        description: cat.description,
+        created_at: cat.created_at,
+        updated_at: cat.updated_at,
+        prefix_letter: cat.asset_tag_prefixes?.[0]?.prefix_letter || null,
+        prefix_number_code: cat.asset_tag_prefixes?.[0]?.number_code || null,
+      })) as Category[];
     },
   });
 
