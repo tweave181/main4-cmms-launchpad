@@ -21,6 +21,7 @@ interface AssetPrefixBasicFieldsProps {
   isPrefixInUse?: boolean;
   isDuplicate?: boolean;
   form: any; // React Hook Form instance
+  isEditing?: boolean;
 }
 
 export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
@@ -28,6 +29,7 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
   isPrefixInUse = false,
   isDuplicate = false,
   form,
+  isEditing = false,
 }) => {
   const [autoSuggestEnabled, setAutoSuggestEnabled] = useState(false);
   
@@ -70,13 +72,13 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
             <FormItem className="w-20">
               <FormLabel className="flex items-center gap-2">
                 Prefix Letter
-                {isPrefixInUse && (
+                {isEditing && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Lock className="h-3 w-3 text-gray-500" />
+                      <Lock className="h-3 w-3 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>This prefix is already assigned to one or more assets and cannot be modified.</p>
+                      <p>Cannot be modified after creation</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -96,7 +98,7 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
                     }
                   }}
                   className="text-center"
-                  disabled={isPrefixInUse}
+                  disabled={isEditing}
                 />
               </FormControl>
               <FormMessage />
@@ -111,13 +113,13 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
             <FormItem className="flex-1">
               <FormLabel className="flex items-center gap-2">
                 Number Code
-                {isPrefixInUse && (
+                {isEditing && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Lock className="h-3 w-3 text-gray-500" />
+                      <Lock className="h-3 w-3 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>This prefix is already assigned to one or more assets and cannot be modified.</p>
+                      <p>Cannot be modified after creation</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -135,7 +137,7 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
                       }
                     }
                   }}
-                  disabled={isPrefixInUse || autoSuggestEnabled}
+                  disabled={isEditing || autoSuggestEnabled}
                   className={isDuplicate ? 'border-red-500' : ''}
                 />
               </FormControl>
@@ -150,8 +152,8 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
         />
       </div>
 
-      {/* Auto-suggest toggle */}
-      {!isPrefixInUse && (
+      {/* Auto-suggest toggle - only show when creating new */}
+      {!isEditing && (
         <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <Checkbox
             id="auto-suggest"
@@ -176,11 +178,11 @@ export const AssetPrefixBasicFields: React.FC<AssetPrefixBasicFieldsProps> = ({
         </div>
       )}
 
-      {/* Category Selection */}
+      {/* Category Selection - locked when editing */}
       <CategorySelector 
         control={control}
         name="category_id"
-        disabled={isPrefixInUse}
+        disabled={isEditing}
       />
 
       <FormField
