@@ -175,7 +175,7 @@ export const AppSidebar = () => {
             </>}
 
           {isSystemAdmin && <>
-              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-4">
+              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-4 bg-sky-300">
                 System Admin
               </div>
               <SidebarMenuItem>
