@@ -53,7 +53,7 @@ export const SparePartsCategoryList: React.FC<SparePartsCategoryListProps> = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
+            <TableHead className="bg-slate-300">Name</TableHead>
             <TableHead className="bg-slate-300">Description</TableHead>
             <TableHead className="bg-slate-300">Status</TableHead>
             <TableHead className="bg-slate-300">Created</TableHead>
