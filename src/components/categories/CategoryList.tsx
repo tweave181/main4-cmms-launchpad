@@ -26,6 +26,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({
         <TableHeader>
           <TableRow>
             <TableHead className="bg-gray-300">Name</TableHead>
+            <TableHead className="bg-gray-300">Prefix</TableHead>
             <TableHead className="bg-gray-300">Description</TableHead>
             <TableHead className="bg-gray-300">Created</TableHead>
           </TableRow>
@@ -34,6 +35,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({
           {categories.map(category => <TableRow key={category.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => onCategoryClick(category)}>
               <TableCell className="font-medium">
                 {category.name}
+              </TableCell>
+              <TableCell>
+                {category.prefix_letter && category.prefix_number_code 
+                  ? `${category.prefix_letter}${parseInt(category.prefix_number_code)}`
+                  : <span className="text-muted-foreground">—</span>}
               </TableCell>
               <TableCell>
                 {category.description || <span className="text-muted-foreground">No description</span>}
