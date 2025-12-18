@@ -1,21 +1,23 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Building2, User, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
-
 export const WelcomeCard: React.FC = () => {
-  const { userProfile, tenant, isAdmin, loading, ready } = useAuth();
+  const {
+    userProfile,
+    tenant,
+    isAdmin,
+    loading,
+    ready
+  } = useAuth();
 
   // Debug logging to see what data we have
   console.log('WelcomeCard - userProfile:', userProfile);
   console.log('WelcomeCard - userProfile.name:', userProfile?.name);
   console.log('WelcomeCard - loading:', loading, 'ready:', ready);
-
   if (loading || !ready) {
-    return (
-      <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
+    return <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
         <CardHeader className="p-0 mb-6">
           <CardTitle className="text-2xl font-semibold">
             <Skeleton className="h-8 w-64" />
@@ -51,14 +53,11 @@ export const WelcomeCard: React.FC = () => {
             </div>
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
+  return <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
       <CardHeader className="p-0 mb-6">
-        <CardTitle className="text-2xl font-semibold">
+        <CardTitle className="text-2xl font-semibold bg-lime-400">
           Welcome back, {userProfile?.name?.split(' ')[0] || 'User'}!
         </CardTitle>
         <CardDescription>
@@ -91,19 +90,16 @@ export const WelcomeCard: React.FC = () => {
                 <p className="text-sm text-muted-foreground">
                   {isAdmin ? "Administrator" : "Standard User"}
                 </p>
-                {userProfile?.last_login && (
-                  <div className="flex items-center space-x-2 mt-2">
+                {userProfile?.last_login && <div className="flex items-center space-x-2 mt-2">
                     <Clock className="w-4 h-4 text-muted-foreground" />
                     <p className="text-xs text-muted-foreground">
                       Last login: {new Date(userProfile.last_login).toLocaleString()}
                     </p>
-                  </div>
-                )}
+                  </div>}
               </div>
             </div>
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
