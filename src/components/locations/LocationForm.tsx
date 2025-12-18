@@ -39,7 +39,7 @@ const locationSchema = z.object({
   location_code: z.string()
     .min(2, 'Location code must be at least 2 characters')
     .max(5, 'Location code must be at most 5 characters')
-    .regex(/^[A-Z]+$/, 'Location code must contain only uppercase letters')
+    .regex(/^[A-Z][A-Z0-9]*$/, 'Location code must start with a letter and contain only uppercase letters and numbers')
     .optional(),
   description: z.string().max(500, 'Description too long').optional(),
   parent_location_id: z.string().optional().or(z.literal('none')),
