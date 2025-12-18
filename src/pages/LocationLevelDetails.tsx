@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
@@ -33,32 +34,34 @@ const LocationLevelDetails: React.FC = () => {
 
   const locationLevel = locationLevels.find(level => level.id === id);
 
-  // Check if location level is in use
-  const { data: isInUse = false } = useQuery({
-    queryKey: ['location-level-usage', id],
+  // Fetch linked locations
+  const { data: linkedLocations = [] } = useQuery({
+    queryKey: ['locations-by-level', id],
     queryFn: async () => {
-      if (!id) return false;
+      if (!id) return [];
       
       const { data, error } = await supabase
         .from('locations')
-        .select('id')
+        .select('id, name, location_code, parent_location:locations!parent_location_id(name)')
         .eq('location_level_id', id)
-        .limit(1);
+        .order('name');
 
       if (error) {
-        console.error('Error checking location level usage:', error);
-        return false;
+        console.error('Error fetching linked locations:', error);
+        return [];
       }
 
-      return data.length > 0;
+      return data || [];
     },
     enabled: !!id,
   });
 
+  const isInUse = linkedLocations.length > 0;
+
   const handleDelete = async () => {
     if (locationLevel && !isInUse) {
       await deleteLocationLevel.mutateAsync(locationLevel.id);
-      navigate('/location-levels');
+      navigate('/admin/preferences/location-levels');
     }
     setDeletingLevel(false);
   };
@@ -67,7 +70,7 @@ const LocationLevelDetails: React.FC = () => {
     return (
       <div className="p-6">
         <div className="flex items-center space-x-4 mb-6">
-          <Button variant="outline" onClick={() => navigate('/location-levels')}>
+          <Button variant="outline" onClick={() => navigate('/admin/preferences/location-levels')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Location Levels
           </Button>
@@ -83,7 +86,7 @@ const LocationLevelDetails: React.FC = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
-          <Button variant="outline" onClick={() => navigate('/location-levels')}>
+          <Button variant="outline" onClick={() => navigate('/admin/preferences/location-levels')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Location Levels
           </Button>
@@ -163,15 +166,42 @@ const LocationLevelDetails: React.FC = () => {
             <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
             <p className="text-lg">{new Date(locationLevel.updated_at).toLocaleDateString()}</p>
           </div>
-          
-          {isInUse && (
-            <div className="pt-4 border-t">
-              <div className="flex items-center space-x-2 text-amber-600">
-                <span className="text-sm font-medium">⚠️ In Use</span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                This location level is currently being used by one or more locations.
-              </p>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Linked Locations ({linkedLocations.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {linkedLocations.length === 0 ? (
+            <p className="text-muted-foreground">No locations are using this level.</p>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="bg-slate-300">Location Name</TableHead>
+                    <TableHead className="bg-slate-300">Code</TableHead>
+                    <TableHead className="bg-slate-300">Parent Location</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {linkedLocations.map((location: any) => (
+                    <TableRow 
+                      key={location.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/admin/preferences/locations?locationId=${location.id}`)}
+                    >
+                      <TableCell className="font-medium">{location.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{location.location_code}</Badge>
+                      </TableCell>
+                      <TableCell>{location.parent_location?.name || '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
@@ -186,10 +216,10 @@ const LocationLevelDetails: React.FC = () => {
       <AlertDialog open={deletingLevel} onOpenChange={setDeletingLevel}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Deactivate Location Level</AlertDialogTitle>
+            <AlertDialogTitle>Delete Location Level</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to deactivate "{locationLevel.name}"? 
-              This will make it unavailable for new locations but won't affect existing locations.
+              Are you sure you want to delete "{locationLevel.name}"? 
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -198,7 +228,7 @@ const LocationLevelDetails: React.FC = () => {
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Deactivate
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
