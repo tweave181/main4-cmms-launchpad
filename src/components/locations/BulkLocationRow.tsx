@@ -10,7 +10,7 @@ export interface BulkLocationData {
   name: string;
   location_code: string;
   location_level_id: string;
-  parent_location_id: string;
+  department_id: string;
   description: string;
 }
 
@@ -20,43 +20,30 @@ interface LocationLevel {
   code: string | null;
 }
 
-interface LocationOption {
+interface Department {
   id: string;
   name: string;
-  location_code: string;
 }
 
 interface BulkLocationRowProps {
   index: number;
   data: BulkLocationData;
   locationLevels: LocationLevel[];
-  existingLocations: LocationOption[];
-  newLocations: BulkLocationData[];
+  departments: Department[];
   onChange: (id: string, field: keyof BulkLocationData, value: string) => void;
   onRemove: (id: string) => void;
   errors?: Partial<Record<keyof BulkLocationData, boolean>>;
-  isLoadingParents?: boolean;
 }
 
 export const BulkLocationRow: React.FC<BulkLocationRowProps> = ({
   index,
   data,
   locationLevels,
-  existingLocations,
-  newLocations,
+  departments,
   onChange,
   onRemove,
   errors = {},
-  isLoadingParents = false,
 }) => {
-  // Combine existing locations with previously entered new locations for parent dropdown
-  const parentOptions = [
-    ...existingLocations,
-    ...newLocations
-      .filter(loc => loc.id !== data.id && loc.name.trim() !== '')
-      .map(loc => ({ id: loc.id, name: loc.name, location_code: loc.location_code }))
-  ];
-
   return (
     <tr className="border-b border-border/50 hover:bg-muted/30">
       <td className="p-2 text-center text-sm text-muted-foreground w-10">
@@ -97,18 +84,17 @@ export const BulkLocationRow: React.FC<BulkLocationRowProps> = ({
       </td>
       <td className="p-2">
         <Select
-          value={data.parent_location_id}
-          onValueChange={(value) => onChange(data.id, 'parent_location_id', value)}
-          disabled={isLoadingParents}
+          value={data.department_id}
+          onValueChange={(value) => onChange(data.id, 'department_id', value)}
         >
           <SelectTrigger className="h-9">
-            <SelectValue placeholder={isLoadingParents ? "Loading..." : "None (top level)"} />
+            <SelectValue placeholder="None" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">None (top level)</SelectItem>
-            {parentOptions.map((loc) => (
-              <SelectItem key={loc.id} value={loc.id}>
-                {loc.name} ({loc.location_code})
+            <SelectItem value="none">None</SelectItem>
+            {departments.map((dept) => (
+              <SelectItem key={dept.id} value={dept.id}>
+                {dept.name}
               </SelectItem>
             ))}
           </SelectContent>

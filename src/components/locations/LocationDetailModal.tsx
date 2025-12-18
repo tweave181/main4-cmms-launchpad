@@ -9,7 +9,7 @@ import { logError } from '@/utils/errorHandling';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit2, Trash2, MapPin, Calendar } from 'lucide-react';
+import { Edit2, Trash2, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { LocationForm } from './LocationForm';
@@ -113,25 +113,27 @@ export const LocationDetailModal: React.FC<LocationDetailModalProps> = ({
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium">Name</p>
-                  <p className="text-sm text-gray-600">{location.name}</p>
+                  <p className="text-sm text-muted-foreground">{location.name}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Location Code</p>
-                  <p className="text-sm text-gray-600 font-mono">{location.location_code}</p>
+                  <p className="text-sm text-muted-foreground font-mono">{location.location_code}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Location Level</p>
-                  <p className="text-sm text-gray-600">{location.location_level || 'Building'}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {location.location_level_data?.name || location.location_level || 'Building'}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Parent Location</p>
-                  <p className="text-sm text-gray-600">
-                    {location.parent_location?.name || 'None (Top Level)'}
+                  <p className="text-sm font-medium">Department</p>
+                  <p className="text-sm text-muted-foreground">
+                    {location.department?.name || 'Not assigned'}
                   </p>
                 </div>
                 <div className="md:col-span-2">
                   <p className="text-sm font-medium">Description</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     {location.description || 'No description provided'}
                   </p>
                 </div>

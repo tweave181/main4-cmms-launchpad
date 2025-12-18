@@ -15,12 +15,12 @@ export interface Location {
   name: string;
   location_code: string;
   description?: string;
-  parent_location_id?: string;
+  department_id?: string;
   location_level?: string; // Legacy field
   location_level_id?: string;
   created_at: string;
   updated_at: string;
-  parent_location?: Location;
+  department?: { id: string; name: string };
   location_level_data?: LocationLevel;
 }
 
@@ -28,7 +28,7 @@ export interface LocationFormData {
   name: string;
   location_code?: string;
   description?: string;
-  parent_location_id?: string;
+  department_id?: string;
   location_level_id: string;
 }
 
@@ -40,7 +40,7 @@ export interface LocationLevelFormData {
 
 export interface LocationFilters {
   search?: string;
-  parent_location_id?: string;
+  department_id?: string;
   location_level_id?: string;
 }
 
