@@ -36,15 +36,34 @@ import type { Location, LocationFormData } from '@/types/location';
 
 const locationSchema = z.object({
   name: z.string().min(1, 'Location name is required').max(100, 'Name too long'),
-  location_code: z.string()
-    .min(2, 'Location code must be at least 2 characters')
-    .max(5, 'Location code must be at most 5 characters')
-    .regex(/^[A-Z][A-Z0-9]*$/, 'Location code must start with a letter and contain only uppercase letters and numbers')
-    .optional(),
   description: z.string().max(500, 'Description too long').optional(),
   parent_location_id: z.string().optional().or(z.literal('none')),
   location_level_id: z.string().min(1, 'Location level is required'),
 });
+
+// Generate location code from name (mirrors database function)
+const generateLocationCode = (name: string): string => {
+  if (!name.trim()) return '';
+  
+  const cleanName = name.toUpperCase();
+  const lettersOnly = cleanName.replace(/[^A-Z]/g, '');
+  const numbersOnly = cleanName.replace(/[^0-9]/g, '');
+  
+  // Take 2-3 letters depending on whether we have numbers
+  let code = lettersOnly.slice(0, numbersOnly.length > 0 ? 2 : 3);
+  
+  // Ensure minimum 2 letters
+  if (code.length < 2) {
+    code = code.padEnd(2, 'X');
+  }
+  
+  // Append numbers if present (limit to keep total ≤ 5 chars)
+  if (numbersOnly.length > 0) {
+    code += numbersOnly.slice(0, 5 - code.length);
+  }
+  
+  return code;
+};
 
 interface LocationFormProps {
   isOpen: boolean;
@@ -63,26 +82,36 @@ export const LocationForm: React.FC<LocationFormProps> = ({
   const updateLocation = useUpdateLocation();
   const { data: allLocations = [] } = useLocations();
   const { data: locationLevels = [] } = useLocationLevels({ is_active: true });
+  
+  // Preview code state for new locations
+  const [previewCode, setPreviewCode] = React.useState('');
 
   const form = useForm<LocationFormData>({
     resolver: zodResolver(locationSchema),
     defaultValues: {
       name: location?.name || '',
-      location_code: location?.location_code || '',
       description: location?.description || '',
       parent_location_id: location?.parent_location_id || 'none',
       location_level_id: location?.location_level_id || '',
     },
   });
+  
+  // Initialize preview code when editing
+  React.useEffect(() => {
+    if (location?.name) {
+      setPreviewCode(location.location_code || generateLocationCode(location.name));
+    } else {
+      setPreviewCode('');
+    }
+  }, [location]);
 
   const onSubmit = async (data: LocationFormData) => {
     try {
-      // Clean up data before submission
+      // Clean up data before submission - let database auto-generate location_code
       const cleanedData = {
         ...data,
         parent_location_id: data.parent_location_id === 'none' || data.parent_location_id === '' ? undefined : data.parent_location_id,
         description: data.description === '' ? undefined : data.description,
-        location_code: data.location_code === '' ? undefined : data.location_code,
       };
 
       if (location) {
@@ -127,7 +156,14 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                       autoCorrect="off"
                       autoCapitalize="none"
                       spellCheck={false}
-                      {...field} 
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        // Generate preview code when name changes (only for new locations)
+                        if (!location) {
+                          setPreviewCode(generateLocationCode(e.target.value));
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -135,41 +171,30 @@ export const LocationForm: React.FC<LocationFormProps> = ({
               )}
             />
 
-            {isAdmin && (
-              <FormField
-                control={form.control}
-                name="location_code"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center gap-2">
-                      <FormLabel>Location Code</FormLabel>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Location Code is used in Work Order Numbers. Must be unique.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <FormControl>
-                      <Input 
-                        placeholder="Auto-generated from name" 
-                        {...field}
-                        style={{ textTransform: 'uppercase' }}
-                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                      Leave empty to auto-generate from location name
-                    </p>
-                  </FormItem>
-                )}
+            {/* Location Code - Read-only with auto-generation preview */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium leading-none">Location Code</label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Location Code is used in Work Order Numbers. Auto-generated from name.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input 
+                value={location ? location.location_code : (previewCode || 'Will be auto-generated')}
+                disabled
+                className="bg-muted cursor-not-allowed"
               />
-            )}
+              <p className="text-xs text-muted-foreground">
+                {location ? 'Location code cannot be changed' : 'Auto-generated from location name'}
+              </p>
+            </div>
 
             <FormField
               control={form.control}
