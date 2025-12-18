@@ -30,14 +30,15 @@ import {
 } from '@/components/ui/select';
 import { HelpCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
-import { useCreateLocation, useUpdateLocation, useLocations } from '@/hooks/useLocations';
+import { useCreateLocation, useUpdateLocation } from '@/hooks/useLocations';
 import { useLocationLevels } from '@/hooks/useLocationLevels';
+import { useDepartments } from '@/hooks/useDepartments';
 import type { Location, LocationFormData } from '@/types/location';
 
 const locationSchema = z.object({
   name: z.string().min(1, 'Location name is required').max(100, 'Name too long'),
   description: z.string().max(500, 'Description too long').optional(),
-  parent_location_id: z.string().optional().or(z.literal('none')),
+  department_id: z.string().optional().or(z.literal('none')),
   location_level_id: z.string().min(1, 'Location level is required'),
 });
 
@@ -80,8 +81,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
   const isAdmin = userProfile?.role === 'admin';
   const createLocation = useCreateLocation();
   const updateLocation = useUpdateLocation();
-  const { data: allLocations = [] } = useLocations();
   const { data: locationLevels = [] } = useLocationLevels({ is_active: true });
+  const { departments } = useDepartments();
   
   // Preview code state for new locations
   const [previewCode, setPreviewCode] = React.useState('');
@@ -91,7 +92,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
     defaultValues: {
       name: location?.name || '',
       description: location?.description || '',
-      parent_location_id: location?.parent_location_id || 'none',
+      department_id: location?.department_id || 'none',
       location_level_id: location?.location_level_id || '',
     },
   });
@@ -110,7 +111,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
       // Clean up data before submission - let database auto-generate location_code
       const cleanedData = {
         ...data,
-        parent_location_id: data.parent_location_id === 'none' || data.parent_location_id === '' ? undefined : data.parent_location_id,
+        department_id: data.department_id === 'none' || data.department_id === '' ? undefined : data.department_id,
         description: data.description === '' ? undefined : data.description,
       };
 
@@ -198,25 +199,23 @@ export const LocationForm: React.FC<LocationFormProps> = ({
 
             <FormField
               control={form.control}
-              name="parent_location_id"
+              name="department_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Parent Location or Site (Optional)</FormLabel>
+                  <FormLabel>Department (Optional)</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || "none"}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select parent location (optional)" />
+                        <SelectValue placeholder="Select department (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-background border border-border shadow-md z-50">
-                      <SelectItem value="none">None (Top Level)</SelectItem>
-                      {allLocations
-                        .filter(loc => loc.id !== location?.id) // Don't allow self-reference
-                        .map((loc) => (
-                          <SelectItem key={loc.id} value={loc.id}>
-                            {loc.name} ({loc.location_code})
-                          </SelectItem>
-                        ))}
+                      <SelectItem value="none">None</SelectItem>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

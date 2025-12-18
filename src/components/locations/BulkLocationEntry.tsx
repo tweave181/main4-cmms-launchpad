@@ -2,9 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft, Save, Lightbulb } from 'lucide-react';
+import { Plus, ArrowLeft, Save } from 'lucide-react';
 import { BulkLocationRow, BulkLocationData } from './BulkLocationRow';
 import { useAuth } from '@/contexts/auth';
+import { useDepartments } from '@/hooks/useDepartments';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -16,7 +17,7 @@ const createEmptyRow = (): BulkLocationData => ({
   name: '',
   location_code: '',
   location_level_id: '',
-  parent_location_id: 'none',
+  department_id: 'none',
   description: '',
 });
 
@@ -25,6 +26,7 @@ export const BulkLocationEntry: React.FC = () => {
   const { userProfile } = useAuth();
   const tenantId = userProfile?.tenant_id;
   const queryClient = useQueryClient();
+  const { departments } = useDepartments();
 
   const [rows, setRows] = useState<BulkLocationData[]>(() => 
     Array.from({ length: 5 }, createEmptyRow)
@@ -46,23 +48,6 @@ export const BulkLocationEntry: React.FC = () => {
       return data || [];
     },
     enabled: !!tenantId,
-  });
-
-  // Fetch existing locations for parent dropdown
-  const { data: existingLocations = [], isLoading: isLoadingLocations } = useQuery({
-    queryKey: ['locations', tenantId],
-    queryFn: async () => {
-      if (!tenantId) return [];
-      const { data, error } = await supabase
-        .from('locations')
-        .select('id, name, location_code')
-        .eq('tenant_id', tenantId)
-        .order('name');
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!tenantId,
-    staleTime: 0, // Always refetch to get latest data
   });
 
   const handleChange = useCallback((id: string, field: keyof BulkLocationData, value: string) => {
@@ -125,30 +110,10 @@ export const BulkLocationEntry: React.FC = () => {
     mutationFn: async (locationsToSave: BulkLocationData[]) => {
       if (!tenantId) throw new Error('No tenant ID');
 
-      // Create a map to track temporary IDs to real IDs for parent references
-      const idMap = new Map<string, string>();
       const savedLocations: string[] = [];
 
-      // Sort locations: those without parents first, then those with parents
-      const sortedLocations = [...locationsToSave].sort((a, b) => {
-        const aHasNewParent = locationsToSave.some(loc => loc.id === a.parent_location_id);
-        const bHasNewParent = locationsToSave.some(loc => loc.id === b.parent_location_id);
-        if (aHasNewParent && !bHasNewParent) return 1;
-        if (!aHasNewParent && bHasNewParent) return -1;
-        return 0;
-      });
-
-      for (const loc of sortedLocations) {
-        let parentId: string | null = null;
-        
-        if (loc.parent_location_id && loc.parent_location_id !== 'none') {
-          // Check if parent is a new location we just created
-          if (idMap.has(loc.parent_location_id)) {
-            parentId = idMap.get(loc.parent_location_id)!;
-          } else {
-            parentId = loc.parent_location_id;
-          }
-        }
+      for (const loc of locationsToSave) {
+        const departmentId = loc.department_id === 'none' ? null : loc.department_id;
 
         const { data, error } = await supabase
           .from('locations')
@@ -157,7 +122,7 @@ export const BulkLocationEntry: React.FC = () => {
             name: loc.name.trim(),
             location_code: loc.location_code.trim(),
             location_level_id: loc.location_level_id || null,
-            parent_location_id: parentId,
+            department_id: departmentId,
             description: loc.description.trim() || null,
           })
           .select('id')
@@ -165,7 +130,6 @@ export const BulkLocationEntry: React.FC = () => {
 
         if (error) throw error;
         
-        idMap.set(loc.id, data.id);
         savedLocations.push(data.id);
       }
 
@@ -224,7 +188,7 @@ export const BulkLocationEntry: React.FC = () => {
                     <th className="p-2 text-left text-sm font-medium">Name *</th>
                     <th className="p-2 text-left text-sm font-medium w-32">Code *</th>
                     <th className="p-2 text-left text-sm font-medium w-40">Level</th>
-                    <th className="p-2 text-left text-sm font-medium w-48">Parent Location</th>
+                    <th className="p-2 text-left text-sm font-medium w-48">Department</th>
                     <th className="p-2 text-left text-sm font-medium">Description</th>
                     <th className="p-2 w-10"></th>
                   </tr>
@@ -236,12 +200,10 @@ export const BulkLocationEntry: React.FC = () => {
                       index={index}
                       data={row}
                       locationLevels={locationLevels}
-                      existingLocations={existingLocations}
-                      newLocations={rows}
+                      departments={departments}
                       onChange={handleChange}
                       onRemove={handleRemove}
                       errors={errors[row.id]}
-                      isLoadingParents={isLoadingLocations}
                     />
                   ))}
                 </tbody>
@@ -257,14 +219,6 @@ export const BulkLocationEntry: React.FC = () => {
                 <Plus className="h-4 w-4 mr-1" />
                 Add 5 Rows
               </Button>
-            </div>
-
-            <div className="flex items-start gap-2 mt-6 p-3 bg-muted/50 rounded-lg">
-              <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-muted-foreground">
-                <strong>Tip:</strong> Enter parent locations first (like Buildings), then child locations (like Floors and Rooms). 
-                The parent dropdown updates as you add records.
-              </p>
             </div>
           </CardContent>
         </Card>

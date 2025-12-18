@@ -1449,37 +1449,37 @@ export type Database = {
       locations: {
         Row: {
           created_at: string
+          department_id: string | null
           description: string | null
           id: string
           location_code: string
           location_level: string | null
           location_level_id: string | null
           name: string
-          parent_location_id: string | null
           tenant_id: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          department_id?: string | null
           description?: string | null
           id?: string
           location_code: string
           location_level?: string | null
           location_level_id?: string | null
           name: string
-          parent_location_id?: string | null
           tenant_id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          department_id?: string | null
           description?: string | null
           id?: string
           location_code?: string
           location_level?: string | null
           location_level_id?: string | null
           name?: string
-          parent_location_id?: string | null
           tenant_id?: string
           updated_at?: string
         }
@@ -1492,10 +1492,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "locations_parent_location_id_fkey"
-            columns: ["parent_location_id"]
+            foreignKeyName: "locations_department_id_fkey"
+            columns: ["department_id"]
             isOneToOne: false
-            referencedRelation: "locations"
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {

@@ -42,7 +42,7 @@ const LocationLevelDetails: React.FC = () => {
       
       const { data, error } = await supabase
         .from('locations')
-        .select('id, name, location_code, parent_location:locations!parent_location_id(name)')
+        .select('id, name, location_code, department:department_id(name)')
         .eq('location_level_id', id)
         .order('name');
 
@@ -181,9 +181,9 @@ const LocationLevelDetails: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="bg-slate-300">Location Name</TableHead>
-                    <TableHead className="bg-slate-300">Code</TableHead>
-                    <TableHead className="bg-slate-300">Parent Location</TableHead>
+                    <TableHead className="bg-muted/50">Location Name</TableHead>
+                    <TableHead className="bg-muted/50">Code</TableHead>
+                    <TableHead className="bg-muted/50">Department</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -197,7 +197,7 @@ const LocationLevelDetails: React.FC = () => {
                       <TableCell>
                         <Badge variant="secondary">{location.location_code}</Badge>
                       </TableCell>
-                      <TableCell>{location.parent_location?.name || '—'}</TableCell>
+                      <TableCell>{location.department?.name || '—'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
