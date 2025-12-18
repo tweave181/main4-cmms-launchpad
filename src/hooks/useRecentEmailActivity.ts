@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { subDays } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import type { EmailDeliveryLog } from '@/types/email';
 
@@ -6,6 +7,8 @@ export const useRecentEmailActivity = () => {
   return useQuery({
     queryKey: ['recent-email-activity'],
     queryFn: async () => {
+      const sevenDaysAgo = subDays(new Date(), 7).toISOString();
+      
       const { data, error } = await supabase
         .from('email_delivery_log')
         .select(`
@@ -13,6 +16,7 @@ export const useRecentEmailActivity = () => {
           recipient_user:users!email_delivery_log_recipient_user_id_fkey(name),
           template:email_templates(template_type, template_name)
         `)
+        .gte('created_at', sevenDaysAgo)
         .order('created_at', { ascending: false })
         .limit(10);
 
