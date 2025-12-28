@@ -195,72 +195,60 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
             {/* Site Address Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-foreground">Site Address</h3>
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="site_address_line_1"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address Line 1</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Street address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="space-y-3">
+                {/* Address fields in table-like layout */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-start">
+                  <FormLabel className="text-right pt-2">Address:</FormLabel>
+                  <div className="space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="site_address_line_1"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input className="max-w-md" placeholder="Street address" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="site_address_line_2"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input className="max-w-md" placeholder="Address line 2" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="site_address_line_3"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input className="max-w-md" placeholder="Address line 3" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="site_address_line_2"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address Line 2</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Building, floor, etc." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="site_address_line_3"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address Line 3</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Additional address info" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Town / City */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">Town / City:</FormLabel>
                   <FormField
                     control={form.control}
                     name="site_town_or_city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Town / City</FormLabel>
                         <FormControl>
-                          <Input placeholder="Town or city" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="site_county_or_state"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>County / State</FormLabel>
-                        <FormControl>
-                          <Input placeholder="County or state" {...field} />
+                          <Input className="max-w-md" placeholder="Town or city" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -268,15 +256,33 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                   />
                 </div>
 
-                <div className="md:w-1/2">
+                {/* County / State */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">County / State:</FormLabel>
+                  <FormField
+                    control={form.control}
+                    name="site_county_or_state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input className="max-w-md" placeholder="County or state" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Postcode */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">Postcode:</FormLabel>
                   <FormField
                     control={form.control}
                     name="site_postcode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Postcode</FormLabel>
                         <FormControl>
-                          <Input placeholder="Postcode" {...field} />
+                          <Input className="max-w-[200px]" placeholder="Postcode" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
