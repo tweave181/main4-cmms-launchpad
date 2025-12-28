@@ -2020,8 +2020,21 @@ export type Database = {
           id: string
           language: string | null
           logo_url: string | null
+          main_contact_department_id: string | null
+          main_contact_email: string | null
+          main_contact_first_name: string | null
+          main_contact_job_title: string | null
+          main_contact_mobile: string | null
+          main_contact_phone: string | null
+          main_contact_surname: string | null
           organization_name: string | null
           setup_wizard_dismissed: boolean | null
+          site_address_line_1: string | null
+          site_address_line_2: string | null
+          site_address_line_3: string | null
+          site_county_or_state: string | null
+          site_postcode: string | null
+          site_town_or_city: string | null
           smtp_host: string | null
           smtp_port: number | null
           smtp_secure: boolean | null
@@ -2044,8 +2057,21 @@ export type Database = {
           id?: string
           language?: string | null
           logo_url?: string | null
+          main_contact_department_id?: string | null
+          main_contact_email?: string | null
+          main_contact_first_name?: string | null
+          main_contact_job_title?: string | null
+          main_contact_mobile?: string | null
+          main_contact_phone?: string | null
+          main_contact_surname?: string | null
           organization_name?: string | null
           setup_wizard_dismissed?: boolean | null
+          site_address_line_1?: string | null
+          site_address_line_2?: string | null
+          site_address_line_3?: string | null
+          site_county_or_state?: string | null
+          site_postcode?: string | null
+          site_town_or_city?: string | null
           smtp_host?: string | null
           smtp_port?: number | null
           smtp_secure?: boolean | null
@@ -2068,8 +2094,21 @@ export type Database = {
           id?: string
           language?: string | null
           logo_url?: string | null
+          main_contact_department_id?: string | null
+          main_contact_email?: string | null
+          main_contact_first_name?: string | null
+          main_contact_job_title?: string | null
+          main_contact_mobile?: string | null
+          main_contact_phone?: string | null
+          main_contact_surname?: string | null
           organization_name?: string | null
           setup_wizard_dismissed?: boolean | null
+          site_address_line_1?: string | null
+          site_address_line_2?: string | null
+          site_address_line_3?: string | null
+          site_county_or_state?: string | null
+          site_postcode?: string | null
+          site_town_or_city?: string | null
           smtp_host?: string | null
           smtp_port?: number | null
           smtp_secure?: boolean | null
@@ -2079,7 +2118,15 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "program_settings_main_contact_department_id_fkey"
+            columns: ["main_contact_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
