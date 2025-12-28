@@ -23,6 +23,22 @@ export interface ProgramSettings {
   smtp_secure?: boolean;
   smtp_username?: string;
   email_signature?: string;
+  // Site Address fields
+  site_address_line_1?: string;
+  site_address_line_2?: string;
+  site_address_line_3?: string;
+  site_town_or_city?: string;
+  site_county_or_state?: string;
+  site_postcode?: string;
+  // Main Contact fields
+  main_contact_first_name?: string;
+  main_contact_surname?: string;
+  main_contact_job_title?: string;
+  main_contact_phone?: string;
+  main_contact_mobile?: string;
+  main_contact_email?: string;
+  main_contact_department_id?: string;
+  main_contact_department?: { id: string; name: string };
   created_at: string;
   updated_at: string;
 }
@@ -45,6 +61,21 @@ export interface ProgramSettingsFormData {
   smtp_secure?: boolean;
   smtp_username?: string;
   email_signature?: string;
+  // Site Address fields
+  site_address_line_1?: string;
+  site_address_line_2?: string;
+  site_address_line_3?: string;
+  site_town_or_city?: string;
+  site_county_or_state?: string;
+  site_postcode?: string;
+  // Main Contact fields
+  main_contact_first_name?: string;
+  main_contact_surname?: string;
+  main_contact_job_title?: string;
+  main_contact_phone?: string;
+  main_contact_mobile?: string;
+  main_contact_email?: string;
+  main_contact_department_id?: string;
 }
 
 export const useProgramSettings = () => {
@@ -59,7 +90,10 @@ export const useProgramSettings = () => {
 
       const { data, error } = await supabase
         .from('program_settings')
-        .select('*')
+        .select(`
+          *,
+          main_contact_department:main_contact_department_id(id, name)
+        `)
         .eq('tenant_id', userProfile.tenant_id)
         .maybeSingle();
 
