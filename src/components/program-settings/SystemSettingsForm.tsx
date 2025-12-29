@@ -4,36 +4,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import type { ProgramSettings, ProgramSettingsFormData } from '@/hooks/useProgramSettings';
 import { useCreateProgramSettings, useUpdateProgramSettings } from '@/hooks/useProgramSettings';
 import { useDepartments } from '@/hooks/useDepartments';
-
 const systemSettingsSchema = z.object({
   country: z.string().optional(),
   currency: z.string().optional(),
@@ -42,11 +23,7 @@ const systemSettingsSchema = z.object({
   date_format: z.string().optional(),
   default_fiscal_year_start: z.string().optional(),
   organization_name: z.string().optional(),
-  system_contact_email: z
-    .string()
-    .email('Invalid email address')
-    .optional()
-    .or(z.literal('')),
+  system_contact_email: z.string().email('Invalid email address').optional().or(z.literal('')),
   logo_url: z.string().url('Invalid URL').optional().or(z.literal('')),
   // Site Address fields
   site_address_line_1: z.string().optional(),
@@ -62,20 +39,19 @@ const systemSettingsSchema = z.object({
   main_contact_phone: z.string().optional(),
   main_contact_mobile: z.string().optional(),
   main_contact_email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  main_contact_department_id: z.string().optional(),
+  main_contact_department_id: z.string().optional()
 });
-
 interface SystemSettingsFormProps {
   settings?: ProgramSettings | null;
 }
-
 export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
-  settings,
+  settings
 }) => {
   const createSettings = useCreateProgramSettings();
   const updateSettings = useUpdateProgramSettings();
-  const { departments } = useDepartments();
-
+  const {
+    departments
+  } = useDepartments();
   const form = useForm<ProgramSettingsFormData>({
     resolver: zodResolver(systemSettingsSchema),
     defaultValues: {
@@ -102,10 +78,9 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
       main_contact_phone: settings?.main_contact_phone || '',
       main_contact_mobile: settings?.main_contact_mobile || '',
       main_contact_email: settings?.main_contact_email || '',
-      main_contact_department_id: settings?.main_contact_department_id || '',
-    },
+      main_contact_department_id: settings?.main_contact_department_id || ''
+    }
   });
-
   const onSubmit = async (data: ProgramSettingsFormData) => {
     try {
       // Clean up empty strings to null for optional fields
@@ -126,11 +101,13 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
         main_contact_phone: data.main_contact_phone || null,
         main_contact_mobile: data.main_contact_mobile || null,
         main_contact_email: data.main_contact_email || null,
-        main_contact_department_id: data.main_contact_department_id || null,
+        main_contact_department_id: data.main_contact_department_id || null
       };
-
       if (settings?.id) {
-        await updateSettings.mutateAsync({ id: settings.id, data: cleanedData });
+        await updateSettings.mutateAsync({
+          id: settings.id,
+          data: cleanedData
+        });
       } else {
         await createSettings.mutateAsync(cleanedData);
       }
@@ -138,11 +115,8 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
       console.error('Error saving settings:', error);
     }
   };
-
   const isLoading = createSettings.isPending || updateSettings.isPending;
-
-  return (
-    <Card className="rounded-2xl shadow-sm border border-border">
+  return <Card className="rounded-2xl shadow-sm border border-border">
       <CardHeader className="pb-4">
         <CardTitle className="text-xl font-semibold">
           System Configuration
@@ -155,139 +129,100 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-foreground">Organization Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="organization_name"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="organization_name" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Organization Name</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Enter organization name"
-                          {...field}
-                        />
+                        <Input placeholder="Enter organization name" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="system_contact_email"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="system_contact_email" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>System Contact Email</FormLabel>
                       <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="admin@example.com"
-                          {...field}
-                        />
+                        <Input type="email" placeholder="admin@example.com" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
               </div>
             </div>
 
             {/* Site Address Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-foreground">Site Address</h3>
+              <h3 className="text-foreground font-bold text-xl">Site Address</h3>
               <div className="space-y-3">
                 {/* Address fields in table-like layout */}
                 <div className="grid grid-cols-[120px_1fr] gap-x-4 items-start">
                   <FormLabel className="text-right pt-2">Address:</FormLabel>
                   <div className="space-y-2">
-                    <FormField
-                      control={form.control}
-                      name="site_address_line_1"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="site_address_line_1" render={({
+                    field
+                  }) => <FormItem>
                           <FormControl>
                             <Input className="max-w-md" placeholder="Street address" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="site_address_line_2"
-                      render={({ field }) => (
-                        <FormItem>
+                        </FormItem>} />
+                    <FormField control={form.control} name="site_address_line_2" render={({
+                    field
+                  }) => <FormItem>
                           <FormControl>
                             <Input className="max-w-md" placeholder="Address line 2" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="site_address_line_3"
-                      render={({ field }) => (
-                        <FormItem>
+                        </FormItem>} />
+                    <FormField control={form.control} name="site_address_line_3" render={({
+                    field
+                  }) => <FormItem>
                           <FormControl>
                             <Input className="max-w-md" placeholder="Address line 3" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                   </div>
                 </div>
 
                 {/* Town / City */}
                 <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
                   <FormLabel className="text-right">Town / City:</FormLabel>
-                  <FormField
-                    control={form.control}
-                    name="site_town_or_city"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={form.control} name="site_town_or_city" render={({
+                  field
+                }) => <FormItem>
                         <FormControl>
                           <Input className="max-w-md" placeholder="Town or city" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
                 </div>
 
                 {/* County / State */}
                 <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
                   <FormLabel className="text-right">County / State:</FormLabel>
-                  <FormField
-                    control={form.control}
-                    name="site_county_or_state"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={form.control} name="site_county_or_state" render={({
+                  field
+                }) => <FormItem>
                         <FormControl>
                           <Input className="max-w-md" placeholder="County or state" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
                 </div>
 
                 {/* Postcode */}
                 <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
                   <FormLabel className="text-right">Postcode:</FormLabel>
-                  <FormField
-                    control={form.control}
-                    name="site_postcode"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={form.control} name="site_postcode" render={({
+                  field
+                }) => <FormItem>
                         <FormControl>
                           <Input className="max-w-[200px]" placeholder="Postcode" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
                 </div>
               </div>
             </div>
@@ -296,55 +231,41 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-foreground">Main Contact</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="main_contact_first_name"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="main_contact_first_name" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
                         <Input placeholder="First name" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="main_contact_surname"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="main_contact_surname" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Surname</FormLabel>
                       <FormControl>
                         <Input placeholder="Surname" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="main_contact_job_title"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="main_contact_job_title" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Job Title</FormLabel>
                       <FormControl>
                         <Input placeholder="Job title" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="main_contact_department_id"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="main_contact_department_id" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Department</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} value={field.value || "none"}>
+                      <Select onValueChange={value => field.onChange(value === "none" ? "" : value)} value={field.value || "none"}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select department" />
@@ -352,71 +273,53 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          {departments.map((dept) => (
-                            <SelectItem key={dept.id} value={dept.id}>
+                          {departments.map(dept => <SelectItem key={dept.id} value={dept.id}>
                               {dept.name}
-                            </SelectItem>
-                          ))}
+                            </SelectItem>)}
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="main_contact_phone"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="main_contact_phone" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Phone</FormLabel>
                       <FormControl>
                         <Input placeholder="Phone number" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="main_contact_mobile"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="main_contact_mobile" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Mobile</FormLabel>
                       <FormControl>
                         <Input placeholder="Mobile number" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
               </div>
 
-              <FormField
-                control={form.control}
-                name="main_contact_email"
-                render={({ field }) => (
-                  <FormItem>
+              <FormField control={form.control} name="main_contact_email" render={({
+              field
+            }) => <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="contact@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  </FormItem>} />
             </div>
 
             {/* Location & Currency */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-foreground">Localization</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="country" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Country</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -438,35 +341,24 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="currency"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="currency" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Currency Symbol</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="£, $, €, etc."
-                          {...field}
-                        />
+                        <Input placeholder="£, $, €, etc." {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
               </div>
 
               {/* Language & Timezone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="language"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="language" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Language</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -484,15 +376,11 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="timezone"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="timezone" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Timezone</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -513,18 +401,14 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
               </div>
 
               {/* Date Format & Fiscal Year */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="date_format"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="date_format" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Date Format</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -540,85 +424,50 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="default_fiscal_year_start"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                <FormField control={form.control} name="default_fiscal_year_start" render={({
+                field
+              }) => <FormItem className="flex flex-col">
                       <FormLabel>Default Fiscal Year Start</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(new Date(field.value), "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
+                            <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                              {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? new Date(field.value) : undefined}
-                            onSelect={(date) => {
-                              field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
-                            }}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
+                          <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={date => {
+                      field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
+                    }} initialFocus className="p-3 pointer-events-auto" />
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
               </div>
             </div>
 
             {/* Logo URL */}
-            <FormField
-              control={form.control}
-              name="logo_url"
-              render={({ field }) => (
-                <FormItem>
+            <FormField control={form.control} name="logo_url" render={({
+            field
+          }) => <FormItem>
                   <FormLabel>Logo URL (Optional)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="url"
-                      placeholder="https://example.com/logo.png"
-                      {...field}
-                    />
+                    <Input type="url" placeholder="https://example.com/logo.png" {...field} />
                   </FormControl>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
+                </FormItem>} />
 
             <div className="flex justify-end">
-              <Button
-                type="submit"
-                className="px-6 py-2"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="px-6 py-2" disabled={isLoading}>
                 {isLoading ? 'Saving...' : 'Save Settings'}
               </Button>
             </div>
           </form>
         </Form>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
