@@ -127,7 +127,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             {/* Basic Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-foreground">Organization Details</h3>
+              <h3 className="text-lg font-medium text-foreground bg-lime-300">Organization Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField control={form.control} name="organization_name" render={({
                 field
@@ -178,7 +178,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     <FormField control={form.control} name="site_address_line_3" render={({
                     field
                   }) => <FormItem>
-                          <FormControl>
+                          <FormControl className="bg-lime-300 text-lg">
                             <Input className="max-w-md" placeholder="Address line 3" {...field} />
                           </FormControl>
                           <FormMessage />
