@@ -229,88 +229,109 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
 
             {/* Main Contact Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-foreground">Main Contact</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField control={form.control} name="main_contact_first_name" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="First name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-
-                <FormField control={form.control} name="main_contact_surname" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Surname</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Surname" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-
-                <FormField control={form.control} name="main_contact_job_title" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Job Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Job title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-
-                <FormField control={form.control} name="main_contact_department_id" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Department</FormLabel>
-                      <Select onValueChange={value => field.onChange(value === "none" ? "" : value)} value={field.value || "none"}>
+              <h3 className="text-foreground font-bold text-xl">Main Contact</h3>
+              <div className="space-y-3">
+                {/* First Name */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">First Name:</FormLabel>
+                  <FormField control={form.control} name="main_contact_first_name" render={({
+                  field
+                }) => <FormItem>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select department" />
-                          </SelectTrigger>
+                          <Input className="max-w-[200px]" placeholder="First name" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          {departments.map(dept => <SelectItem key={dept.id} value={dept.id}>
-                              {dept.name}
-                            </SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>} />
+                        <FormMessage />
+                      </FormItem>} />
+                </div>
 
-                <FormField control={form.control} name="main_contact_phone" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Phone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
+                {/* Surname */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">Surname:</FormLabel>
+                  <FormField control={form.control} name="main_contact_surname" render={({
+                  field
+                }) => <FormItem>
+                        <FormControl>
+                          <Input className="max-w-[200px]" placeholder="Surname" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>} />
+                </div>
 
-                <FormField control={form.control} name="main_contact_mobile" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Mobile</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Mobile number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
+                {/* Job Title */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">Job Title:</FormLabel>
+                  <FormField control={form.control} name="main_contact_job_title" render={({
+                  field
+                }) => <FormItem>
+                        <FormControl>
+                          <Input className="max-w-[250px]" placeholder="Job title" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>} />
+                </div>
+
+                {/* Department */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">Department:</FormLabel>
+                  <FormField control={form.control} name="main_contact_department_id" render={({
+                  field
+                }) => <FormItem>
+                        <Select onValueChange={value => field.onChange(value === "none" ? "" : value)} value={field.value || "none"}>
+                          <FormControl>
+                            <SelectTrigger className="max-w-[250px]">
+                              <SelectValue placeholder="Select department" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {departments.map(dept => <SelectItem key={dept.id} value={dept.id}>
+                                {dept.name}
+                              </SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>} />
+                </div>
+
+                {/* Phone */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">Phone:</FormLabel>
+                  <FormField control={form.control} name="main_contact_phone" render={({
+                  field
+                }) => <FormItem>
+                        <FormControl>
+                          <Input className="max-w-[200px]" placeholder="Phone number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>} />
+                </div>
+
+                {/* Mobile */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">Mobile:</FormLabel>
+                  <FormField control={form.control} name="main_contact_mobile" render={({
+                  field
+                }) => <FormItem>
+                        <FormControl>
+                          <Input className="max-w-[200px]" placeholder="Mobile number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>} />
+                </div>
+
+                {/* Email */}
+                <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                  <FormLabel className="text-right">Email:</FormLabel>
+                  <FormField control={form.control} name="main_contact_email" render={({
+                  field
+                }) => <FormItem>
+                        <FormControl>
+                          <Input className="max-w-md" type="email" placeholder="contact@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>} />
+                </div>
               </div>
-
-              <FormField control={form.control} name="main_contact_email" render={({
-              field
-            }) => <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="contact@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>} />
             </div>
 
             {/* Location & Currency */}
