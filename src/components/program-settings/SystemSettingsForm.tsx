@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CalendarIcon, ChevronDown } from 'lucide-react';
+import { CalendarIcon, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { ProgramSettings, ProgramSettingsFormData } from '@/hooks/useProgramSettings';
 import { useCreateProgramSettings, useUpdateProgramSettings } from '@/hooks/useProgramSettings';
@@ -55,11 +55,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
   const updateSettings = useUpdateProgramSettings();
   const { departments } = useDepartments();
   
-  const [openSections, setOpenSections] = useState({
-    siteAddress: true,
-    mainContact: true,
-    localization: true
-  });
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const form = useForm<ProgramSettingsFormData>({
     resolver: zodResolver(systemSettingsSchema),
@@ -92,6 +88,10 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
   });
 
   const { formState: { isDirty } } = form;
+  
+  // Watch address line 2 and 3 for conditional rendering
+  const addressLine2 = form.watch('site_address_line_2');
+  const addressLine3 = form.watch('site_address_line_3');
 
   const onSubmit = async (data: ProgramSettingsFormData) => {
     try {
@@ -124,16 +124,18 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
         await createSettings.mutateAsync(cleanedData);
       }
       form.reset(data);
+      setIsEditMode(false);
     } catch (error) {
       console.error('Error saving settings:', error);
     }
   };
 
-  const isLoading = createSettings.isPending || updateSettings.isPending;
-
-  const toggleSection = (section: keyof typeof openSections) => {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  const handleCancel = () => {
+    form.reset();
+    setIsEditMode(false);
   };
+
+  const isLoading = createSettings.isPending || updateSettings.isPending;
 
   return (
     <Card className="rounded-2xl shadow-sm border border-border">
@@ -143,23 +145,30 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
             System Configuration
           </CardTitle>
           <div className="flex gap-3">
-            {isDirty && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => form.reset()}
-              >
-                Cancel
+            {!isEditMode ? (
+              <Button onClick={() => setIsEditMode(true)} variant="outline">
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
               </Button>
+            ) : (
+              <>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit"
+                  form="system-settings-form"
+                  className={cn("px-6", isDirty && "bg-green-600 hover:bg-green-700")}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Saving...' : 'Save Settings'}
+                </Button>
+              </>
             )}
-            <Button 
-              type="submit"
-              form="system-settings-form"
-              className={cn("px-6", isDirty && "bg-green-600 hover:bg-green-700")}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Saving...' : 'Save Settings'}
-            </Button>
           </div>
         </div>
       </CardHeader>
@@ -176,7 +185,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                   <FormItem>
                     <FormLabel>Organization Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter organization name" {...field} />
+                      <Input placeholder="Enter organization name" disabled={!isEditMode} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -188,7 +197,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                   <FormItem>
                     <FormLabel>System Contact Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="admin@example.com" {...field} />
+                      <Input type="email" placeholder="admin@example.com" disabled={!isEditMode} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -196,16 +205,16 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
               </div>
             </div>
 
-            {/* Site Address Section */}
-            <Collapsible 
-              open={openSections.siteAddress} 
-              onOpenChange={() => toggleSection('siteAddress')}
-            >
-              <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer w-full">
-                <ChevronDown className={cn("h-5 w-5 transition-transform", !openSections.siteAddress && "-rotate-90")} />
-                <h3 className="text-foreground font-bold text-xl">Site Address</h3>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-4">
+            {/* Tabs for sections */}
+            <Tabs defaultValue="siteAddress" className="w-full">
+              <TabsList>
+                <TabsTrigger value="siteAddress">Site Address</TabsTrigger>
+                <TabsTrigger value="mainContact">Main Contact</TabsTrigger>
+                <TabsTrigger value="localization">Localization</TabsTrigger>
+              </TabsList>
+
+              {/* Site Address Tab */}
+              <TabsContent value="siteAddress" className="pt-4">
                 <div className="space-y-3">
                   {/* Address fields in table-like layout */}
                   <div className="grid grid-cols-[120px_1fr] gap-x-4 items-start">
@@ -216,31 +225,35 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                       }) => (
                         <FormItem>
                           <FormControl>
-                            <Input className="max-w-md" placeholder="Street address" {...field} />
+                            <Input className="max-w-md" placeholder="Street address" disabled={!isEditMode} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
-                      <FormField control={form.control} name="site_address_line_2" render={({
-                        field
-                      }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input className="max-w-md" placeholder="Address line 2" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="site_address_line_3" render={({
-                        field
-                      }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input className="max-w-md" placeholder="Address line 3" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                      {(isEditMode || addressLine2) && (
+                        <FormField control={form.control} name="site_address_line_2" render={({
+                          field
+                        }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input className="max-w-md" placeholder="Address line 2" disabled={!isEditMode} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      )}
+                      {(isEditMode || addressLine3) && (
+                        <FormField control={form.control} name="site_address_line_3" render={({
+                          field
+                        }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input className="max-w-md" placeholder="Address line 3" disabled={!isEditMode} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      )}
                     </div>
                   </div>
 
@@ -252,7 +265,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-md" placeholder="Town or city" {...field} />
+                          <Input className="max-w-md" placeholder="Town or city" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -267,7 +280,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-md" placeholder="County or state" {...field} />
+                          <Input className="max-w-md" placeholder="County or state" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -282,26 +295,17 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-[200px]" placeholder="Postcode" {...field} />
+                          <Input className="max-w-[200px]" placeholder="Postcode" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                   </div>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
+              </TabsContent>
 
-            {/* Main Contact Section */}
-            <Collapsible 
-              open={openSections.mainContact} 
-              onOpenChange={() => toggleSection('mainContact')}
-            >
-              <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer w-full">
-                <ChevronDown className={cn("h-5 w-5 transition-transform", !openSections.mainContact && "-rotate-90")} />
-                <h3 className="text-foreground font-bold text-xl">Main Contact</h3>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-4">
+              {/* Main Contact Tab */}
+              <TabsContent value="mainContact" className="pt-4">
                 <div className="space-y-3">
                   {/* First Name */}
                   <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
@@ -311,7 +315,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-[200px]" placeholder="First name" {...field} />
+                          <Input className="max-w-[200px]" placeholder="First name" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -326,7 +330,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-[200px]" placeholder="Surname" {...field} />
+                          <Input className="max-w-[200px]" placeholder="Surname" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -341,7 +345,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-[250px]" placeholder="Job title" {...field} />
+                          <Input className="max-w-[250px]" placeholder="Job title" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -355,7 +359,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                       field
                     }) => (
                       <FormItem>
-                        <Select onValueChange={value => field.onChange(value === "none" ? "" : value)} value={field.value || "none"}>
+                        <Select onValueChange={value => field.onChange(value === "none" ? "" : value)} value={field.value || "none"} disabled={!isEditMode}>
                           <FormControl>
                             <SelectTrigger className="max-w-[250px]">
                               <SelectValue placeholder="Select department" />
@@ -383,7 +387,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-[200px]" placeholder="Phone number" {...field} />
+                          <Input className="max-w-[200px]" placeholder="Phone number" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -398,7 +402,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-[200px]" placeholder="Mobile number" {...field} />
+                          <Input className="max-w-[200px]" placeholder="Mobile number" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -413,26 +417,17 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-md" type="email" placeholder="contact@example.com" {...field} />
+                          <Input className="max-w-md" type="email" placeholder="contact@example.com" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                   </div>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
+              </TabsContent>
 
-            {/* Localization Section */}
-            <Collapsible 
-              open={openSections.localization} 
-              onOpenChange={() => toggleSection('localization')}
-            >
-              <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer w-full">
-                <ChevronDown className={cn("h-5 w-5 transition-transform", !openSections.localization && "-rotate-90")} />
-                <h3 className="text-foreground font-bold text-xl">Localization</h3>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-4">
+              {/* Localization Tab */}
+              <TabsContent value="localization" className="pt-4">
                 <div className="space-y-3">
                   {/* Country */}
                   <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
@@ -441,7 +436,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                       field
                     }) => (
                       <FormItem>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!isEditMode}>
                           <FormControl>
                             <SelectTrigger className="max-w-[250px]">
                               <SelectValue placeholder="Select country" />
@@ -473,7 +468,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-[100px]" placeholder="£, $, €" {...field} />
+                          <Input className="max-w-[100px]" placeholder="£, $, €" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -487,7 +482,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                       field
                     }) => (
                       <FormItem>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!isEditMode}>
                           <FormControl>
                             <SelectTrigger className="max-w-[250px]">
                               <SelectValue placeholder="Select language" />
@@ -514,7 +509,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                       field
                     }) => (
                       <FormItem>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!isEditMode}>
                           <FormControl>
                             <SelectTrigger className="max-w-[300px]">
                               <SelectValue placeholder="Select timezone" />
@@ -544,7 +539,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                       field
                     }) => (
                       <FormItem>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!isEditMode}>
                           <FormControl>
                             <SelectTrigger className="max-w-[200px]">
                               <SelectValue placeholder="Select date format" />
@@ -572,7 +567,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
-                              <Button variant="outline" className={cn("max-w-[200px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                              <Button variant="outline" className={cn("max-w-[200px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")} disabled={!isEditMode}>
                                 {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
@@ -603,15 +598,15 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                     }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="max-w-md" type="url" placeholder="https://example.com/logo.png" {...field} />
+                          <Input className="max-w-md" type="url" placeholder="https://example.com/logo.png" disabled={!isEditMode} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                   </div>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
+              </TabsContent>
+            </Tabs>
           </form>
         </Form>
       </CardContent>
