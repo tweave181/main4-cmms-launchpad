@@ -5,18 +5,22 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useTenantSetupStatus } from '@/hooks/useTenantSetupStatus';
 import { SetupProgressCard } from '@/components/setup/SetupProgressCard';
 import { SetupSection } from '@/components/setup/SetupSection';
+import { FirstTimeSetupWizard } from '@/components/setup/FirstTimeSetupWizard';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
 import { ArrowRight, LayoutDashboard } from 'lucide-react';
+import { useFirstTimeSetupRequired } from '@/hooks/useFirstTimeSetupRequired';
 
 const TenantSetup = () => {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
   const tenantId = userProfile?.tenant_id;
   const { data: status, isLoading, refetch } = useTenantSetupStatus();
+  const { isRequired: isFirstTimeSetupRequired, settings: programSettings } = useFirstTimeSetupRequired();
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
 
   const handleSkipToDashboard = async () => {
     if (dontShowAgain && tenantId) {
@@ -43,6 +47,12 @@ const TenantSetup = () => {
   };
 
   const handleContinueSetup = () => {
+    // If first-time setup is required, show the wizard
+    if (isFirstTimeSetupRequired && programSettings) {
+      setShowWizard(true);
+      return;
+    }
+
     // Find first incomplete essential item
     const essentialSections = status?.sections.filter(s => !s.isAutoConfigured) || [];
     for (const section of essentialSections) {
@@ -54,6 +64,15 @@ const TenantSetup = () => {
     }
     // All complete, go to dashboard
     navigate('/');
+  };
+
+  const handleWizardComplete = () => {
+    setShowWizard(false);
+    refetch();
+    toast({
+      title: 'Setup complete!',
+      description: 'Your organization settings have been saved.',
+    });
   };
 
   if (isLoading) {
@@ -74,6 +93,13 @@ const TenantSetup = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {showWizard && programSettings && (
+        <FirstTimeSetupWizard
+          settings={programSettings}
+          onComplete={handleWizardComplete}
+          onSkip={() => setShowWizard(false)}
+        />
+      )}
       <div className="max-w-2xl mx-auto px-4 py-8">
         <SetupProgressCard
           tenantName={status.tenantName}
