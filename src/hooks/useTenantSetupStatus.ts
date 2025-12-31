@@ -66,7 +66,7 @@ export const useTenantSetupStatus = () => {
         supabase.from('categories').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
         supabase.from('location_levels').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
         supabase.from('job_titles').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-        supabase.from('program_settings').select('id, setup_wizard_dismissed').eq('tenant_id', tenantId).single(),
+        supabase.from('program_settings').select('id, setup_wizard_dismissed, site_address_line_1, main_contact_first_name').eq('tenant_id', tenantId).single(),
         supabase.from('locations').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
         supabase.from('asset_tag_prefixes').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
         supabase.from('assets').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
@@ -81,6 +81,9 @@ export const useTenantSetupStatus = () => {
       const tenantName = tenantResult.data?.name || 'Your Organization';
       const businessType = tenantResult.data?.business_type || null;
       const setupWizardDismissed = programSettingsResult.data?.setup_wizard_dismissed || false;
+      const hasSiteAddress = !!programSettingsResult.data?.site_address_line_1;
+      const hasMainContact = !!programSettingsResult.data?.main_contact_first_name;
+      const hasProgramSettingsComplete = hasSiteAddress && hasMainContact;
 
       const departmentsCount = departmentsResult.count || 0;
       const categoriesCount = categoriesResult.count || 0;
@@ -143,10 +146,14 @@ export const useTenantSetupStatus = () => {
             {
               id: 'settings',
               title: 'Program Settings',
-              description: hasSettings ? 'Configured' : 'Not configured',
-              isComplete: hasSettings,
+              description: hasProgramSettingsComplete 
+                ? 'Fully configured' 
+                : hasSettings 
+                  ? 'Site address or contact needed' 
+                  : 'Not configured',
+              isComplete: hasProgramSettingsComplete,
               link: '/settings',
-              linkText: 'View',
+              linkText: hasProgramSettingsComplete ? 'View' : 'Configure',
             },
           ],
         },
