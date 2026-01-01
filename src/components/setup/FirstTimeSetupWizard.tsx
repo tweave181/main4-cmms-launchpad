@@ -14,15 +14,17 @@ import { useUpdateProgramSettings } from '@/hooks/useProgramSettings';
 import type { ProgramSettings, ProgramSettingsFormData } from '@/hooks/useProgramSettings';
 
 const wizardSchema = z.object({
-  // Site Address
-  site_address_line_1: z.string().optional(),
+  // Site Address - Required fields
+  site_address_line_1: z.string().min(1, { message: 'Address Line 1 is required' }),
+  site_town_or_city: z.string().min(1, { message: 'Town / City is required' }),
+  // Site Address - Optional fields
   site_address_line_2: z.string().optional(),
   site_address_line_3: z.string().optional(),
-  site_town_or_city: z.string().optional(),
   site_county_or_state: z.string().optional(),
   site_postcode: z.string().optional(),
-  // Main Contact
-  main_contact_first_name: z.string().optional(),
+  // Main Contact - Required field
+  main_contact_first_name: z.string().min(1, { message: 'First Name is required' }),
+  // Main Contact - Optional fields
   main_contact_surname: z.string().optional(),
   main_contact_job_title: z.string().optional(),
   main_contact_phone: z.string().optional(),
@@ -38,6 +40,13 @@ const wizardSchema = z.object({
   default_fiscal_year_start: z.string().optional(),
   logo_url: z.string().url('Invalid URL').optional().or(z.literal('')),
 });
+
+// Fields that require validation per step
+const STEP_FIELDS: Record<number, (keyof ProgramSettingsFormData)[]> = {
+  0: ['site_address_line_1', 'site_town_or_city'],
+  1: ['main_contact_first_name'],
+  2: [],
+};
 
 const STEPS = [
   { id: 'site-address', title: 'Site Address', description: 'Where is your organization located?' },
@@ -88,6 +97,14 @@ export const FirstTimeSetupWizard: React.FC<FirstTimeSetupWizardProps> = ({
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   const handleNext = async () => {
+    // Validate current step's required fields
+    const fieldsToValidate = STEP_FIELDS[currentStep] || [];
+    const isValid = await form.trigger(fieldsToValidate);
+    
+    if (!isValid) {
+      return;
+    }
+
     if (currentStep < STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
     } else {
