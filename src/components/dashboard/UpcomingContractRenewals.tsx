@@ -27,7 +27,7 @@ export const UpcomingContractRenewals: React.FC = () => {
   if (isLoading) {
     return (
       <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
-        <CardHeader className="p-0 mb-6">
+        <CardHeader className="p-0 mb-4">
           <CardTitle className="text-2xl font-semibold">Upcoming Contract Renewals</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -46,7 +46,7 @@ export const UpcomingContractRenewals: React.FC = () => {
   if (error) {
     return (
       <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
-        <CardHeader className="p-0 mb-6">
+        <CardHeader className="p-0 mb-4">
           <CardTitle className="text-2xl font-semibold">Upcoming Contract Renewals</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -60,7 +60,7 @@ export const UpcomingContractRenewals: React.FC = () => {
 
   return (
     <Card className="rounded-2xl shadow-md border border-gray-200 p-6">
-      <CardHeader className="p-0 mb-6">
+      <CardHeader className="p-0 mb-4">
         <CardTitle className="text-2xl font-semibold flex items-center">
           <FileText className="w-6 h-6 mr-2 text-primary" />
           Upcoming Contract Renewals
@@ -68,8 +68,8 @@ export const UpcomingContractRenewals: React.FC = () => {
       </CardHeader>
       <CardContent className="p-0">
         {renewals.length === 0 ? (
-          <div className="text-center py-6">
-            <div className="text-lg text-green-600 mb-2">✅</div>
+          <div className="text-center py-4">
+            <div className="text-lg text-green-600 mb-1">✅</div>
             <p className="text-gray-600">No contracts expiring in the next 30 days.</p>
           </div>
         ) : (
@@ -110,11 +110,11 @@ export const UpcomingContractRenewals: React.FC = () => {
           </div>
         )}
         
-        <div className="mt-6">
+        <div className="mt-4">
           <Button
             variant="outline"
             className="w-full rounded-2xl"
-            onClick={() => navigate('/vendors')}
+            onClick={() => navigate('/admin/service-contracts')}
           >
             <ExternalLink className="w-4 h-4 mr-2" />
             View All Service Contracts
