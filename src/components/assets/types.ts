@@ -31,6 +31,16 @@ export interface Asset {
   // Joined/computed fields
   children?: Asset[];
   parent?: { id: string; name: string; asset_tag?: string } | null;
+  location?: string | {
+    name: string;
+    location_code?: string;
+    location_level_id?: string;
+    location_level_data?: {
+      id: string;
+      name: string;
+      code?: string;
+    };
+  } | null;
   service_contract?: {
     id: string;
     contract_title: string;

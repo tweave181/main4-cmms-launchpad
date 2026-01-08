@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Hash, Package, MapPin, Building, Building2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Hash, Package, MapPin, Building, Building2, Barcode, Wrench } from 'lucide-react';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useCompanies } from '@/hooks/useCompanies';
 import type { Asset } from './types';
@@ -41,76 +42,89 @@ const manufacturerCompany = companies.find(c => c.id === (asset as any).manufact
             </div>
           </div>
         )}
-        {asset.asset_tag && (
-          <div className="flex items-center space-x-2">
-            <Hash className="h-4 w-4 text-gray-500" />
-            <div>
-              <p className="text-sm font-medium">Asset Tag</p>
-              <p className="text-sm text-gray-600">{asset.asset_tag}</p>
-            </div>
+        <div className="flex items-center space-x-2">
+          <Hash className="h-4 w-4 text-muted-foreground" />
+          <div>
+            <p className="text-sm font-medium">Asset Tag</p>
+            <p className="text-sm text-muted-foreground">
+              {asset.asset_tag || <span className="italic">Not assigned</span>}
+            </p>
           </div>
-        )}
+        </div>
         
-        {asset.category && (
-          <div className="flex items-center space-x-2">
-            <Package className="h-4 w-4 text-gray-500" />
-            <div>
-              <p className="text-sm font-medium">Category</p>
-              <p className="text-sm text-gray-600">{asset.category}</p>
+        <div className="flex items-center space-x-2">
+          <Package className="h-4 w-4 text-muted-foreground" />
+          <div>
+            <p className="text-sm font-medium">Category</p>
+            <p className="text-sm text-muted-foreground">
+              {asset.category || <span className="italic">Not specified</span>}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <MapPin className="h-4 w-4 text-muted-foreground" />
+          <div>
+            <p className="text-sm font-medium">Location</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {typeof asset.location === 'object' && asset.location?.location_code && (
+                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-mono">
+                  {asset.location.location_code}
+                </span>
+              )}
+              <p className="text-sm text-muted-foreground">
+                {typeof asset.location === 'object' 
+                  ? (asset.location?.name || <span className="italic">Not specified</span>)
+                  : (asset.location || <span className="italic">Not specified</span>)}
+              </p>
+              {typeof asset.location === 'object' && asset.location?.location_level_data && (
+                <Badge variant="outline" className="text-xs">
+                  {asset.location.location_level_data.name}
+                </Badge>
+              )}
             </div>
           </div>
-        )}
+        </div>
 
-        {(asset as any).location && (
-          <div className="flex items-center space-x-2">
-            <MapPin className="h-4 w-4 text-gray-500" />
-            <div>
-              <p className="text-sm font-medium">Location</p>
-              <div className="flex items-center gap-1">
-                {(asset as any).location.location_code && (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-mono">
-                    {(asset as any).location.location_code}
-                  </span>
-                )}
-                <p className="text-sm text-gray-600">{(asset as any).location.name}</p>
-              </div>
-            </div>
+        <div className="flex items-center space-x-2">
+          <Building className="h-4 w-4 text-muted-foreground" />
+          <div>
+            <p className="text-sm font-medium">Department</p>
+            <p className="text-sm text-muted-foreground">
+              {department?.name || <span className="italic">Not assigned</span>}
+            </p>
           </div>
-        )}
+        </div>
 
-        {department && (
-          <div className="flex items-center space-x-2">
-            <Building className="h-4 w-4 text-gray-500" />
-            <div>
-              <p className="text-sm font-medium">Department</p>
-              <p className="text-sm text-gray-600">{department.name}</p>
-            </div>
+        <div className="flex items-center space-x-2">
+          <Building2 className="h-4 w-4 text-muted-foreground" />
+          <div>
+            <p className="text-sm font-medium">Manufacturer</p>
+            <p className="text-sm text-muted-foreground">
+              {manufacturerCompany?.company_name ?? asset.manufacturer ?? <span className="italic">Not specified</span>}
+            </p>
           </div>
-        )}
+        </div>
 
-{(manufacturerCompany || asset.manufacturer) && (
-          <div className="flex items-center space-x-2">
-            <Building2 className="h-4 w-4 text-gray-500" />
-            <div>
-              <p className="text-sm font-medium">Manufacturer</p>
-              <p className="text-sm text-gray-600">{manufacturerCompany?.company_name ?? asset.manufacturer}</p>
-            </div>
-          </div>
-        )}
-
-        {asset.model && (
+        <div className="flex items-center space-x-2">
+          <Wrench className="h-4 w-4 text-muted-foreground" />
           <div>
             <p className="text-sm font-medium">Model</p>
-            <p className="text-sm text-gray-600">{asset.model}</p>
+            <p className="text-sm text-muted-foreground">
+              {asset.model || <span className="italic">Not specified</span>}
+            </p>
           </div>
-        )}
+        </div>
 
-        {asset.serial_number && (
+        <div className="flex items-center space-x-2">
+          <Barcode className="h-4 w-4 text-muted-foreground" />
           <div>
             <p className="text-sm font-medium">Serial Number</p>
-            <p className="text-sm text-gray-600">{asset.serial_number}</p>
+            <p className="text-sm text-muted-foreground">
+              {asset.serial_number || <span className="italic">Not recorded</span>}
+            </p>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
