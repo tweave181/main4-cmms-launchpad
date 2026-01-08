@@ -3,7 +3,7 @@ import React from 'react';
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit2, Trash2, Copy } from 'lucide-react';
+import { Edit2, Trash2, Copy, QrCode } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import type { Asset } from './types';
 
@@ -12,6 +12,7 @@ interface AssetDetailHeaderProps {
   onEdit: () => void;
   onDelete?: () => void;
   onDuplicate?: () => void;
+  onPrintQRLabel?: () => void;
 }
 
 export const AssetDetailHeader: React.FC<AssetDetailHeaderProps> = ({
@@ -19,6 +20,7 @@ export const AssetDetailHeader: React.FC<AssetDetailHeaderProps> = ({
   onEdit,
   onDelete,
   onDuplicate,
+  onPrintQRLabel,
 }) => {
   const { isAdmin } = useAuth();
   const getStatusColor = (status: string) => {
@@ -53,6 +55,12 @@ export const AssetDetailHeader: React.FC<AssetDetailHeaderProps> = ({
               <Edit2 className="w-4 h-4 mr-2" />
               Edit Asset
             </Button>
+            {asset.asset_tag && onPrintQRLabel && (
+              <Button onClick={onPrintQRLabel} variant="outline" className="rounded-2xl">
+                <QrCode className="w-4 h-4 mr-2" />
+                Print QR Label
+              </Button>
+            )}
             {onDuplicate && (
               <Button onClick={onDuplicate} variant="outline" className="rounded-2xl">
                 <Copy className="w-4 h-4 mr-2" />

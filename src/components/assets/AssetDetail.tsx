@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AssetDetailHeader } from './AssetDetailHeader';
 import { AssetBasicInfo } from './AssetBasicInfo';
@@ -7,6 +7,7 @@ import { AssetDescriptionSection } from './AssetDescriptionSection';
 import { AssetRecordInfo } from './AssetRecordInfo';
 import { AssetDetailTabs } from './AssetDetailTabs';
 import { AssetBreadcrumb } from './AssetBreadcrumb';
+import { PrintQRLabelModal } from './PrintQRLabelModal';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import type { Asset } from './types';
 interface AssetDetailProps {
@@ -29,6 +30,8 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   onDuplicate,
   onUpdate
 }) => {
+  const [showQRModal, setShowQRModal] = useState(false);
+
   const handleViewChild = (child: Asset) => {
     // For now, we'll just close the current modal and let the parent handle navigation
     // In a more complex setup, you might open a nested modal or navigate to the child
@@ -46,7 +49,13 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           
-          <AssetDetailHeader asset={asset} onEdit={onEdit} onDelete={onDelete} onDuplicate={onDuplicate} />
+          <AssetDetailHeader 
+            asset={asset} 
+            onEdit={onEdit} 
+            onDelete={onDelete} 
+            onDuplicate={onDuplicate} 
+            onPrintQRLabel={() => setShowQRModal(true)}
+          />
 
           <div className="space-y-6">
             <AssetBreadcrumb asset={asset} allAssets={allAssets} />
@@ -77,6 +86,15 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {asset.asset_tag && (
+        <PrintQRLabelModal
+          isOpen={showQRModal}
+          onClose={() => setShowQRModal(false)}
+          assetTag={asset.asset_tag}
+          assetName={asset.name}
+        />
+      )}
     </>
   );
 };
