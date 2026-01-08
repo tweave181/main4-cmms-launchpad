@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Control } from 'react-hook-form';
 import {
@@ -9,18 +10,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { SafeDropdownField } from './SafeDropdownField';
 import type { AssetFormData } from './types';
-import type { DropdownState } from './utils/dropdownHelpers';
 
 interface AssetFinancialFieldsProps {
   control: Control<AssetFormData>;
-  serviceContractsData: DropdownState;
 }
 
 export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({ 
-  control, 
-  serviceContractsData 
+  control
 }) => {
   return (
     <div className="space-y-4">
@@ -69,16 +66,6 @@ export const AssetFinancialFields: React.FC<AssetFinancialFieldsProps> = ({
             <FormMessage />
           </FormItem>
         )}
-      />
-
-      <SafeDropdownField
-        control={control}
-        name="service_contract_id"
-        label="Service Contract"
-        placeholder="Select service contract"
-        options={serviceContractsData.data}
-        isLoading={serviceContractsData.isLoading}
-        error={serviceContractsData.error}
       />
     </div>
   );

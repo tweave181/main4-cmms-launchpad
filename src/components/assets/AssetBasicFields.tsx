@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Control, useWatch, useFormContext } from 'react-hook-form';
 import { useAssetPrefixes } from '@/hooks/useAssetPrefixes';
@@ -12,14 +13,17 @@ import { AssetStatusField } from './fields/AssetStatusField';
 import { AssetPriorityField } from './fields/AssetPriorityField';
 import { AssetTypeSelector } from './AssetTypeSelector';
 import { AssetParentSelector } from './AssetParentSelector';
+import { SafeDropdownField } from './SafeDropdownField';
 import type { AssetFormData, Asset } from './types';
+import type { DropdownState } from './utils/dropdownHelpers';
 
 interface AssetBasicFieldsProps {
   control: Control<AssetFormData>;
   currentAssetId?: string;
+  serviceContractsData?: DropdownState;
 }
 
-export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control, currentAssetId }) => {
+export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control, currentAssetId, serviceContractsData }) => {
   const { prefixes } = useAssetPrefixes();
   const { assets } = useAssets();
   const [categoryManuallyEdited, setCategoryManuallyEdited] = useState(false);
@@ -99,6 +103,17 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control, cur
       <AssetDepartmentField control={control} />
       <AssetStatusField control={control} />
       <AssetPriorityField control={control} />
+      {serviceContractsData && (
+        <SafeDropdownField
+          control={control}
+          name="service_contract_id"
+          label="Service Contract"
+          placeholder="Select service contract"
+          options={serviceContractsData.data}
+          isLoading={serviceContractsData.isLoading}
+          error={serviceContractsData.error}
+        />
+      )}
     </>
   );
 };
