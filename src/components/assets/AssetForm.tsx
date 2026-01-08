@@ -125,11 +125,14 @@ export const AssetForm: React.FC<AssetFormProps> = ({
           <AssetFormErrorBoundary onRetry={handleRetry}>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="flex justify-start space-x-4 pb-4">
+                <div className="flex justify-end space-x-4 pb-4">
                   <Button type="button" variant="outline" onClick={handleCancel}>
                     Cancel
                   </Button>
-                  <Button type="submit">
+                  <Button 
+                    type="submit"
+                    className={form.formState.isDirty ? 'bg-green-600 hover:bg-green-700' : ''}
+                  >
                     {isEditing ? 'Update Asset' : 'Create Asset'}
                   </Button>
                 </div>

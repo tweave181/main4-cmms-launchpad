@@ -18,7 +18,7 @@ export const useManufacturerAddresses = () => {
         .select(`
           id,
           company_id,
-          company_details!company_id (
+          company_details!addresses_company_id_fkey (
             id,
             company_name
           )
