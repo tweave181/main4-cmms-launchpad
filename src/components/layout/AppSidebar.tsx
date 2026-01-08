@@ -23,13 +23,13 @@ export const AppSidebar = () => {
     label: 'Dashboard',
     href: '/'
   }, {
-    icon: Wrench,
-    label: 'Work Orders',
-    href: '/work-orders'
-  }, {
     icon: Tag,
     label: 'Assets',
     href: '/assets'
+  }, {
+    icon: Wrench,
+    label: 'Work Orders',
+    href: '/work-orders'
   }, {
     icon: Calendar,
     label: 'Maintenance Records',
