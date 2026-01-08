@@ -18,7 +18,7 @@ export const useAssets = () => {
           .select(`
             *,
             department:departments(name),
-            location:locations(name, location_code),
+            location:locations(name, location_code, location_level_id, location_level_data:location_levels(id, name, code)),
             manufacturer_company:company_details(company_name),
             service_contract:service_contracts(id, contract_title, vendor_name, status, start_date, end_date),
             parent:assets!parent_asset_id(id, name, asset_tag),
