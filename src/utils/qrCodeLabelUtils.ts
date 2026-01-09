@@ -86,11 +86,37 @@ export const downloadPDF = (doc: jsPDF, filename: string): void => {
 export const printPDF = (doc: jsPDF): void => {
   const pdfBlob = doc.output('blob');
   const pdfUrl = URL.createObjectURL(pdfBlob);
-  const printWindow = window.open(pdfUrl, '_blank');
   
-  if (printWindow) {
-    printWindow.onload = () => {
-      printWindow.print();
-    };
+  // Remove any existing print iframe
+  const existingFrame = document.getElementById('qr-label-print-frame');
+  if (existingFrame) {
+    existingFrame.remove();
   }
+  
+  // Create hidden iframe for printing (avoids popup blocker)
+  const iframe = document.createElement('iframe');
+  iframe.id = 'qr-label-print-frame';
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  iframe.style.visibility = 'hidden';
+  
+  iframe.onload = () => {
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    }, 250);
+  };
+  
+  // Cleanup after 60 seconds
+  setTimeout(() => {
+    URL.revokeObjectURL(pdfUrl);
+    iframe.remove();
+  }, 60000);
+  
+  iframe.src = pdfUrl;
+  document.body.appendChild(iframe);
 };
