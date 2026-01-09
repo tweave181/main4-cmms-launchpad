@@ -17,9 +17,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Download, Printer } from 'lucide-react';
+import { Download, Printer, Usb } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { generateAssetQRLabelPDF, downloadPDF } from '@/utils/qrCodeLabelUtils';
+import { toast } from 'sonner';
 
 interface PrintQRLabelModalProps {
   isOpen: boolean;
@@ -36,30 +37,36 @@ const SIZE_CONFIGS = {
     width: 17, 
     height: 54, 
     label: 'DK-11204 (17×54mm) - Multi-Purpose',
-    fontSize: { tag: '8pt', name: '6pt' }
+    fontSize: { tag: '8pt', name: '6pt' },
+    qlLabel: '17x54',
   },
   dk11201: { 
     qrSize: 60, 
     width: 29, 
     height: 90, 
     label: 'DK-11201 (29×90mm) - Address',
-    fontSize: { tag: '10pt', name: '8pt' }
+    fontSize: { tag: '10pt', name: '8pt' },
+    qlLabel: '29x90',
   },
   dk22205: { 
     qrSize: 100, 
     width: 62, 
     height: 62, 
     label: 'DK-22205 (62mm) - Square',
-    fontSize: { tag: '12pt', name: '9pt' }
+    fontSize: { tag: '12pt', name: '9pt' },
+    qlLabel: '62',
   },
   dk11202: { 
     qrSize: 120, 
     width: 62, 
     height: 100, 
     label: 'DK-11202 (62×100mm) - Shipping',
-    fontSize: { tag: '14pt', name: '10pt' }
+    fontSize: { tag: '14pt', name: '10pt' },
+    qlLabel: '62x100',
   },
 };
+
+const PRINT_SERVICE_URL = 'http://localhost:8013';
 
 export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
   isOpen,
@@ -71,7 +78,10 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
   const [includeAssetName, setIncludeAssetName] = useState(true);
   const [copies, setCopies] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isPrintingDirect, setIsPrintingDirect] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
+
+  const config = SIZE_CONFIGS[labelSize];
 
   const getQRCodeDataUrl = useCallback((): Promise<string> => {
     return new Promise((resolve) => {
@@ -119,7 +129,7 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
     }
   };
 
-  const handlePrint = () => {
+  const handleBrowserPrint = () => {
     const qrSvg = qrRef.current?.querySelector('svg');
     const svgString = qrSvg ? new XMLSerializer().serializeToString(qrSvg) : '';
     
@@ -207,7 +217,60 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
     printWindow.document.close();
   };
 
-  const config = SIZE_CONFIGS[labelSize];
+  const handleDirectPrint = async () => {
+    setIsPrintingDirect(true);
+    
+    try {
+      // Check if print service is available
+      const healthCheck = await fetch(`${PRINT_SERVICE_URL}/health`, {
+        method: 'GET',
+      }).catch(() => null);
+
+      if (!healthCheck?.ok) {
+        toast.error('Print service not running', {
+          description: 'Start the local print service on port 8013',
+        });
+        return;
+      }
+
+      // Build the label text
+      const labelText = includeAssetName && assetName 
+        ? `${assetTag}\n${assetName}` 
+        : assetTag;
+
+      // Send print request
+      const response = await fetch(`${PRINT_SERVICE_URL}/print`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: labelText,
+          label: config.qlLabel,
+          copies,
+          rotate: 0,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: 'Print failed' }));
+        throw new Error(error.detail || 'Print failed');
+      }
+
+      const result = await response.json();
+      toast.success('Label printed', {
+        description: `${result.copies_printed} label(s) sent to QL-570`,
+      });
+      onClose();
+    } catch (error) {
+      console.error('Direct print error:', error);
+      toast.error('Print failed', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    } finally {
+      setIsPrintingDirect(false);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -243,7 +306,7 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
             <div className="flex items-center justify-between">
               <Label htmlFor="label-size">Label Size</Label>
               <Select value={labelSize} onValueChange={(v) => setLabelSize(v as LabelSize)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -279,17 +342,21 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
           </div>
         </div>
 
-        <DialogFooter className="flex gap-2 sm:gap-2">
+        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:gap-2">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button variant="outline" onClick={handleDownload} disabled={isGenerating}>
             <Download className="w-4 h-4 mr-2" />
-            Download PDF
+            PDF
           </Button>
-          <Button onClick={handlePrint} disabled={isGenerating}>
+          <Button variant="outline" onClick={handleBrowserPrint} disabled={isGenerating}>
             <Printer className="w-4 h-4 mr-2" />
-            Print
+            Browser
+          </Button>
+          <Button onClick={handleDirectPrint} disabled={isPrintingDirect}>
+            <Usb className="w-4 h-4 mr-2" />
+            {isPrintingDirect ? 'Printing...' : 'QL-570'}
           </Button>
         </DialogFooter>
       </DialogContent>
