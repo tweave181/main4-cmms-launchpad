@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Download, Printer } from 'lucide-react';
 import QRCode from 'react-qr-code';
-import { generateAssetQRLabelPDF, downloadPDF, printPDF } from '@/utils/qrCodeLabelUtils';
+import { generateAssetQRLabelPDF, downloadPDF } from '@/utils/qrCodeLabelUtils';
 
 interface PrintQRLabelModalProps {
   isOpen: boolean;
@@ -94,21 +94,61 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
     }
   };
 
-  const handlePrint = async () => {
-    setIsGenerating(true);
-    try {
-      const qrDataUrl = await getQRCodeDataUrl();
-      const doc = await generateAssetQRLabelPDF(
-        { assetTag, assetName },
-        qrDataUrl,
-        labelSize,
-        includeAssetName,
-        copies
-      );
-      printPDF(doc);
-    } finally {
-      setIsGenerating(false);
-    }
+  const handlePrint = () => {
+    const qrSvg = qrRef.current?.querySelector('svg');
+    const svgString = qrSvg ? new XMLSerializer().serializeToString(qrSvg) : '';
+    
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>QR Label - ${assetTag}</title>
+          <style>
+            @page { size: auto; margin: 10mm; }
+            body { 
+              font-family: Arial, sans-serif; 
+              display: flex; 
+              flex-direction: column; 
+              align-items: center; 
+              justify-content: center;
+              min-height: 100vh;
+              margin: 0;
+            }
+            .label { 
+              display: flex; 
+              flex-direction: column; 
+              align-items: center; 
+              padding: 10mm;
+              page-break-after: always;
+            }
+            .label:last-child { page-break-after: avoid; }
+            .qr-code { margin-bottom: 5mm; }
+            .qr-code svg { width: ${config.qrSize}px; height: ${config.qrSize}px; }
+            .asset-tag { font-weight: bold; font-family: monospace; font-size: 14pt; }
+            .asset-name { color: #666; font-size: 10pt; margin-top: 2mm; max-width: 180px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          ${Array(copies).fill(`
+            <div class="label">
+              <div class="qr-code">${svgString}</div>
+              <div class="asset-tag">${assetTag}</div>
+              ${includeAssetName && assetName ? `<div class="asset-name">${assetName}</div>` : ''}
+            </div>
+          `).join('')}
+          <script>
+            window.onload = function() { 
+              window.print(); 
+              window.onafterprint = function() { window.close(); };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   const config = SIZE_CONFIGS[labelSize];
