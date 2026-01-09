@@ -17,10 +17,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Download, Printer, Usb } from 'lucide-react';
+import { Download, Printer, Usb, HelpCircle } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { generateAssetQRLabelPDF, downloadPDF } from '@/utils/qrCodeLabelUtils';
 import { toast } from 'sonner';
+import { PrintServiceSetupModal } from './PrintServiceSetupModal';
 
 interface PrintQRLabelModalProps {
   isOpen: boolean;
@@ -79,6 +80,7 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
   const [copies, setCopies] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPrintingDirect, setIsPrintingDirect] = useState(false);
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
 
   const config = SIZE_CONFIGS[labelSize];
@@ -228,7 +230,11 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
 
       if (!healthCheck?.ok) {
         toast.error('Print service not running', {
-          description: 'Start the local print service on port 8013',
+          description: 'Click "Setup Guide" to configure the local print service',
+          action: {
+            label: 'Setup Guide',
+            onClick: () => setShowSetupGuide(true),
+          },
         });
         return;
       }
@@ -273,93 +279,121 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Print QR Code Label</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Print QR Code Label</DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Preview */}
-          <div className="flex justify-center">
-            <div className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg border shadow-sm">
-              <div ref={qrRef}>
-                <QRCode
-                  value={assetTag}
-                  size={config.qrSize}
-                  level="M"
-                  bgColor="#FFFFFF"
-                  fgColor="#000000"
+          <div className="space-y-6">
+            {/* Preview */}
+            <div className="flex justify-center">
+              <div className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg border shadow-sm">
+                <div ref={qrRef}>
+                  <QRCode
+                    value={assetTag}
+                    size={config.qrSize}
+                    level="M"
+                    bgColor="#FFFFFF"
+                    fgColor="#000000"
+                  />
+                </div>
+                <p className="font-mono font-bold text-sm">{assetTag}</p>
+                {includeAssetName && assetName && (
+                  <p className="text-muted-foreground text-xs text-center max-w-[180px] truncate">
+                    {assetName}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Options */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <Label htmlFor="label-size" className="shrink-0">Label Size</Label>
+                <Select value={labelSize} onValueChange={(v) => setLabelSize(v as LabelSize)}>
+                  <SelectTrigger className="w-[260px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    <SelectItem value="dk11204">
+                      <span className="truncate">{SIZE_CONFIGS.dk11204.label}</span>
+                    </SelectItem>
+                    <SelectItem value="dk11201">
+                      <span className="truncate">{SIZE_CONFIGS.dk11201.label}</span>
+                    </SelectItem>
+                    <SelectItem value="dk22205">
+                      <span className="truncate">{SIZE_CONFIGS.dk22205.label}</span>
+                    </SelectItem>
+                    <SelectItem value="dk11202">
+                      <span className="truncate">{SIZE_CONFIGS.dk11202.label}</span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="include-name">Include Asset Name</Label>
+                <Switch
+                  id="include-name"
+                  checked={includeAssetName}
+                  onCheckedChange={setIncludeAssetName}
                 />
               </div>
-              <p className="font-mono font-bold text-sm">{assetTag}</p>
-              {includeAssetName && assetName && (
-                <p className="text-muted-foreground text-xs text-center max-w-[180px] truncate">
-                  {assetName}
-                </p>
-              )}
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="copies">Number of Copies</Label>
+                <Input
+                  id="copies"
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={copies}
+                  onChange={(e) => setCopies(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                  className="w-20 text-center"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Options */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="label-size">Label Size</Label>
-              <Select value={labelSize} onValueChange={(v) => setLabelSize(v as LabelSize)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dk11204">{SIZE_CONFIGS.dk11204.label}</SelectItem>
-                  <SelectItem value="dk11201">{SIZE_CONFIGS.dk11201.label}</SelectItem>
-                  <SelectItem value="dk22205">{SIZE_CONFIGS.dk22205.label}</SelectItem>
-                  <SelectItem value="dk11202">{SIZE_CONFIGS.dk11202.label}</SelectItem>
-                </SelectContent>
-              </Select>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={onClose} className="sm:order-1">
+              Cancel
+            </Button>
+            <div className="flex gap-2 sm:order-2">
+              <Button variant="outline" onClick={handleDownload} disabled={isGenerating}>
+                <Download className="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+              <Button variant="outline" onClick={handleBrowserPrint} disabled={isGenerating}>
+                <Printer className="w-4 h-4 mr-2" />
+                Browser
+              </Button>
             </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="include-name">Include Asset Name</Label>
-              <Switch
-                id="include-name"
-                checked={includeAssetName}
-                onCheckedChange={setIncludeAssetName}
-              />
+            <div className="flex gap-1 sm:order-3">
+              <Button onClick={handleDirectPrint} disabled={isPrintingDirect}>
+                <Usb className="w-4 h-4 mr-2" />
+                {isPrintingDirect ? 'Printing...' : 'QL-570'}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSetupGuide(true)}
+                title="Setup Guide"
+                className="shrink-0"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </Button>
             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-            <div className="flex items-center justify-between">
-              <Label htmlFor="copies">Number of Copies</Label>
-              <Input
-                id="copies"
-                type="number"
-                min={1}
-                max={50}
-                value={copies}
-                onChange={(e) => setCopies(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                className="w-20 text-center"
-              />
-            </div>
-          </div>
-        </div>
-
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:gap-2">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="outline" onClick={handleDownload} disabled={isGenerating}>
-            <Download className="w-4 h-4 mr-2" />
-            PDF
-          </Button>
-          <Button variant="outline" onClick={handleBrowserPrint} disabled={isGenerating}>
-            <Printer className="w-4 h-4 mr-2" />
-            Browser
-          </Button>
-          <Button onClick={handleDirectPrint} disabled={isPrintingDirect}>
-            <Usb className="w-4 h-4 mr-2" />
-            {isPrintingDirect ? 'Printing...' : 'QL-570'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <PrintServiceSetupModal
+        isOpen={showSetupGuide}
+        onClose={() => setShowSetupGuide(false)}
+      />
+    </>
   );
 };
