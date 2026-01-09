@@ -28,12 +28,37 @@ interface PrintQRLabelModalProps {
   assetName: string;
 }
 
-type LabelSize = 'small' | 'medium' | 'large';
+type LabelSize = 'dk11204' | 'dk11201' | 'dk22205' | 'dk11202';
 
 const SIZE_CONFIGS = {
-  small: { qrSize: 80, label: 'Small (50×30mm)' },
-  medium: { qrSize: 120, label: 'Medium (70×40mm)' },
-  large: { qrSize: 160, label: 'Large (100×60mm)' },
+  dk11204: { 
+    qrSize: 40, 
+    width: 17, 
+    height: 54, 
+    label: 'DK-11204 (17×54mm) - Multi-Purpose',
+    fontSize: { tag: '8pt', name: '6pt' }
+  },
+  dk11201: { 
+    qrSize: 60, 
+    width: 29, 
+    height: 90, 
+    label: 'DK-11201 (29×90mm) - Address',
+    fontSize: { tag: '10pt', name: '8pt' }
+  },
+  dk22205: { 
+    qrSize: 100, 
+    width: 62, 
+    height: 62, 
+    label: 'DK-22205 (62mm) - Square',
+    fontSize: { tag: '12pt', name: '9pt' }
+  },
+  dk11202: { 
+    qrSize: 120, 
+    width: 62, 
+    height: 100, 
+    label: 'DK-11202 (62×100mm) - Shipping',
+    fontSize: { tag: '14pt', name: '10pt' }
+  },
 };
 
 export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
@@ -42,7 +67,7 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
   assetTag,
   assetName,
 }) => {
-  const [labelSize, setLabelSize] = useState<LabelSize>('medium');
+  const [labelSize, setLabelSize] = useState<LabelSize>('dk22205');
   const [includeAssetName, setIncludeAssetName] = useState(true);
   const [copies, setCopies] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -107,28 +132,59 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
         <head>
           <title>QR Label - ${assetTag}</title>
           <style>
-            @page { size: auto; margin: 10mm; }
+            @page { 
+              size: ${config.width}mm ${config.height}mm; 
+              margin: 0; 
+            }
+            @media print {
+              html, body {
+                width: ${config.width}mm;
+                height: ${config.height}mm;
+                margin: 0;
+                padding: 0;
+              }
+            }
             body { 
-              font-family: Arial, sans-serif; 
+              font-family: Arial, Helvetica, sans-serif; 
               display: flex; 
               flex-direction: column; 
               align-items: center; 
               justify-content: center;
-              min-height: 100vh;
               margin: 0;
+              padding: 2mm;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
             .label { 
               display: flex; 
               flex-direction: column; 
               align-items: center; 
-              padding: 10mm;
+              justify-content: center;
+              width: 100%;
+              height: 100%;
+              box-sizing: border-box;
               page-break-after: always;
             }
             .label:last-child { page-break-after: avoid; }
-            .qr-code { margin-bottom: 5mm; }
+            .qr-code { margin-bottom: 1mm; }
             .qr-code svg { width: ${config.qrSize}px; height: ${config.qrSize}px; }
-            .asset-tag { font-weight: bold; font-family: monospace; font-size: 14pt; }
-            .asset-name { color: #666; font-size: 10pt; margin-top: 2mm; max-width: 180px; text-align: center; }
+            .asset-tag { 
+              font-weight: bold; 
+              font-family: 'Courier New', monospace; 
+              font-size: ${config.fontSize.tag}; 
+              margin-top: 1mm;
+              letter-spacing: 0.5px;
+            }
+            .asset-name { 
+              color: #000; 
+              font-size: ${config.fontSize.name}; 
+              margin-top: 0.5mm; 
+              max-width: ${config.width - 4}mm; 
+              text-align: center;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
           </style>
         </head>
         <body>
@@ -191,9 +247,10 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="small">{SIZE_CONFIGS.small.label}</SelectItem>
-                  <SelectItem value="medium">{SIZE_CONFIGS.medium.label}</SelectItem>
-                  <SelectItem value="large">{SIZE_CONFIGS.large.label}</SelectItem>
+                  <SelectItem value="dk11204">{SIZE_CONFIGS.dk11204.label}</SelectItem>
+                  <SelectItem value="dk11201">{SIZE_CONFIGS.dk11201.label}</SelectItem>
+                  <SelectItem value="dk22205">{SIZE_CONFIGS.dk22205.label}</SelectItem>
+                  <SelectItem value="dk11202">{SIZE_CONFIGS.dk11202.label}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

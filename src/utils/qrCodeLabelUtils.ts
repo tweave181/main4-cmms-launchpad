@@ -5,7 +5,7 @@ interface AssetLabelData {
   assetName: string;
 }
 
-type LabelSize = 'small' | 'medium' | 'large';
+export type LabelSize = 'dk11204' | 'dk11201' | 'dk22205' | 'dk11202';
 
 interface LabelConfig {
   width: number;
@@ -16,15 +16,16 @@ interface LabelConfig {
 }
 
 const LABEL_CONFIGS: Record<LabelSize, LabelConfig> = {
-  small: { width: 50, height: 30, qrSize: 20, fontSize: 8, nameFontSize: 6 },
-  medium: { width: 70, height: 40, qrSize: 28, fontSize: 10, nameFontSize: 8 },
-  large: { width: 100, height: 60, qrSize: 40, fontSize: 14, nameFontSize: 10 },
+  dk11204: { width: 17, height: 54, qrSize: 12, fontSize: 6, nameFontSize: 5 },
+  dk11201: { width: 29, height: 90, qrSize: 20, fontSize: 8, nameFontSize: 6 },
+  dk22205: { width: 62, height: 62, qrSize: 35, fontSize: 10, nameFontSize: 8 },
+  dk11202: { width: 62, height: 100, qrSize: 40, fontSize: 12, nameFontSize: 9 },
 };
 
 export const generateAssetQRLabelPDF = async (
   asset: AssetLabelData,
   qrCodeDataUrl: string,
-  size: LabelSize = 'medium',
+  size: LabelSize = 'dk22205',
   includeAssetName: boolean = true,
   copies: number = 1
 ): Promise<jsPDF> => {
