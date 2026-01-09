@@ -172,6 +172,36 @@ export const PrintServiceSetupModal: React.FC<PrintServiceSetupModalProps> = ({
                     Follow the on-screen prompts. You may need to enter your Mac password.
                   </p>
                 </div>
+
+                <div className="border-l-2 border-red-500 pl-3 mt-3">
+                  <p className="text-sm font-medium text-red-600 dark:text-red-400">⚠️ Important: "Next steps" after installation</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    After Homebrew installs, it shows "Next steps" that you <strong>must</strong> complete. 
+                    On Apple Silicon Macs (M1/M2/M3), Homebrew installs to <code className="bg-muted px-1 rounded">/opt/homebrew</code> 
+                    which isn't in your PATH by default.
+                  </p>
+                  <p className="text-xs font-medium mb-1">Run these commands shown in the "Next steps":</p>
+                  <CodeBlock 
+                    code={`echo >> ~/.zprofile
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv)"`} 
+                    multiline 
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    This adds Homebrew to your PATH so Terminal can find the <code className="bg-muted px-1 rounded">brew</code> command.
+                  </p>
+                </div>
+
+                <div className="border-l-2 border-blue-500 pl-3 mt-3">
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">If you get "brew: command not found" after installing:</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    This means the PATH wasn't configured. Run the commands above, then verify:
+                  </p>
+                  <CodeBlock code="brew --version" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    If it still doesn't work, close Terminal completely and open a new window.
+                  </p>
+                </div>
               </AccordionContent>
             </AccordionItem>
 
