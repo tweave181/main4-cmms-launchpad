@@ -550,6 +550,76 @@ EOF`} />
                     After setting up, click the <strong>Test</strong> button above to verify the service is running.
                   </p>
                 </div>
+
+                {/* Background Service Troubleshooting */}
+                <div className="border-t pt-4 mt-4 space-y-4">
+                  <p className="text-sm font-semibold flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                    Background Service Troubleshooting
+                  </p>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">"Operation not permitted" error (launchd)</p>
+                    <p className="text-xs text-muted-foreground">
+                      macOS may block the service. Grant Terminal full disk access:
+                    </p>
+                    <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
+                      <li>Open <strong>System Settings → Privacy & Security → Full Disk Access</strong></li>
+                      <li>Add Terminal (or iTerm) to the list</li>
+                      <li>Reload the service: <code className="bg-muted px-1 rounded">launchctl unload ... && launchctl load ...</code></li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Service not starting automatically</p>
+                    <p className="text-xs text-muted-foreground">
+                      Check if the plist file exists and is valid:
+                    </p>
+                    <CodeBlock code="cat ~/Library/LaunchAgents/com.labelprint.service.plist" />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      If file not found, re-run Step 1. If file exists but service doesn't start, check logs below.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">How to check background service logs</p>
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground font-medium">For nohup:</p>
+                      <CodeBlock code="tail -f ~/Downloads/label-print-service/print-service.log" />
+                      <p className="text-xs text-muted-foreground font-medium mt-2">For launchd:</p>
+                      <CodeBlock code="tail -f /tmp/label-print-service.log /tmp/label-print-service-error.log" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Service starts but immediately stops</p>
+                    <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
+                      <li>Check the error log: <code className="bg-muted px-1 rounded">cat /tmp/label-print-service-error.log</code></li>
+                      <li>Verify Python path is correct in the plist</li>
+                      <li>Ensure the virtual environment exists at the specified path</li>
+                      <li>Try running manually first to confirm it works</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Multiple instances running</p>
+                    <p className="text-xs text-muted-foreground">
+                      Kill all instances and restart cleanly:
+                    </p>
+                    <CodeBlock code={`pkill -f "uvicorn main:app"
+launchctl unload ~/Library/LaunchAgents/com.labelprint.service.plist 2>/dev/null
+launchctl load ~/Library/LaunchAgents/com.labelprint.service.plist`} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Remove background service completely</p>
+                    <p className="text-xs text-muted-foreground">
+                      To stop and remove the auto-start service:
+                    </p>
+                    <CodeBlock code={`launchctl unload ~/Library/LaunchAgents/com.labelprint.service.plist
+rm ~/Library/LaunchAgents/com.labelprint.service.plist`} />
+                  </div>
+                </div>
               </AccordionContent>
             </AccordionItem>
 
