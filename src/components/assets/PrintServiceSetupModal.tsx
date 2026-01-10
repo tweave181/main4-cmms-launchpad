@@ -14,8 +14,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, RefreshCw, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Copy, Check, RefreshCw, AlertCircle, CheckCircle2, Loader2, Download, Package } from 'lucide-react';
 import { toast } from 'sonner';
+import { downloadPrintServiceZip } from '@/utils/printServiceDownload';
 
 interface PrintServiceSetupModalProps {
   isOpen: boolean;
@@ -59,6 +60,7 @@ export const PrintServiceSetupModal: React.FC<PrintServiceSetupModalProps> = ({
 }) => {
   const [status, setStatus] = useState<ConnectionStatus>('checking');
   const [printerInfo, setPrinterInfo] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const checkConnection = useCallback(async () => {
     setStatus('checking');
@@ -85,6 +87,22 @@ export const PrintServiceSetupModal: React.FC<PrintServiceSetupModalProps> = ({
       checkConnection();
     }
   }, [isOpen, checkConnection]);
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      await downloadPrintServiceZip();
+      toast.success('Downloaded label-print-service.zip', {
+        description: 'Check your Downloads folder and extract the ZIP file.',
+      });
+    } catch (error) {
+      toast.error('Failed to download', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const getStatusBadge = () => {
     switch (status) {
@@ -146,6 +164,51 @@ export const PrintServiceSetupModal: React.FC<PrintServiceSetupModalProps> = ({
               </p>
             </div>
           )}
+
+          {/* Download Section */}
+          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 shrink-0">
+                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1 space-y-2">
+                <div>
+                  <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                    Step 0: Download Print Service Files
+                  </h4>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                    These files are in the cloud and need to be downloaded to your Mac first.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleDownload}
+                  disabled={isDownloading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  size="sm"
+                >
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download label-print-service.zip
+                    </>
+                  )}
+                </Button>
+                <div className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                  <p className="font-medium">After downloading:</p>
+                  <ol className="list-decimal list-inside mt-1 space-y-0.5 text-blue-700/80 dark:text-blue-300/80">
+                    <li>Find the ZIP in your Downloads folder</li>
+                    <li>Double-click to extract it</li>
+                    <li>You'll have a <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">label-print-service</code> folder</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Setup Steps */}
           <Accordion type="single" collapsible className="w-full" defaultValue="step-1">
@@ -237,55 +300,30 @@ eval "$(/opt/homebrew/bin/brew shellenv)"`}
               </AccordionTrigger>
               <AccordionContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Open the <strong>Terminal</strong> app (press ⌘+Space, type "Terminal"). The <code className="bg-muted px-1 rounded">label-print-service</code> folder 
-                  is inside your Lovable project directory, not your home folder.
+                  Open the <strong>Terminal</strong> app (press ⌘+Space, type "Terminal") and navigate to the downloaded folder:
                 </p>
                 
-                <div className="border-l-2 border-blue-500 pl-3">
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">🔍 First, find where the folder is located:</p>
+                <div className="border-l-2 border-green-500 pl-3">
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">📂 Navigate to the downloaded folder:</p>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Run this command to search for the folder:
+                    If you extracted the ZIP to your Downloads folder:
                   </p>
-                  <CodeBlock code='find ~ -name "label-print-service" -type d 2>/dev/null' />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    This will show the full path, like: <code className="bg-muted px-1 rounded">/Users/yourname/Projects/your-project/label-print-service</code>
-                  </p>
-                </div>
-
-                <div className="border-l-2 border-green-500 pl-3 mt-3">
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">📂 Then navigate to it:</p>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Copy the path from above and use it with <code className="bg-muted px-1 rounded">cd</code>:
-                  </p>
-                  <CodeBlock code="cd /path/shown/above/label-print-service" />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    <strong>Example:</strong> If find showed <code className="bg-muted px-1 rounded">/Users/tony/Downloads/my-app/label-print-service</code>, run:
-                  </p>
-                  <CodeBlock code="cd /Users/tony/Downloads/my-app/label-print-service" />
-                </div>
-
-                <div className="bg-muted/50 rounded-md p-3 mt-3">
-                  <p className="text-xs font-medium mb-1">💡 Common project locations:</p>
-                  <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
-                    <li><code className="bg-muted px-1 rounded">~/Downloads/</code> — If you downloaded from GitHub</li>
-                    <li><code className="bg-muted px-1 rounded">~/Documents/</code> — Common project folder</li>
-                    <li><code className="bg-muted px-1 rounded">~/Desktop/</code> — If saved to Desktop</li>
-                  </ul>
+                  <CodeBlock code="cd ~/Downloads/label-print-service" />
                 </div>
 
                 <div className="bg-muted/50 rounded-md p-3 mt-2">
                   <p className="text-xs font-medium mb-1">✓ Verify you're in the right folder:</p>
                   <CodeBlock code="ls -la" />
                   <p className="text-xs text-muted-foreground mt-2">
-                    You should see these files: <code className="bg-muted px-1 rounded">main.py</code>, <code className="bg-muted px-1 rounded">requirements.txt</code>, and <code className="bg-muted px-1 rounded">README.md</code>
+                    You should see: <code className="bg-muted px-1 rounded">main.py</code>, <code className="bg-muted px-1 rounded">requirements.txt</code>, and <code className="bg-muted px-1 rounded">README.md</code>
                   </p>
                 </div>
 
                 <div className="border-l-2 border-amber-500 pl-3 mt-3">
-                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">If "no such file or directory" error:</p>
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">If you extracted elsewhere:</p>
                   <p className="text-xs text-muted-foreground">
-                    The folder doesn't exist at that path. Run the <code className="bg-muted px-1 rounded">find</code> command above to locate it. 
-                    If nothing is found, you may need to download the print service files from your Lovable project first.
+                    Replace <code className="bg-muted px-1 rounded">~/Downloads</code> with where you extracted the ZIP 
+                    (e.g., <code className="bg-muted px-1 rounded">cd ~/Desktop/label-print-service</code>)
                   </p>
                 </div>
               </AccordionContent>
