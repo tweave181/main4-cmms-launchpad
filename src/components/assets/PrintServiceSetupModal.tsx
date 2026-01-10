@@ -237,17 +237,55 @@ eval "$(/opt/homebrew/bin/brew shellenv)"`}
               </AccordionTrigger>
               <AccordionContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Open the <strong>Terminal</strong> app (press ⌘+Space, type "Terminal") and navigate to where you saved the print service:
+                  Open the <strong>Terminal</strong> app (press ⌘+Space, type "Terminal"). The <code className="bg-muted px-1 rounded">label-print-service</code> folder 
+                  is inside your Lovable project directory, not your home folder.
                 </p>
-                <CodeBlock code="cd ~/label-print-service" />
-                <p className="text-xs text-muted-foreground">
-                  Adjust the path if you saved it elsewhere. Use <code className="bg-muted px-1 rounded">ls</code> to list files and verify you're in the right folder.
-                </p>
+                
+                <div className="border-l-2 border-blue-500 pl-3">
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">🔍 First, find where the folder is located:</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Run this command to search for the folder:
+                  </p>
+                  <CodeBlock code='find ~ -name "label-print-service" -type d 2>/dev/null' />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    This will show the full path, like: <code className="bg-muted px-1 rounded">/Users/yourname/Projects/your-project/label-print-service</code>
+                  </p>
+                </div>
+
+                <div className="border-l-2 border-green-500 pl-3 mt-3">
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">📂 Then navigate to it:</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Copy the path from above and use it with <code className="bg-muted px-1 rounded">cd</code>:
+                  </p>
+                  <CodeBlock code="cd /path/shown/above/label-print-service" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    <strong>Example:</strong> If find showed <code className="bg-muted px-1 rounded">/Users/tony/Downloads/my-app/label-print-service</code>, run:
+                  </p>
+                  <CodeBlock code="cd /Users/tony/Downloads/my-app/label-print-service" />
+                </div>
+
+                <div className="bg-muted/50 rounded-md p-3 mt-3">
+                  <p className="text-xs font-medium mb-1">💡 Common project locations:</p>
+                  <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
+                    <li><code className="bg-muted px-1 rounded">~/Downloads/</code> — If you downloaded from GitHub</li>
+                    <li><code className="bg-muted px-1 rounded">~/Documents/</code> — Common project folder</li>
+                    <li><code className="bg-muted px-1 rounded">~/Desktop/</code> — If saved to Desktop</li>
+                  </ul>
+                </div>
+
                 <div className="bg-muted/50 rounded-md p-3 mt-2">
                   <p className="text-xs font-medium mb-1">✓ Verify you're in the right folder:</p>
                   <CodeBlock code="ls -la" />
                   <p className="text-xs text-muted-foreground mt-2">
-                    You should see files like <code className="bg-muted px-1 rounded">main.py</code> and <code className="bg-muted px-1 rounded">requirements.txt</code>
+                    You should see these files: <code className="bg-muted px-1 rounded">main.py</code>, <code className="bg-muted px-1 rounded">requirements.txt</code>, and <code className="bg-muted px-1 rounded">README.md</code>
+                  </p>
+                </div>
+
+                <div className="border-l-2 border-amber-500 pl-3 mt-3">
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">If "no such file or directory" error:</p>
+                  <p className="text-xs text-muted-foreground">
+                    The folder doesn't exist at that path. Run the <code className="bg-muted px-1 rounded">find</code> command above to locate it. 
+                    If nothing is found, you may need to download the print service files from your Lovable project first.
                   </p>
                 </div>
               </AccordionContent>
