@@ -14,7 +14,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, RefreshCw, AlertCircle, CheckCircle2, Loader2, Download, Package } from 'lucide-react';
+import { Copy, Check, RefreshCw, AlertCircle, CheckCircle2, Loader2, Download, Package, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { downloadPrintServiceZip } from '@/utils/printServiceDownload';
 
@@ -433,6 +433,121 @@ eval "$(/opt/homebrew/bin/brew shellenv)"`}
                   <CodeBlock code="curl http://localhost:8013/health" />
                   <p className="text-xs text-muted-foreground mt-2">
                     Or click the <strong>Test</strong> button above to verify the connection.
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Step 8: Run as Background Service */}
+            <AccordionItem value="step-8">
+              <AccordionTrigger className="text-sm">
+                <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-xs font-medium">8</span>
+                  Run as Background Service (Optional)
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-4">
+                <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-blue-800">
+                    Instead of keeping Terminal open, you can run the service in the background.
+                  </p>
+                </div>
+
+                {/* Option A: Quick Background */}
+                <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">Option A</span>
+                    Quick Background (One-time)
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Run in background until you restart your Mac:
+                  </p>
+                  <CodeBlock code="cd ~/Downloads/label-print-service && source venv/bin/activate && nohup uvicorn main:app --host 127.0.0.1 --port 8013 > print-service.log 2>&1 &" />
+                  
+                  <div className="space-y-2 pt-2">
+                    <p className="text-xs font-medium text-muted-foreground">Useful commands:</p>
+                    <div className="grid gap-2 text-sm">
+                      <div className="flex gap-2 items-center">
+                        <code className="bg-muted px-2 py-1 rounded text-xs">lsof -i :8013</code>
+                        <span className="text-muted-foreground text-xs">Check if running</span>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap">tail -f ~/Downloads/label-print-service/print-service.log</code>
+                        <span className="text-muted-foreground text-xs">View logs</span>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <code className="bg-muted px-2 py-1 rounded text-xs">pkill -f "uvicorn main:app"</code>
+                        <span className="text-muted-foreground text-xs">Stop service</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Option B: Auto-Start on Login */}
+                <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs">Option B</span>
+                    Auto-Start on Login (Recommended)
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Service starts automatically when you log in to your Mac.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs font-medium mb-2">Step 1: Create the service configuration</p>
+                      <CodeBlock code={`cat > ~/Library/LaunchAgents/com.labelprint.service.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.labelprint.service</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>cd ~/Downloads/label-print-service && source venv/bin/activate && uvicorn main:app --host 127.0.0.1 --port 8013</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/label-print-service.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/label-print-service-error.log</string>
+</dict>
+</plist>
+EOF`} />
+                    </div>
+                    
+                    <div>
+                      <p className="text-xs font-medium mb-2">Step 2: Enable the service</p>
+                      <CodeBlock code="launchctl load ~/Library/LaunchAgents/com.labelprint.service.plist" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <p className="text-xs font-medium text-muted-foreground">Management commands:</p>
+                    <div className="grid gap-2 text-sm">
+                      <div className="flex gap-2 items-center">
+                        <code className="bg-muted px-2 py-1 rounded text-xs">launchctl list | grep labelprint</code>
+                        <span className="text-muted-foreground text-xs">Check status</span>
+                      </div>
+                      <div className="flex gap-2 items-center flex-wrap">
+                        <code className="bg-muted px-2 py-1 rounded text-xs">launchctl unload ~/Library/LaunchAgents/com.labelprint.service.plist</code>
+                        <span className="text-muted-foreground text-xs">Stop & disable</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-amber-800">
+                    After setting up, click the <strong>Test</strong> button above to verify the service is running.
                   </p>
                 </div>
               </AccordionContent>
