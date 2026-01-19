@@ -24,12 +24,67 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Authentication check
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  // Verify the user's JWT
+  const token = authHeader.replace('Bearer ', '');
+  const { data: userData, error: userError } = await authClient.auth.getUser(token);
+  
+  if (userError || !userData?.user) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Get user's tenant_id and role from the users table
+  const { data: userProfile, error: profileError } = await authClient
+    .from('users')
+    .select('tenant_id, role')
+    .eq('id', userData.user.id)
+    .single();
+
+  if (profileError || !userProfile) {
+    return new Response(
+      JSON.stringify({ error: 'User profile not found' }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Only admins can test email connections
+  if (userProfile.role !== 'admin') {
+    return new Response(
+      JSON.stringify({ error: 'Forbidden: admin access required' }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
     console.log("Test email connection request received");
 
     const { recipient_email, from_name, from_address, tenant_id }: TestEmailRequest = await req.json();
+
+    // Verify the request tenant_id matches the authenticated user's tenant
+    if (tenant_id !== userProfile.tenant_id) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: tenant mismatch' }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     console.log(`Sending test email to: ${recipient_email}, from: ${from_name} <${from_address}>`);
 

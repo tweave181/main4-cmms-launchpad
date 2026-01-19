@@ -3,8 +3,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
 };
+
+// Secret for cron job authentication
+const CRON_SECRET = Deno.env.get('CRON_SECRET');
 
 interface LowStockPart {
   id: string;
@@ -23,6 +26,54 @@ const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // This function should only be called by cron jobs or authenticated admins
+  const cronSecret = req.headers.get('x-cron-secret');
+  const authHeader = req.headers.get('Authorization');
+  
+  // Verify cron secret OR admin authentication
+  const isValidCronCall = cronSecret === CRON_SECRET && CRON_SECRET;
+  
+  if (!isValidCronCall) {
+    // Check for admin authentication
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: This function requires cron secret or admin authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userError } = await authClient.auth.getUser(token);
+    
+    if (userError || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify user is system admin
+    const { data: userRoles } = await authClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userData.user.id)
+      .eq('role', 'system_admin')
+      .single();
+
+    if (!userRoles) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: system admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
   }
 
   try {
@@ -47,11 +98,6 @@ const handler = async (req: Request): Promise<Response> => {
     const lowStockParts = allParts?.filter(part => 
       part.quantity_in_stock <= part.reorder_threshold
     ) || [];
-
-    if (partsError) {
-      console.error('Error fetching low stock parts:', partsError);
-      throw partsError;
-    }
 
     if (!lowStockParts || lowStockParts.length === 0) {
       console.log('No low stock parts found');
@@ -94,7 +140,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Get supplier information for parts that have suppliers
-    const partIds = partsNeedingAlerts.map((p: LowStockPart) => p.id);
     const supplierIds = [...new Set(partsNeedingAlerts.map((p: LowStockPart) => p.supplier_id).filter(Boolean))];
     
     let supplierMap = new Map();
@@ -121,7 +166,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         const supplier = part.supplier_id ? supplierMap.get(part.supplier_id) : null;
 
-        // Invoke the send-low-stock-alert function
+        // Invoke the send-low-stock-alert function with cron secret for internal authentication
         const { data, error } = await supabase.functions.invoke('send-low-stock-alert', {
           body: {
             part_id: part.id,
@@ -135,6 +180,7 @@ const handler = async (req: Request): Promise<Response> => {
             supplier_email: supplier?.email || null,
             tenant_id: part.tenant_id,
           },
+          headers: CRON_SECRET ? { 'x-cron-secret': CRON_SECRET } : {},
         });
 
         if (error) {
