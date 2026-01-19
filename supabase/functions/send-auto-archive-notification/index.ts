@@ -39,6 +39,45 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Authentication check
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  // Verify the user's JWT and get their tenant_id
+  const token = authHeader.replace('Bearer ', '');
+  const { data: userData, error: userError } = await authClient.auth.getUser(token);
+  
+  if (userError || !userData?.user) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Get user's tenant_id from the users table
+  const { data: userProfile, error: profileError } = await authClient
+    .from('users')
+    .select('tenant_id')
+    .eq('id', userData.user.id)
+    .single();
+
+  if (profileError || !userProfile) {
+    return new Response(
+      JSON.stringify({ error: 'User profile not found' }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
@@ -52,6 +91,14 @@ const handler = async (req: Request): Promise<Response> => {
       archivedAt,
       autoArchiveSettings,
     }: AutoArchiveNotificationRequest = await req.json();
+
+    // Verify the request tenant_id matches the authenticated user's tenant
+    if (tenantId !== userProfile.tenant_id) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: tenant mismatch' }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     console.log(`Sending auto-archive notification to ${recipientEmail}`);
 
