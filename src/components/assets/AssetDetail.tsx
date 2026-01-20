@@ -7,7 +7,7 @@ import { AssetDescriptionSection } from './AssetDescriptionSection';
 import { AssetRecordInfo } from './AssetRecordInfo';
 import { AssetDetailTabs } from './AssetDetailTabs';
 import { AssetBreadcrumb } from './AssetBreadcrumb';
-import { PrintQRLabelModal } from './PrintQRLabelModal';
+import { PrintBarcodeLabelModal } from './PrintBarcodeLabelModal';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import type { Asset } from './types';
 interface AssetDetailProps {
@@ -88,7 +88,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
       </Dialog>
 
       {asset.asset_tag && (
-        <PrintQRLabelModal
+        <PrintBarcodeLabelModal
           isOpen={showQRModal}
           onClose={() => setShowQRModal(false)}
           assetTag={asset.asset_tag}
