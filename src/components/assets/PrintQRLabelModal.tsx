@@ -23,10 +23,11 @@ interface PrintQRLabelModalProps {
 
 // 50mm x 25mm Zebra label configuration
 const LABEL_CONFIG = {
-  qrSize: 60,
+  qrSize: 60,        // Preview size in pixels
+  printQrSize: 18,   // Print size in mm (fits in 25mm height)
   width: 50,
   height: 25,
-  fontSize: { tag: '8pt', name: '6pt' },
+  fontSize: { tag: '9pt', name: '7pt' },
 };
 
 export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
@@ -102,22 +103,17 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
               size: ${LABEL_CONFIG.width}mm ${LABEL_CONFIG.height}mm; 
               margin: 0; 
             }
-            @media print {
-              html, body {
-                width: ${LABEL_CONFIG.width}mm;
-                height: ${LABEL_CONFIG.height}mm;
-                margin: 0;
-                padding: 0;
-              }
-            }
-            body { 
-              font-family: Arial, Helvetica, sans-serif; 
-              display: flex; 
-              flex-direction: column; 
-              align-items: center; 
-              justify-content: center;
+            * {
               margin: 0;
-              padding: 1mm;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            html, body {
+              width: ${LABEL_CONFIG.width}mm;
+              height: ${LABEL_CONFIG.height}mm;
+              margin: 0;
+              padding: 0;
+              font-family: Arial, Helvetica, sans-serif;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }
@@ -125,20 +121,28 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
               display: flex; 
               flex-direction: row; 
               align-items: center; 
-              justify-content: center;
-              gap: 2mm;
-              width: 100%;
-              height: 100%;
+              justify-content: flex-start;
+              padding: 1.5mm 2mm;
+              gap: 3mm;
+              width: ${LABEL_CONFIG.width}mm;
+              height: ${LABEL_CONFIG.height}mm;
               box-sizing: border-box;
+              page-break-inside: avoid;
               page-break-after: always;
             }
             .label:last-child { page-break-after: avoid; }
-            .qr-code svg { width: 20mm; height: 20mm; }
+            .qr-code { flex-shrink: 0; }
+            .qr-code svg { 
+              width: ${LABEL_CONFIG.printQrSize}mm; 
+              height: ${LABEL_CONFIG.printQrSize}mm; 
+            }
             .text-content {
               display: flex;
               flex-direction: column;
               align-items: flex-start;
               justify-content: center;
+              flex: 1;
+              overflow: hidden;
             }
             .asset-tag { 
               font-weight: bold; 
@@ -150,7 +154,7 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
               color: #000; 
               font-size: ${LABEL_CONFIG.fontSize.name}; 
               margin-top: 0.5mm; 
-              max-width: 25mm; 
+              max-width: 100%; 
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
