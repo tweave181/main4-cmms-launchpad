@@ -5,63 +5,58 @@ interface AssetLabelData {
   assetName: string;
 }
 
-export type LabelSize = 'dk11204' | 'dk11201' | 'dk22205' | 'dk11202';
-
-interface LabelConfig {
-  width: number;
-  height: number;
-  qrSize: number;
-  fontSize: number;
-  nameFontSize: number;
-}
-
-const LABEL_CONFIGS: Record<LabelSize, LabelConfig> = {
-  dk11204: { width: 17, height: 54, qrSize: 12, fontSize: 6, nameFontSize: 5 },
-  dk11201: { width: 29, height: 90, qrSize: 20, fontSize: 8, nameFontSize: 6 },
-  dk22205: { width: 62, height: 62, qrSize: 35, fontSize: 10, nameFontSize: 8 },
-  dk11202: { width: 62, height: 100, qrSize: 40, fontSize: 12, nameFontSize: 9 },
+// 50mm x 25mm Zebra label configuration
+const LABEL_CONFIG = {
+  width: 50,
+  height: 25,
+  qrSize: 18,
+  fontSize: 7,
+  nameFontSize: 5,
 };
 
 export const generateAssetQRLabelPDF = async (
   asset: AssetLabelData,
   qrCodeDataUrl: string,
-  size: LabelSize = 'dk22205',
   includeAssetName: boolean = true,
   copies: number = 1
 ): Promise<jsPDF> => {
-  const config = LABEL_CONFIGS[size];
   const doc = new jsPDF({
-    orientation: config.width > config.height ? 'landscape' : 'portrait',
+    orientation: 'landscape',
     unit: 'mm',
-    format: [config.width, config.height],
+    format: [LABEL_CONFIG.width, LABEL_CONFIG.height],
   });
 
   for (let i = 0; i < copies; i++) {
     if (i > 0) {
-      doc.addPage([config.width, config.height]);
+      doc.addPage([LABEL_CONFIG.width, LABEL_CONFIG.height]);
     }
 
-    const centerX = config.width / 2;
-    const qrX = centerX - config.qrSize / 2;
-    const qrY = 3;
+    const qrX = 3;
+    const qrY = (LABEL_CONFIG.height - LABEL_CONFIG.qrSize) / 2;
 
-    // Add QR code image
-    doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, config.qrSize, config.qrSize);
+    // Add QR code image on the left
+    doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, LABEL_CONFIG.qrSize, LABEL_CONFIG.qrSize);
+
+    // Text starts after QR code
+    const textX = qrX + LABEL_CONFIG.qrSize + 3;
+    const centerY = LABEL_CONFIG.height / 2;
 
     // Add asset tag text
-    doc.setFontSize(config.fontSize);
+    doc.setFontSize(LABEL_CONFIG.fontSize);
     doc.setFont('helvetica', 'bold');
-    const tagY = qrY + config.qrSize + 4;
-    doc.text(asset.assetTag, centerX, tagY, { align: 'center' });
-
-    // Add asset name if enabled
+    
     if (includeAssetName && asset.assetName) {
-      doc.setFontSize(config.nameFontSize);
+      // Position tag and name vertically centered together
+      doc.text(asset.assetTag, textX, centerY - 1);
+      
+      doc.setFontSize(LABEL_CONFIG.nameFontSize);
       doc.setFont('helvetica', 'normal');
-      const nameY = tagY + 4;
-      const maxWidth = config.width - 6;
-      const truncatedName = truncateText(asset.assetName, maxWidth, config.nameFontSize);
-      doc.text(truncatedName, centerX, nameY, { align: 'center' });
+      const maxWidth = LABEL_CONFIG.width - textX - 2;
+      const truncatedName = truncateText(asset.assetName, maxWidth, LABEL_CONFIG.nameFontSize);
+      doc.text(truncatedName, textX, centerY + 3);
+    } else {
+      // Just the tag, centered vertically
+      doc.text(asset.assetTag, textX, centerY + 1);
     }
   }
 
