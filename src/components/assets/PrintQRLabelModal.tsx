@@ -9,19 +9,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Download, Printer, Usb, HelpCircle } from 'lucide-react';
+import { Download, Printer } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { generateAssetQRLabelPDF, downloadPDF } from '@/utils/qrCodeLabelUtils';
-import { toast } from 'sonner';
-import { PrintServiceSetupModal } from './PrintServiceSetupModal';
 
 interface PrintQRLabelModalProps {
   isOpen: boolean;
@@ -30,44 +21,13 @@ interface PrintQRLabelModalProps {
   assetName: string;
 }
 
-type LabelSize = 'dk11204' | 'dk11201' | 'dk22205' | 'dk11202';
-
-const SIZE_CONFIGS = {
-  dk11204: { 
-    qrSize: 40, 
-    width: 17, 
-    height: 54, 
-    label: 'DK-11204 (17×54mm) - Multi-Purpose',
-    fontSize: { tag: '8pt', name: '6pt' },
-    qlLabel: '17x54',
-  },
-  dk11201: { 
-    qrSize: 60, 
-    width: 29, 
-    height: 90, 
-    label: 'DK-11201 (29×90mm) - Address',
-    fontSize: { tag: '10pt', name: '8pt' },
-    qlLabel: '29x90',
-  },
-  dk22205: { 
-    qrSize: 100, 
-    width: 62, 
-    height: 62, 
-    label: 'DK-22205 (62mm) - Square',
-    fontSize: { tag: '12pt', name: '9pt' },
-    qlLabel: '62',
-  },
-  dk11202: { 
-    qrSize: 120, 
-    width: 62, 
-    height: 100, 
-    label: 'DK-11202 (62×100mm) - Shipping',
-    fontSize: { tag: '14pt', name: '10pt' },
-    qlLabel: '62x100',
-  },
+// 50mm x 25mm Zebra label configuration
+const LABEL_CONFIG = {
+  qrSize: 60,
+  width: 50,
+  height: 25,
+  fontSize: { tag: '8pt', name: '6pt' },
 };
-
-const PRINT_SERVICE_URL = 'http://localhost:8013';
 
 export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
   isOpen,
@@ -75,15 +35,10 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
   assetTag,
   assetName,
 }) => {
-  const [labelSize, setLabelSize] = useState<LabelSize>('dk22205');
   const [includeAssetName, setIncludeAssetName] = useState(true);
   const [copies, setCopies] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isPrintingDirect, setIsPrintingDirect] = useState(false);
-  const [showSetupGuide, setShowSetupGuide] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
-
-  const config = SIZE_CONFIGS[labelSize];
 
   const getQRCodeDataUrl = useCallback((): Promise<string> => {
     return new Promise((resolve) => {
@@ -121,7 +76,6 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
       const doc = await generateAssetQRLabelPDF(
         { assetTag, assetName },
         qrDataUrl,
-        labelSize,
         includeAssetName,
         copies
       );
@@ -135,7 +89,7 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
     const qrSvg = qrRef.current?.querySelector('svg');
     const svgString = qrSvg ? new XMLSerializer().serializeToString(qrSvg) : '';
     
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    const printWindow = window.open('', '_blank', 'width=400,height=300');
     if (!printWindow) return;
 
     printWindow.document.write(`
@@ -145,13 +99,13 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
           <title>QR Label - ${assetTag}</title>
           <style>
             @page { 
-              size: ${config.width}mm ${config.height}mm; 
+              size: ${LABEL_CONFIG.width}mm ${LABEL_CONFIG.height}mm; 
               margin: 0; 
             }
             @media print {
               html, body {
-                width: ${config.width}mm;
-                height: ${config.height}mm;
+                width: ${LABEL_CONFIG.width}mm;
+                height: ${LABEL_CONFIG.height}mm;
                 margin: 0;
                 padding: 0;
               }
@@ -163,36 +117,40 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
               align-items: center; 
               justify-content: center;
               margin: 0;
-              padding: 2mm;
+              padding: 1mm;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }
             .label { 
               display: flex; 
-              flex-direction: column; 
+              flex-direction: row; 
               align-items: center; 
               justify-content: center;
+              gap: 2mm;
               width: 100%;
               height: 100%;
               box-sizing: border-box;
               page-break-after: always;
             }
             .label:last-child { page-break-after: avoid; }
-            .qr-code { margin-bottom: 1mm; }
-            .qr-code svg { width: ${config.qrSize}px; height: ${config.qrSize}px; }
+            .qr-code svg { width: 20mm; height: 20mm; }
+            .text-content {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              justify-content: center;
+            }
             .asset-tag { 
               font-weight: bold; 
               font-family: 'Courier New', monospace; 
-              font-size: ${config.fontSize.tag}; 
-              margin-top: 1mm;
+              font-size: ${LABEL_CONFIG.fontSize.tag}; 
               letter-spacing: 0.5px;
             }
             .asset-name { 
               color: #000; 
-              font-size: ${config.fontSize.name}; 
+              font-size: ${LABEL_CONFIG.fontSize.name}; 
               margin-top: 0.5mm; 
-              max-width: ${config.width - 4}mm; 
-              text-align: center;
+              max-width: 25mm; 
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
@@ -203,8 +161,10 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
           ${Array(copies).fill(`
             <div class="label">
               <div class="qr-code">${svgString}</div>
-              <div class="asset-tag">${assetTag}</div>
-              ${includeAssetName && assetName ? `<div class="asset-name">${assetName}</div>` : ''}
+              <div class="text-content">
+                <div class="asset-tag">${assetTag}</div>
+                ${includeAssetName && assetName ? `<div class="asset-name">${assetName}</div>` : ''}
+              </div>
             </div>
           `).join('')}
           <script>
@@ -219,181 +179,79 @@ export const PrintQRLabelModal: React.FC<PrintQRLabelModalProps> = ({
     printWindow.document.close();
   };
 
-  const handleDirectPrint = async () => {
-    setIsPrintingDirect(true);
-    
-    try {
-      // Check if print service is available
-      const healthCheck = await fetch(`${PRINT_SERVICE_URL}/health`, {
-        method: 'GET',
-      }).catch(() => null);
-
-      if (!healthCheck?.ok) {
-        toast.error('Print service not running', {
-          description: 'Click "Setup Guide" to configure the local print service',
-          action: {
-            label: 'Setup Guide',
-            onClick: () => setShowSetupGuide(true),
-          },
-        });
-        return;
-      }
-
-      // Build the label text
-      const labelText = includeAssetName && assetName 
-        ? `${assetTag}\n${assetName}` 
-        : assetTag;
-
-      // Send print request
-      const response = await fetch(`${PRINT_SERVICE_URL}/print`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: labelText,
-          label: config.qlLabel,
-          copies,
-          rotate: 0,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Print failed' }));
-        throw new Error(error.detail || 'Print failed');
-      }
-
-      const result = await response.json();
-      toast.success('Label printed', {
-        description: `${result.copies_printed} label(s) sent to QL-570`,
-      });
-      onClose();
-    } catch (error) {
-      console.error('Direct print error:', error);
-      toast.error('Print failed', {
-        description: error instanceof Error ? error.message : 'Unknown error',
-      });
-    } finally {
-      setIsPrintingDirect(false);
-    }
-  };
-
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Print QR Code Label</DialogTitle>
-          </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-xs">
+        <DialogHeader>
+          <DialogTitle>Print QR Code Label</DialogTitle>
+        </DialogHeader>
 
-          <div className="space-y-6">
-            {/* Preview */}
-            <div className="flex justify-center">
-              <div className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg border shadow-sm">
-                <div ref={qrRef}>
-                  <QRCode
-                    value={assetTag}
-                    size={config.qrSize}
-                    level="M"
-                    bgColor="#FFFFFF"
-                    fgColor="#000000"
-                  />
-                </div>
+        <div className="space-y-4">
+          {/* Preview - horizontal layout matching 50x25mm */}
+          <div className="flex justify-center">
+            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border shadow-sm">
+              <div ref={qrRef}>
+                <QRCode
+                  value={assetTag}
+                  size={LABEL_CONFIG.qrSize}
+                  level="M"
+                  bgColor="#FFFFFF"
+                  fgColor="#000000"
+                />
+              </div>
+              <div className="flex flex-col">
                 <p className="font-mono font-bold text-sm">{assetTag}</p>
                 {includeAssetName && assetName && (
-                  <p className="text-muted-foreground text-xs text-center max-w-[180px] truncate">
+                  <p className="text-muted-foreground text-xs max-w-[100px] truncate">
                     {assetName}
                   </p>
                 )}
               </div>
             </div>
-
-            {/* Options */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <Label htmlFor="label-size" className="shrink-0">Label Size</Label>
-                <Select value={labelSize} onValueChange={(v) => setLabelSize(v as LabelSize)}>
-                  <SelectTrigger className="w-[260px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    <SelectItem value="dk11204">
-                      <span className="truncate">{SIZE_CONFIGS.dk11204.label}</span>
-                    </SelectItem>
-                    <SelectItem value="dk11201">
-                      <span className="truncate">{SIZE_CONFIGS.dk11201.label}</span>
-                    </SelectItem>
-                    <SelectItem value="dk22205">
-                      <span className="truncate">{SIZE_CONFIGS.dk22205.label}</span>
-                    </SelectItem>
-                    <SelectItem value="dk11202">
-                      <span className="truncate">{SIZE_CONFIGS.dk11202.label}</span>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="include-name">Include Asset Name</Label>
-                <Switch
-                  id="include-name"
-                  checked={includeAssetName}
-                  onCheckedChange={setIncludeAssetName}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="copies">Number of Copies</Label>
-                <Input
-                  id="copies"
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={copies}
-                  onChange={(e) => setCopies(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                  className="w-20 text-center"
-                />
-              </div>
-            </div>
           </div>
 
-          <DialogFooter className="flex-col gap-2 sm:flex-row">
-            <Button variant="outline" onClick={onClose} className="sm:order-1">
-              Cancel
-            </Button>
-            <div className="flex gap-2 sm:order-2">
-              <Button variant="outline" onClick={handleDownload} disabled={isGenerating}>
-                <Download className="w-4 h-4 mr-2" />
-                PDF
-              </Button>
-              <Button variant="outline" onClick={handleBrowserPrint} disabled={isGenerating}>
-                <Printer className="w-4 h-4 mr-2" />
-                Browser
-              </Button>
+          {/* Options */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="include-name" className="text-sm">Include Asset Name</Label>
+              <Switch
+                id="include-name"
+                checked={includeAssetName}
+                onCheckedChange={setIncludeAssetName}
+              />
             </div>
-            <div className="flex gap-1 sm:order-3">
-              <Button onClick={handleDirectPrint} disabled={isPrintingDirect}>
-                <Usb className="w-4 h-4 mr-2" />
-                {isPrintingDirect ? 'Printing...' : 'QL-570'}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSetupGuide(true)}
-                title="Setup Guide"
-                className="shrink-0"
-              >
-                <HelpCircle className="h-4 w-4" />
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      <PrintServiceSetupModal
-        isOpen={showSetupGuide}
-        onClose={() => setShowSetupGuide(false)}
-      />
-    </>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="copies" className="text-sm">Number of Copies</Label>
+              <Input
+                id="copies"
+                type="number"
+                min={1}
+                max={50}
+                value={copies}
+                onChange={(e) => setCopies(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                className="w-16 h-8 text-center text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="flex-row justify-between gap-2 pt-2">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleDownload} disabled={isGenerating}>
+              <Download className="w-4 h-4 mr-1" />
+              PDF
+            </Button>
+            <Button size="sm" onClick={handleBrowserPrint} disabled={isGenerating}>
+              <Printer className="w-4 h-4 mr-1" />
+              Print
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
