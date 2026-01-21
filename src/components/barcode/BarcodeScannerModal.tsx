@@ -3,6 +3,7 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -27,11 +28,17 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
   const containerRef = useRef<string>('barcode-scanner-container');
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
     if (isOpen) {
-      startScanner();
+      // Wait for Dialog to render before starting scanner
+      timer = setTimeout(() => {
+        startScanner();
+      }, 150);
     }
 
     return () => {
+      if (timer) clearTimeout(timer);
       stopScanner();
     };
   }, [isOpen]);
@@ -124,6 +131,9 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
             <Camera className="h-5 w-5" />
             Scan Barcode
           </DialogTitle>
+          <DialogDescription>
+            Point your camera at the asset barcode label
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
