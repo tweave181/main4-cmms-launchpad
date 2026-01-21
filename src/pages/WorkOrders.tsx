@@ -52,9 +52,9 @@ const WorkOrders: React.FC = () => {
     setFilters({ status: 'open' });
   };
 
-  const handleQRScanned = (code: string) => {
+  const handleBarcodeScanned = (code: string) => {
     // Search for asset by code and open its work orders
-    console.log('QR scanned:', code);
+    console.log('Barcode scanned:', code);
     setFilters({ search: code });
   };
 
@@ -141,10 +141,10 @@ const WorkOrders: React.FC = () => {
           {/* Mobile action buttons for scanning and quick actions */}
           <div className="md:hidden mb-4">
             <MobileActionButtons
-              onQRScanned={handleQRScanned}
+              onBarcodeScanned={handleBarcodeScanned}
               showCamera={false}
               showVoice={false}
-              showQR={true}
+              showBarcode={true}
             />
           </div>
           

@@ -164,8 +164,8 @@ const Assets: React.FC = () => {
       console.error('Failed to refresh asset data:', error);
     }
   };
-  const handleQRScanned = (code: string) => {
-    // Search for asset by QR code
+  const handleBarcodeScanned = (code: string) => {
+    // Search for asset by barcode
     const foundAsset = assets.find(asset => asset.asset_tag === code || asset.name.toLowerCase().includes(code.toLowerCase()));
     if (foundAsset) {
       handleViewAsset(foundAsset);
@@ -217,9 +217,9 @@ const Assets: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile QR scanning for assets */}
+          {/* Mobile barcode scanning for assets */}
           <div className="md:hidden mb-4">
-            <MobileActionButtons onQRScanned={handleQRScanned} showCamera={false} showVoice={false} showQR={true} />
+            <MobileActionButtons onBarcodeScanned={handleBarcodeScanned} showCamera={false} showVoice={false} showBarcode={true} />
           </div>
 
           {sortedAssets.length === 0 ? (
