@@ -3,6 +3,7 @@ import React from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import { BarcodeScanFAB } from '@/components/barcode/BarcodeScanFAB';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -19,6 +20,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             {children}
           </div>
         </main>
+        <BarcodeScanFAB />
       </div>
     </SidebarProvider>
   );
