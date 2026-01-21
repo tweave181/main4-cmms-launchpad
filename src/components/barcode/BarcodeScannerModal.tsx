@@ -163,14 +163,19 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
             </>
           )}
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-center gap-3">
             {error && (
-              <Button variant="outline" onClick={startScanner}>
+              <Button variant="outline" size="lg" onClick={startScanner} className="flex-1">
                 Try Again
               </Button>
             )}
-            <Button variant="ghost" onClick={handleClose}>
-              <X className="h-4 w-4 mr-1" />
+            <Button 
+              variant="outline" 
+              size="lg" 
+              onClick={handleClose}
+              className="flex-1 min-h-[48px] text-base font-medium"
+            >
+              <X className="h-5 w-5 mr-2" />
               Cancel
             </Button>
           </div>
