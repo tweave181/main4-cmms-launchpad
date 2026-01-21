@@ -1,29 +1,31 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera, Mic, QrCode, Upload } from 'lucide-react';
+import { Camera, Mic, ScanBarcode } from 'lucide-react';
 import { MobileUtils } from '@/utils/mobileUtils';
 import { toast } from '@/components/ui/use-toast';
+import { BarcodeScannerModal } from '@/components/barcode/BarcodeScannerModal';
 
 interface MobileActionButtonsProps {
   onPhotoCapture?: (file: File) => void;
   onVoiceTranscript?: (text: string) => void;
-  onQRScanned?: (code: string) => void;
+  onBarcodeScanned?: (code: string) => void;
   showCamera?: boolean;
   showVoice?: boolean;
-  showQR?: boolean;
+  showBarcode?: boolean;
 }
 
 export const MobileActionButtons: React.FC<MobileActionButtonsProps> = ({
   onPhotoCapture,
   onVoiceTranscript,
-  onQRScanned,
+  onBarcodeScanned,
   showCamera = true,
   showVoice = true,
-  showQR = true,
+  showBarcode = true,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const handlePhotoCapture = async () => {
     if (!await MobileUtils.hasCamera()) {
@@ -85,64 +87,63 @@ export const MobileActionButtons: React.FC<MobileActionButtonsProps> = ({
     setIsRecording(false);
   };
 
-  const handleQRScan = async () => {
-    try {
-      const code = await MobileUtils.scanQRCode();
-      if (code && onQRScanned) {
-        onQRScanned(code);
-        toast({
-          title: "QR Code Scanned",
-          description: `Scanned: ${code}`,
-        });
-      }
-    } catch (error) {
+  const handleBarcodeScanned = (code: string) => {
+    if (onBarcodeScanned) {
+      onBarcodeScanned(code);
       toast({
-        title: "QR Scan Error",
-        description: "Failed to scan QR code. Please try again.",
-        variant: "destructive",
+        title: "Barcode Scanned",
+        description: `Scanned: ${code}`,
       });
     }
   };
 
   return (
-    <div className="flex space-x-2 p-2">
-      {showCamera && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePhotoCapture}
-          disabled={isCapturing}
-          className="flex-1"
-        >
-          <Camera className="h-4 w-4 mr-1" />
-          {isCapturing ? 'Capturing...' : 'Photo'}
-        </Button>
-      )}
-      
-      {showVoice && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleVoiceRecording}
-          disabled={isRecording}
-          className="flex-1"
-        >
-          <Mic className="h-4 w-4 mr-1" />
-          {isRecording ? 'Recording...' : 'Voice'}
-        </Button>
-      )}
-      
-      {showQR && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleQRScan}
-          className="flex-1"
-        >
-          <QrCode className="h-4 w-4 mr-1" />
-          Scan QR
-        </Button>
-      )}
-    </div>
+    <>
+      <div className="flex space-x-2 p-2">
+        {showCamera && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePhotoCapture}
+            disabled={isCapturing}
+            className="flex-1"
+          >
+            <Camera className="h-4 w-4 mr-1" />
+            {isCapturing ? 'Capturing...' : 'Photo'}
+          </Button>
+        )}
+        
+        {showVoice && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleVoiceRecording}
+            disabled={isRecording}
+            className="flex-1"
+          >
+            <Mic className="h-4 w-4 mr-1" />
+            {isRecording ? 'Recording...' : 'Voice'}
+          </Button>
+        )}
+        
+        {showBarcode && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsScannerOpen(true)}
+            className="flex-1"
+          >
+            <ScanBarcode className="h-4 w-4 mr-1" />
+            Scan Barcode
+          </Button>
+        )}
+      </div>
+
+      <BarcodeScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScan={handleBarcodeScanned}
+      />
+    </>
   );
 };

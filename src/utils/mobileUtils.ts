@@ -66,15 +66,17 @@ export class MobileUtils {
   }
 
   // QR Code scanning (simplified - would need a QR library in production)
-  static async scanQRCode(): Promise<string | null> {
+  /**
+   * Request camera permission
+   * Returns true if permission granted, false otherwise
+   */
+  static async requestCameraPermission(): Promise<boolean> {
     try {
-      // This is a simplified implementation
-      // In production, you'd use a library like qr-scanner
-      const result = prompt('Enter QR code or asset tag:');
-      return result;
-    } catch (error) {
-      console.error('QR scanning error:', error);
-      return null;
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop());
+      return true;
+    } catch {
+      return false;
     }
   }
 
