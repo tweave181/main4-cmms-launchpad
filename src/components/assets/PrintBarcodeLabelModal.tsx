@@ -141,8 +141,23 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
           <title>Asset Label - ${assetTag}</title>
           <style>
             @page { 
-              size: ${LABEL_CONFIG.width}mm ${LABEL_CONFIG.height}mm; 
+              size: ${LABEL_CONFIG.width}mm ${LABEL_CONFIG.height}mm landscape; 
               margin: 0; 
+            }
+            @media print {
+              @page { 
+                size: ${LABEL_CONFIG.width}mm ${LABEL_CONFIG.height}mm landscape; 
+                margin: 0; 
+              }
+              html, body {
+                width: ${LABEL_CONFIG.width}mm !important;
+                height: ${LABEL_CONFIG.height}mm !important;
+                overflow: hidden !important;
+              }
+              .label {
+                break-inside: avoid;
+                page-break-inside: avoid;
+              }
             }
             * {
               margin: 0;
@@ -154,6 +169,7 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
               height: ${LABEL_CONFIG.height}mm;
               margin: 0;
               padding: 0;
+              overflow: hidden;
               font-family: Arial, Helvetica, sans-serif;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
