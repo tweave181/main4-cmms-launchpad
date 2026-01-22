@@ -109,133 +109,126 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
   };
 
   const handleBrowserPrint = async () => {
-    setIsGenerating(true);
-    try {
-      // Convert SVG to PNG for thermal printer compatibility
-      const barcodeDataUrl = await getBarcodeDataUrl();
+    const barcodeContainer = barcodeRef.current;
+    if (!barcodeContainer) return;
 
-      // Generate labels HTML with PNG image instead of SVG
-      const labelsHtml = Array(copies).fill(null).map(() => `
-        <div class="label">
-          <div class="text-content">
-            <span class="asset-tag">${assetTag}</span>
-            ${includeAssetName && assetName ? `<span class="asset-name">${assetName}</span>` : ''}
-          </div>
-          <div class="barcode">
-            <img src="${barcodeDataUrl}" alt="Barcode" />
-          </div>
+    const svgElement = barcodeContainer.querySelector('svg');
+    if (!svgElement) return;
+
+    const svgClone = svgElement.cloneNode(true) as SVGElement;
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(svgClone);
+
+    // Generate labels HTML
+    const labelsHtml = Array(copies).fill(null).map(() => `
+      <div class="label">
+        <div class="text-content">
+          <span class="asset-tag">${assetTag}</span>
+          ${includeAssetName && assetName ? `<span class="asset-name">${assetName}</span>` : ''}
         </div>
-      `).join('');
+        <div class="barcode">${svgString}</div>
+      </div>
+    `).join('');
 
-      const printWindow = window.open('', '_blank', 'width=400,height=300');
-      if (!printWindow) {
-        alert('Please allow pop-ups to print labels');
-        return;
-      }
+    const printWindow = window.open('', '_blank', 'width=400,height=300');
+    if (!printWindow) {
+      alert('Please allow pop-ups to print labels');
+      return;
+    }
 
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Asset Label - ${assetTag}</title>
-            <meta name="viewport" content="width=${LABEL_CONFIG.widthPx}, initial-scale=1">
-            <style>
-              @page { 
-                size: 50mm 25mm; 
-                margin: 0; 
-              }
-              * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-              }
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Asset Label - ${assetTag}</title>
+          <meta name="viewport" content="width=${LABEL_CONFIG.widthPx}, initial-scale=1">
+          <style>
+            @page { 
+              size: 50mm 25mm; 
+              margin: 0; 
+            }
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            html, body {
+              width: ${LABEL_CONFIG.widthPx}px !important;
+              height: ${LABEL_CONFIG.heightPx}px !important;
+              max-width: ${LABEL_CONFIG.widthPx}px !important;
+              max-height: ${LABEL_CONFIG.heightPx}px !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden !important;
+              font-family: Arial, Helvetica, sans-serif;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+              background: #fff;
+            }
+            .label { 
+              display: flex; 
+              flex-direction: column; 
+              align-items: center; 
+              justify-content: center;
+              padding: 8px;
+              gap: 4px;
+              width: ${LABEL_CONFIG.widthPx}px;
+              height: ${LABEL_CONFIG.heightPx}px;
+              box-sizing: border-box;
+              page-break-inside: avoid;
+              page-break-after: always;
+              background: #fff;
+            }
+            .label:last-child { page-break-after: avoid; }
+            .text-content {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+            }
+            .barcode { flex-shrink: 0; }
+            .barcode svg { 
+              width: ${LABEL_CONFIG.printBarcodeWidthPx}px !important; 
+              height: ${LABEL_CONFIG.printBarcodeHeightPx}px !important; 
+              display: block;
+            }
+            .asset-tag { 
+              font-weight: bold; 
+              font-family: monospace;
+              color: #000; 
+              font-size: ${LABEL_CONFIG.fontSize.tag}; 
+            }
+            .asset-name { 
+              color: #000; 
+              font-size: ${LABEL_CONFIG.fontSize.name}; 
+              max-width: 360px; 
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            @media print {
               html, body {
                 width: ${LABEL_CONFIG.widthPx}px !important;
                 height: ${LABEL_CONFIG.heightPx}px !important;
-                max-width: ${LABEL_CONFIG.widthPx}px !important;
-                max-height: ${LABEL_CONFIG.heightPx}px !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: hidden !important;
-                font-family: Arial, Helvetica, sans-serif;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                background: #fff;
               }
-              .label { 
-                display: flex; 
-                flex-direction: column; 
-                align-items: center; 
-                justify-content: center;
-                padding: 8px;
-                gap: 4px;
-                width: ${LABEL_CONFIG.widthPx}px;
-                height: ${LABEL_CONFIG.heightPx}px;
-                box-sizing: border-box;
-                page-break-inside: avoid;
-                page-break-after: always;
-                background: #fff;
+              .label {
+                break-inside: avoid;
               }
-              .label:last-child { page-break-after: avoid; }
-              .text-content {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 2px;
-              }
-              .barcode { flex-shrink: 0; }
-              .barcode img { 
-                width: ${LABEL_CONFIG.printBarcodeWidthPx}px; 
-                height: ${LABEL_CONFIG.printBarcodeHeightPx}px; 
-                display: block;
-                image-rendering: pixelated;
-                image-rendering: -moz-crisp-edges;
-                image-rendering: crisp-edges;
-              }
-              .asset-tag { 
-                font-weight: bold; 
-                font-family: monospace;
-                color: #000; 
-                font-size: ${LABEL_CONFIG.fontSize.tag}; 
-              }
-              .asset-name { 
-                color: #000; 
-                font-size: ${LABEL_CONFIG.fontSize.name}; 
-                max-width: 360px; 
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-              }
-              @media print {
-                html, body {
-                  width: ${LABEL_CONFIG.widthPx}px !important;
-                  height: ${LABEL_CONFIG.heightPx}px !important;
-                }
-                .label {
-                  break-inside: avoid;
-                }
-              }
-            </style>
-          </head>
-          <body>${labelsHtml}</body>
-        </html>
-      `);
-      printWindow.document.close();
+            }
+          </style>
+        </head>
+        <body>${labelsHtml}</body>
+      </html>
+    `);
+    printWindow.document.close();
 
-      // Wait for images to load before printing
-      printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.focus();
-          printWindow.print();
-        }, 500);
-      };
-    } catch (error) {
-      console.error('Print error:', error);
-      alert('Failed to generate print preview');
-    } finally {
-      setIsGenerating(false);
-    }
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+      }, 250);
+    };
   };
 
   return (
