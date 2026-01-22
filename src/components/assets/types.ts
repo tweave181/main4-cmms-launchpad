@@ -28,6 +28,7 @@ export interface Asset {
   updated_at: string;
   created_by?: string;
   updated_by?: string;
+  barcode_printed_at?: string | null;
   // Joined/computed fields
   children?: Asset[];
   parent?: { id: string; name: string; asset_tag?: string } | null;

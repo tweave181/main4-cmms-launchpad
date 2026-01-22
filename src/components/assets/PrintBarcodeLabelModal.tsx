@@ -6,6 +6,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -13,20 +23,25 @@ import { Input } from '@/components/ui/input';
 import { Download, Printer } from 'lucide-react';
 import Barcode from 'react-barcode';
 import { generateAssetBarcodeLabelPDF, downloadPDF } from '@/utils/barcodeLabelUtils';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 
 interface PrintBarcodeLabelModalProps {
   isOpen: boolean;
   onClose: () => void;
   assetTag: string;
   assetName: string;
+  assetId: string;
+  barcodePrintedAt?: string | null;
+  onPrinted?: () => void;
 }
 
 // 50mm x 25mm Zebra label configuration
 const LABEL_CONFIG = {
-  barcodeWidth: 1.5,   // Preview barcode bar width
-  barcodeHeight: 40,   // Preview barcode height in pixels
+  barcodeWidth: 1.8,   // Preview barcode bar width (increased)
+  barcodeHeight: 50,   // Preview barcode height in pixels (increased)
   printBarcodeWidth: 45, // Print barcode width in mm
-  printBarcodeHeight: 10, // Print barcode height in mm
+  printBarcodeHeight: 12, // Print barcode height in mm (increased from 10)
   width: 50,
   height: 25,
   fontSize: { tag: '10pt', name: '7pt' },
@@ -37,10 +52,15 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
   onClose,
   assetTag,
   assetName,
+  assetId,
+  barcodePrintedAt,
+  onPrinted,
 }) => {
   const [includeAssetName, setIncludeAssetName] = useState(true);
   const [copies, setCopies] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showReprintConfirm, setShowReprintConfirm] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'print' | 'download' | null>(null);
   const barcodeRef = useRef<HTMLDivElement>(null);
 
   const getBarcodeDataUrl = useCallback(async (): Promise<string> => {
@@ -88,7 +108,19 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
     });
   }, []);
 
-  const handleDownload = async () => {
+  const updateBarcodePrintedAt = async () => {
+    if (!barcodePrintedAt) {
+      // Only update if this is the first time printing
+      // Cast needed because types file is auto-generated and may not include new column yet
+      await supabase
+        .from('assets')
+        .update({ barcode_printed_at: new Date().toISOString() } as Record<string, unknown>)
+        .eq('id', assetId);
+      onPrinted?.();
+    }
+  };
+
+  const handleDownloadAction = async () => {
     setIsGenerating(true);
     try {
       const barcodeDataUrl = await getBarcodeDataUrl();
@@ -99,6 +131,7 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
         copies
       );
       downloadPDF(doc, `${assetTag.replace(/\//g, '-')}-label.pdf`);
+      await updateBarcodePrintedAt();
     } catch (error) {
       console.error('Error generating PDF:', error);
     } finally {
@@ -106,7 +139,16 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
     }
   };
 
-  const handleBrowserPrint = async () => {
+  const handleDownload = () => {
+    if (barcodePrintedAt) {
+      setPendingAction('download');
+      setShowReprintConfirm(true);
+    } else {
+      handleDownloadAction();
+    }
+  };
+
+  const handleBrowserPrintAction = async () => {
     const barcodeContainer = barcodeRef.current;
     if (!barcodeContainer) return;
 
@@ -227,88 +269,133 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
         printWindow.print();
       }, 250);
     };
+
+    await updateBarcodePrintedAt();
+  };
+
+  const handleBrowserPrint = () => {
+    if (barcodePrintedAt) {
+      setPendingAction('print');
+      setShowReprintConfirm(true);
+    } else {
+      handleBrowserPrintAction();
+    }
+  };
+
+  const handleConfirmReprint = () => {
+    setShowReprintConfirm(false);
+    if (pendingAction === 'print') {
+      handleBrowserPrintAction();
+    } else if (pendingAction === 'download') {
+      handleDownloadAction();
+    }
+    setPendingAction(null);
+  };
+
+  const handleCancelReprint = () => {
+    setShowReprintConfirm(false);
+    setPendingAction(null);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-xs sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Print Asset Label</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          {/* Preview */}
-          <div className="flex justify-center">
-            <div className="flex flex-col items-center gap-1 p-3 bg-white rounded-lg border shadow-sm">
-              <p className="font-mono font-bold text-sm">{assetTag}</p>
-              <div ref={barcodeRef} id="barcode-container">
-                <Barcode
-                  value={assetTag}
-                  format="CODE128"
-                  width={LABEL_CONFIG.barcodeWidth}
-                  height={LABEL_CONFIG.barcodeHeight}
-                  displayValue={false}
-                  background="#FFFFFF"
-                  lineColor="#000000"
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-xs sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Print Bar Code Label</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Preview */}
+            <div className="flex justify-center">
+              <div className="flex flex-col items-center gap-1 p-3 bg-white rounded-lg border shadow-sm">
+                <p className="font-mono font-bold text-sm">{assetTag}</p>
+                <div ref={barcodeRef} id="barcode-container">
+                  <Barcode
+                    value={assetTag}
+                    format="CODE128"
+                    width={LABEL_CONFIG.barcodeWidth}
+                    height={LABEL_CONFIG.barcodeHeight}
+                    displayValue={false}
+                    background="#FFFFFF"
+                    lineColor="#000000"
+                  />
+                </div>
+                {includeAssetName && assetName && (
+                  <p className="text-muted-foreground text-xs text-center max-w-[180px] truncate">
+                    {assetName}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+              50mm × 25mm Zebra Label
+            </p>
+
+            {/* Options */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="include-name" className="text-sm">Include Asset Name</Label>
+                <Switch
+                  id="include-name"
+                  checked={includeAssetName}
+                  onCheckedChange={setIncludeAssetName}
                 />
               </div>
-              {includeAssetName && assetName && (
-                <p className="text-muted-foreground text-xs text-center max-w-[180px] truncate">
-                  {assetName}
-                </p>
-              )}
+              
+              <div className="flex items-center justify-between">
+                <Label htmlFor="copies" className="text-sm">Number of Copies</Label>
+                <Input
+                  id="copies"
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={copies}
+                  onChange={(e) => setCopies(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-20 text-center"
+                />
+              </div>
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground text-center">
-            50mm × 25mm Zebra Label
-          </p>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={handleDownload}
+              disabled={isGenerating}
+              className="flex-1"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download PDF
+            </Button>
+            <Button
+              onClick={handleBrowserPrint}
+              className="flex-1"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-          {/* Options */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="include-name" className="text-sm">Include Asset Name</Label>
-              <Switch
-                id="include-name"
-                checked={includeAssetName}
-                onCheckedChange={setIncludeAssetName}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <Label htmlFor="copies" className="text-sm">Number of Copies</Label>
-              <Input
-                id="copies"
-                type="number"
-                min={1}
-                max={100}
-                value={copies}
-                onChange={(e) => setCopies(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-20 text-center"
-              />
-            </div>
-          </div>
-        </div>
-
-        <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Button
-            variant="outline"
-            onClick={handleDownload}
-            disabled={isGenerating}
-            className="flex-1"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
-          </Button>
-          <Button
-            onClick={handleBrowserPrint}
-            className="flex-1"
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <AlertDialog open={showReprintConfirm} onOpenChange={setShowReprintConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reprint Bar Code Label?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A bar code label was already printed for this asset on{' '}
+              <strong>{barcodePrintedAt ? format(new Date(barcodePrintedAt), 'dd MMM yyyy, HH:mm') : ''}</strong>.
+              Do you want to print it again?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelReprint}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReprint}>Print Again</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

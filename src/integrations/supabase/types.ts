@@ -327,6 +327,7 @@ export type Database = {
           asset_level: number | null
           asset_tag: string | null
           asset_type: string | null
+          barcode_printed_at: string | null
           category: string | null
           created_at: string
           created_by: string | null
@@ -357,6 +358,7 @@ export type Database = {
           asset_level?: number | null
           asset_tag?: string | null
           asset_type?: string | null
+          barcode_printed_at?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -387,6 +389,7 @@ export type Database = {
           asset_level?: number | null
           asset_tag?: string | null
           asset_type?: string | null
+          barcode_printed_at?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
