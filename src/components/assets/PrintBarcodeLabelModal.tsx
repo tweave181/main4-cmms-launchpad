@@ -21,15 +21,17 @@ interface PrintBarcodeLabelModalProps {
   assetName: string;
 }
 
-// 50mm x 25mm Zebra label configuration
+// 50mm x 25mm Zebra label configuration (203 DPI thermal printer)
+// 50mm at 203 DPI = 400px, 25mm at 203 DPI = 200px
 const LABEL_CONFIG = {
   barcodeWidth: 1.5,   // Preview barcode bar width
   barcodeHeight: 40,   // Preview barcode height in pixels
-  printBarcodeWidth: 45, // Print barcode width in mm
-  printBarcodeHeight: 10, // Print barcode height in mm
-  width: 50,
-  height: 25,
-  fontSize: { tag: '10pt', name: '7pt' },
+  // Pixel dimensions for thermal printer at 203 DPI
+  widthPx: 400,        // 50mm at 203 DPI
+  heightPx: 200,       // 25mm at 203 DPI
+  printBarcodeWidthPx: 360,  // ~45mm at 203 DPI
+  printBarcodeHeightPx: 64,  // ~8mm at 203 DPI
+  fontSize: { tag: '14px', name: '10px' },
 };
 
 export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
@@ -139,25 +141,11 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
       <html>
         <head>
           <title>Asset Label - ${assetTag}</title>
+          <meta name="viewport" content="width=${LABEL_CONFIG.widthPx}, initial-scale=1">
           <style>
             @page { 
-              size: ${LABEL_CONFIG.width}mm ${LABEL_CONFIG.height}mm landscape; 
+              size: 50mm 25mm; 
               margin: 0; 
-            }
-            @media print {
-              @page { 
-                size: ${LABEL_CONFIG.width}mm ${LABEL_CONFIG.height}mm landscape; 
-                margin: 0; 
-              }
-              html, body {
-                width: ${LABEL_CONFIG.width}mm !important;
-                height: ${LABEL_CONFIG.height}mm !important;
-                overflow: hidden !important;
-              }
-              .label {
-                break-inside: avoid;
-                page-break-inside: avoid;
-              }
             }
             * {
               margin: 0;
@@ -165,27 +153,31 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
               box-sizing: border-box;
             }
             html, body {
-              width: ${LABEL_CONFIG.width}mm;
-              height: ${LABEL_CONFIG.height}mm;
-              margin: 0;
-              padding: 0;
-              overflow: hidden;
+              width: ${LABEL_CONFIG.widthPx}px !important;
+              height: ${LABEL_CONFIG.heightPx}px !important;
+              max-width: ${LABEL_CONFIG.widthPx}px !important;
+              max-height: ${LABEL_CONFIG.heightPx}px !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden !important;
               font-family: Arial, Helvetica, sans-serif;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
+              background: #fff;
             }
             .label { 
               display: flex; 
               flex-direction: column; 
               align-items: center; 
               justify-content: center;
-              padding: 2mm;
-              gap: 1mm;
-              width: ${LABEL_CONFIG.width}mm;
-              height: ${LABEL_CONFIG.height}mm;
+              padding: 8px;
+              gap: 4px;
+              width: ${LABEL_CONFIG.widthPx}px;
+              height: ${LABEL_CONFIG.heightPx}px;
               box-sizing: border-box;
               page-break-inside: avoid;
               page-break-after: always;
+              background: #fff;
             }
             .label:last-child { page-break-after: avoid; }
             .text-content {
@@ -193,12 +185,13 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              gap: 0.5mm;
+              gap: 2px;
             }
             .barcode { flex-shrink: 0; }
             .barcode svg { 
-              width: ${LABEL_CONFIG.printBarcodeWidth}mm; 
-              height: ${LABEL_CONFIG.printBarcodeHeight}mm; 
+              width: ${LABEL_CONFIG.printBarcodeWidthPx}px !important; 
+              height: ${LABEL_CONFIG.printBarcodeHeightPx}px !important; 
+              display: block;
             }
             .asset-tag { 
               font-weight: bold; 
@@ -209,10 +202,19 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
             .asset-name { 
               color: #000; 
               font-size: ${LABEL_CONFIG.fontSize.name}; 
-              max-width: 45mm; 
+              max-width: 360px; 
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
+            }
+            @media print {
+              html, body {
+                width: ${LABEL_CONFIG.widthPx}px !important;
+                height: ${LABEL_CONFIG.heightPx}px !important;
+              }
+              .label {
+                break-inside: avoid;
+              }
             }
           </style>
         </head>
