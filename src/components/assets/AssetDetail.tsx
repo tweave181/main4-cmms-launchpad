@@ -93,6 +93,9 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           onClose={() => setShowQRModal(false)}
           assetTag={asset.asset_tag}
           assetName={asset.name}
+          assetId={asset.id}
+          barcodePrintedAt={asset.barcode_printed_at}
+          onPrinted={onUpdate}
         />
       )}
     </>

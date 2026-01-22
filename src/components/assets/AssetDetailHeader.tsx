@@ -3,7 +3,7 @@ import React from 'react';
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit2, Trash2, Copy, QrCode } from 'lucide-react';
+import { Edit2, Trash2, Copy, Barcode } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import type { Asset } from './types';
 
@@ -57,8 +57,8 @@ export const AssetDetailHeader: React.FC<AssetDetailHeaderProps> = ({
             </Button>
             {asset.asset_tag && onPrintQRLabel && (
               <Button onClick={onPrintQRLabel} variant="outline" className="rounded-2xl">
-                <QrCode className="w-4 h-4 mr-2" />
-                Print QR Label
+                <Barcode className="w-4 h-4 mr-2" />
+                Print Bar Code Label
               </Button>
             )}
             {onDuplicate && (
