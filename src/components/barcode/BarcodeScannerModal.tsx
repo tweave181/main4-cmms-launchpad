@@ -132,7 +132,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
             Scan Barcode
           </DialogTitle>
           <DialogDescription>
-            Point your camera at the asset barcode label
+            Point your camera at any barcode label
           </DialogDescription>
         </DialogHeader>
 
@@ -158,7 +158,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
               />
               
               <p className="text-sm text-muted-foreground text-center">
-                Point your camera at the asset barcode label
+                Scan asset tags or inventory SKUs
               </p>
             </>
           )}
