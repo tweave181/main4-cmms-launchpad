@@ -352,7 +352,7 @@ const InventoryPartDetail: React.FC = () => {
                   <h3 className="font-medium mb-4">Basic Information</h3>
                   {mode === 'edit' ? (
                     <Form {...form}>
-                      <InventoryPartBasicFields control={form.control} />
+                      <InventoryPartBasicFields control={form.control} isEditing={true} />
                     </Form>
                   ) : (
                     <div className="space-y-2">

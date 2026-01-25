@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 export interface SparePartsCategory {
   id: string;
   name: string;
-  description?: string;
+  description: string | null;
+  sku_code: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -55,11 +56,36 @@ export const useSparePartsCategories = () => {
 
       if (!userProfile?.tenant_id) throw new Error('Tenant not found');
 
+      // Generate SKU code from name
+      const baseSkuCode = categoryData.name
+        .replace(/[^A-Za-z]/g, '')
+        .substring(0, 3)
+        .toUpperCase();
+
+      // Check for duplicate SKU codes and adjust if needed
+      const { data: existingCodes } = await supabase
+        .from('spare_parts_categories')
+        .select('sku_code')
+        .eq('tenant_id', userProfile.tenant_id)
+        .like('sku_code', `${baseSkuCode.substring(0, 2)}%`);
+
+      let finalSkuCode = baseSkuCode;
+      if (existingCodes?.some(c => c.sku_code === baseSkuCode)) {
+        for (let i = 2; i <= 9; i++) {
+          const altCode = baseSkuCode.substring(0, 2) + i.toString();
+          if (!existingCodes.some(c => c.sku_code === altCode)) {
+            finalSkuCode = altCode;
+            break;
+          }
+        }
+      }
+
       const { data, error } = await supabase
         .from('spare_parts_categories')
         .insert({
           ...categoryData,
           tenant_id: userProfile.tenant_id,
+          sku_code: finalSkuCode,
           is_active: categoryData.is_active ?? true
         })
         .select()
@@ -144,10 +170,37 @@ export const useSparePartsCategories = () => {
 
       if (!userProfile?.tenant_id) throw new Error('Tenant not found');
 
-      const categoriesWithTenant = categories.map(cat => ({
-        ...cat,
-        tenant_id: userProfile.tenant_id
-      }));
+      // Get existing SKU codes to avoid conflicts
+      const { data: existingCodes } = await supabase
+        .from('spare_parts_categories')
+        .select('sku_code')
+        .eq('tenant_id', userProfile.tenant_id);
+
+      const usedCodes = new Set(existingCodes?.map(c => c.sku_code) || []);
+      
+      const categoriesWithTenant = categories.map(cat => {
+        let skuCode = cat.name.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+        
+        // Handle conflicts
+        if (usedCodes.has(skuCode)) {
+          for (let i = 2; i <= 99; i++) {
+            const altCode = i <= 9 
+              ? skuCode.substring(0, 2) + i.toString()
+              : skuCode.substring(0, 1) + i.toString();
+            if (!usedCodes.has(altCode)) {
+              skuCode = altCode;
+              break;
+            }
+          }
+        }
+        usedCodes.add(skuCode);
+
+        return {
+          ...cat,
+          tenant_id: userProfile.tenant_id,
+          sku_code: skuCode,
+        };
+      });
 
       const { data, error } = await supabase
         .from('spare_parts_categories')

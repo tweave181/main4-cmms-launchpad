@@ -2246,6 +2246,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          sku_code: string | null
           tenant_id: string
           updated_at: string
         }
@@ -2256,6 +2257,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          sku_code?: string | null
           tenant_id: string
           updated_at?: string
         }
@@ -2266,6 +2268,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          sku_code?: string | null
           tenant_id?: string
           updated_at?: string
         }
@@ -3024,6 +3027,11 @@ export type Database = {
         Args: never
         Returns: undefined
       }
+      generate_next_inventory_sku: {
+        Args: { p_category_id: string; p_tenant_id: string }
+        Returns: string
+      }
+      generate_sku_code: { Args: { category_name: string }; Returns: string }
       generate_tenant_invitation: {
         Args: { p_expires_in_days?: number; p_notes?: string }
         Returns: string

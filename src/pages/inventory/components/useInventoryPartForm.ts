@@ -1,4 +1,3 @@
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,10 +6,10 @@ import type { Database } from '@/integrations/supabase/types';
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  sku: z.string().min(1, "SKU is required"),
+  sku: z.string().optional(), // Now auto-generated, optional in form
   inventory_type: z.enum(['spare_parts', 'consumables', 'tools', 'supplies', 'materials']),
   category: z.string().optional(),
-  spare_parts_category_id: z.string().optional(),
+  spare_parts_category_id: z.string().min(1, "Category is required"), // Now required for SKU generation
   quantity_in_stock: z.number().min(0, "Quantity must be non-negative"),
   reorder_threshold: z.number().min(0, "Reorder threshold must be non-negative"),
   unit_of_measure: z.enum(['pieces', 'kg', 'lbs', 'liters', 'gallons', 'meters', 'feet', 'hours']),
@@ -27,9 +26,12 @@ type InventoryPartData = Omit<Database['public']['Tables']['inventory_parts']['I
 interface UseInventoryPartFormProps {
   initialData?: Partial<InventoryPartData>;
   onSubmit: (data: InventoryPartData) => Promise<void>;
+  generatedSKU?: string;
 }
 
-export const useInventoryPartForm = ({ initialData, onSubmit }: UseInventoryPartFormProps) => {
+export const useInventoryPartForm = ({ initialData, onSubmit, generatedSKU }: UseInventoryPartFormProps) => {
+  const isEditing = !!initialData?.sku;
+  
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,9 +51,16 @@ export const useInventoryPartForm = ({ initialData, onSubmit }: UseInventoryPart
   });
 
   const handleSubmit = async (data: FormData) => {
+    // Use existing SKU for edits, generated SKU for new parts
+    const finalSKU = isEditing ? (initialData?.sku || data.sku || '') : (generatedSKU || '');
+    
+    if (!finalSKU) {
+      throw new Error('SKU is required. Please select a category.');
+    }
+
     const submitData: InventoryPartData = {
       name: data.name,
-      sku: data.sku,
+      sku: finalSKU,
       description: data.description || null,
       inventory_type: data.inventory_type,
       category: data.category || null,
@@ -71,5 +80,6 @@ export const useInventoryPartForm = ({ initialData, onSubmit }: UseInventoryPart
   return {
     form,
     handleSubmit: form.handleSubmit(handleSubmit),
+    isEditing,
   };
 };

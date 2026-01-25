@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useInventoryPartForm } from './useInventoryPartForm';
 import { useFormDialog } from '@/hooks/useFormDialog';
+import { useSKUGeneration } from '../hooks/useSKUGeneration';
 import { InventoryPartBasicFields } from './InventoryPartBasicFields';
 import { InventoryPartQuantityFields } from './InventoryPartQuantityFields';
 import { InventoryPartLocationFields } from './InventoryPartLocationFields';
@@ -25,7 +25,23 @@ export const InventoryPartForm: React.FC<InventoryPartFormProps> = ({
   onCancel,
   isSubmitting,
 }) => {
-  const { form, handleSubmit } = useInventoryPartForm({ initialData, onSubmit });
+  // Get initial category ID for editing
+  const initialCategoryId = (initialData as any)?.spare_parts_category_id || null;
+  
+  const {
+    categories,
+    categoriesLoading,
+    generatedSKU,
+    isGenerating: isGeneratingSKU,
+    handleCategoryChange,
+  } = useSKUGeneration(initialCategoryId);
+
+  const { form, handleSubmit, isEditing } = useInventoryPartForm({ 
+    initialData, 
+    onSubmit,
+    generatedSKU,
+  });
+  
   const { showConfirmation, handleCancel, handleConfirmCancel, handleGoBack } = useFormDialog({
     onClose: onCancel,
   });
@@ -34,7 +50,15 @@ export const InventoryPartForm: React.FC<InventoryPartFormProps> = ({
     <>
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <InventoryPartBasicFields control={form.control} />
+          <InventoryPartBasicFields 
+            control={form.control} 
+            categories={categories}
+            categoriesLoading={categoriesLoading}
+            generatedSKU={generatedSKU}
+            isGeneratingSKU={isGeneratingSKU}
+            onCategoryChange={handleCategoryChange}
+            isEditing={isEditing}
+          />
           <InventoryPartQuantityFields control={form.control} />
           <InventoryPartLocationFields control={form.control} />
 
@@ -42,7 +66,10 @@ export const InventoryPartForm: React.FC<InventoryPartFormProps> = ({
             <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || (!isEditing && !generatedSKU)}
+            >
               {isSubmitting ? 'Saving...' : initialData ? 'Update Part' : 'Create Part'}
             </Button>
           </div>
