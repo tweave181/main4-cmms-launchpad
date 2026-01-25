@@ -1256,6 +1256,7 @@ export type Database = {
       }
       inventory_parts: {
         Row: {
+          barcode_printed_at: string | null
           category: string | null
           created_at: string
           created_by: string | null
@@ -1277,6 +1278,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          barcode_printed_at?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -1298,6 +1300,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          barcode_printed_at?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null

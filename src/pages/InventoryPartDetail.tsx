@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Form } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Edit, Trash2, Package, MapPin, Save, X, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Package, MapPin, Save, X, AlertTriangle, Barcode } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -25,6 +25,7 @@ import { useInventoryPartForm } from '@/pages/inventory/components/useInventoryP
 import { InventoryPartBasicFields } from '@/pages/inventory/components/InventoryPartBasicFields';
 import { InventoryPartQuantityFields } from '@/pages/inventory/components/InventoryPartQuantityFields';
 import { InventoryPartLocationFields } from '@/pages/inventory/components/InventoryPartLocationFields';
+import { PrintInventoryBarcodeLabelModal } from '@/components/inventory/PrintInventoryBarcodeLabelModal';
 import type { FormData } from '@/pages/inventory/components/useInventoryPartForm';
 
 type InventoryPart = Database['public']['Tables']['inventory_parts']['Row'];
@@ -39,6 +40,7 @@ const InventoryPartDetail: React.FC = () => {
   const { formatCurrency } = useGlobalSettings();
   const isAdmin = userProfile?.role === 'admin';
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [showBarcodeModal, setShowBarcodeModal] = useState(false);
   
   // Determine if we're in edit mode based on URL path
   const isEditMode = location.pathname.includes('/edit');
@@ -308,6 +310,12 @@ const InventoryPartDetail: React.FC = () => {
                   </CardTitle>
                 </div>
                 <div className="flex gap-2">
+                  {mode === 'view' && (
+                    <Button variant="outline" onClick={() => setShowBarcodeModal(true)}>
+                      <Barcode className="h-4 w-4 mr-2" />
+                      Print Label
+                    </Button>
+                  )}
                   {mode === 'view' ? (
                     <Button variant="outline" onClick={handleEditClick} data-testid="edit-part-btn">
                       <Edit className="h-4 w-4 mr-2" />
@@ -497,6 +505,18 @@ const InventoryPartDetail: React.FC = () => {
         description={`Are you sure you want to delete "${part.name}"? This action cannot be undone.`}
         confirmText="Delete"
         variant="destructive"
+      />
+
+      <PrintInventoryBarcodeLabelModal
+        isOpen={showBarcodeModal}
+        onClose={() => setShowBarcodeModal(false)}
+        sku={part.sku}
+        partName={part.name}
+        partId={part.id}
+        barcodePrintedAt={(part as any).barcode_printed_at}
+        onPrinted={() => {
+          queryClient.invalidateQueries({ queryKey: ['inventory-part-supplier', id] });
+        }}
       />
     </>
   );
