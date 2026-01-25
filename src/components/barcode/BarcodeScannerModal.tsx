@@ -11,16 +11,20 @@ import { Button } from '@/components/ui/button';
 import { Camera, X, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+type ScanMode = 'navigate' | 'add-stock';
+
 interface BarcodeScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onScan: (code: string) => void;
+  mode?: ScanMode;
 }
 
 export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
   isOpen,
   onClose,
   onScan,
+  mode = 'navigate',
 }) => {
   const [error, setError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
@@ -129,10 +133,12 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5" />
-            Scan Barcode
+            {mode === 'add-stock' ? 'Scan Inventory Barcode' : 'Scan Barcode'}
           </DialogTitle>
           <DialogDescription>
-            Point your camera at any barcode label
+            {mode === 'add-stock'
+              ? 'Scan an inventory SKU to adjust stock'
+              : 'Point your camera at any barcode label'}
           </DialogDescription>
         </DialogHeader>
 
@@ -158,7 +164,9 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
               />
               
               <p className="text-sm text-muted-foreground text-center">
-                Scan asset tags or inventory SKUs
+                {mode === 'add-stock'
+                  ? 'Scan inventory part barcode'
+                  : 'Scan asset tags or inventory SKUs'}
               </p>
             </>
           )}
