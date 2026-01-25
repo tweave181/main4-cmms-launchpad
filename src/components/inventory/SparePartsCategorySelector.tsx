@@ -23,6 +23,8 @@ interface SparePartsCategorySelectorProps {
   label?: string;
   placeholder?: string;
   required?: boolean;
+  showSkuCode?: boolean;
+  onValueChange?: (value: string | null) => void;
 }
 
 export const SparePartsCategorySelector: React.FC<SparePartsCategorySelectorProps> = ({
@@ -31,6 +33,8 @@ export const SparePartsCategorySelector: React.FC<SparePartsCategorySelectorProp
   label = 'Category',
   placeholder = 'Select category',
   required = false,
+  showSkuCode = true,
+  onValueChange,
 }) => {
   const { activeCategories, isLoading } = useSparePartsCategories();
 
@@ -45,7 +49,11 @@ export const SparePartsCategorySelector: React.FC<SparePartsCategorySelectorProp
             {required && <span className="text-destructive ml-1">*</span>}
           </FormLabel>
           <Select
-            onValueChange={(value) => field.onChange(value === 'none' ? null : value)}
+            onValueChange={(value) => {
+              const newValue = value === 'none' ? null : value;
+              field.onChange(newValue);
+              onValueChange?.(newValue);
+            }}
             value={field.value || ''}
             disabled={isLoading}
           >
@@ -62,10 +70,11 @@ export const SparePartsCategorySelector: React.FC<SparePartsCategorySelectorProp
                 </div>
               ) : (
                 <>
-                  <SelectItem value="none">No category</SelectItem>
+                  {!required && <SelectItem value="none">No category</SelectItem>}
                   {activeCategories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
+                      {showSkuCode && category.sku_code && ` (${category.sku_code})`}
                     </SelectItem>
                   ))}
                 </>
