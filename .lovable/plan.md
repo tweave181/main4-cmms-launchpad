@@ -1,183 +1,186 @@
 
-## Plan: Add Export and Import to Asset Tag Prefix Manager
+## Plan: Enhance Department Details Page with Linked Records
 
 ### Overview
 
-Add Export and Import functionality to the Asset Tag Prefix Manager page, following the same pattern as the Category Manager. Only admin users will see these buttons.
+Fix the navigation issue where clicking on a department doesn't work, and enhance the Department Details page to display linked records (Assets, Users, and Locations) similar to how Location Level Details shows linked locations.
 
 ---
 
-### Export Functionality
+### Current Issues
 
-**CSV Format:**
-```csv
-Prefix,Code,Category,Description
-E,1,Electrical Equipment,Equipment for electrical work
-E,2,Plumbing,Plumbing supplies and tools
-```
+1. **Broken Navigation**: `Departments.tsx` navigates to `/departments/${id}` which redirects to `/admin/preferences/departments` (loses the ID)
+2. **Missing Linked Records**: The detail page only shows department info without showing related records
 
-The export will include:
-- **Prefix** - The prefix letter (e.g., `E`)
-- **Code** - The number code without leading zeros (e.g., `1` from `001`)
-- **Category** - The linked category name
-- **Description** - The prefix description
+### After Implementation
 
-**Filename format:** `{Site Name}-asset-prefixes-{YYYY-MM-DD}.csv`
+- Clicking a department navigates correctly to the detail page
+- Detail page shows sections for:
+  - Linked Assets (with asset tag, name, status)
+  - Linked Users (with name, email, job title)
+  - Linked Locations (with name, code)
+- Back button navigates to correct route
+- Delete button is disabled if department is in use (has any linked records)
 
 ---
 
-### Import Functionality
+### Database Tables with department_id
 
-Create a new modal component that allows:
-1. Download a CSV template
-2. Upload a CSV file with columns: Prefix, Code, Category, Description
-3. Preview parsed data with validation
-4. Import valid prefixes
-
-**Validation rules:**
-- Prefix letter is required (single uppercase letter)
-- Code is required (number 1-999)
-- Prefix + Code combination must be unique
-- Category is optional (if provided, must match existing category name)
-- Checks for duplicates in file and against existing prefixes
+| Table | Columns to Display |
+|-------|-------------------|
+| `assets` | asset_tag, asset_name, status |
+| `users` | first_name, last_name, email, job_title_id |
+| `locations` | name, location_code |
 
 ---
 
 ### Implementation Details
 
-#### 1. Update `AssetPrefixManager.tsx`
+#### 1. Fix Navigation in `Departments.tsx`
 
-Add:
-- Import `isAdmin` from auth context
-- Import `Download`, `Upload` icons from lucide-react
-- Add state for import modal: `const [isImportOpen, setIsImportOpen] = useState(false);`
-- Add tenant name query (same pattern as CategoryManager)
-- Add `handleExport` function
-- Add Export/Import buttons (visible only to admins)
+Update the navigation to use the correct route:
 
 ```typescript
-const handleExport = () => {
-  const csvData: string[][] = [
-    ['Prefix', 'Code', 'Category', 'Description'],
-    ...prefixes.map(prefix => [
-      prefix.prefix_letter,
-      parseInt(prefix.number_code).toString(),
-      prefix.category?.name || '',
-      prefix.description || ''
-    ])
-  ];
-  const csv = generateCSV(csvData);
-  const date = new Date().toISOString().split('T')[0];
-  const siteName = tenantName || 'export';
-  downloadCSV(csv, `${siteName}-asset-prefixes-${date}.csv`);
+const handleDepartmentClick = (departmentId: string) => {
+  navigate(`/admin/preferences/departments/${departmentId}`);
 };
 ```
 
-**Button placement:** Add before "Bulk Setup" button in the header:
-```tsx
-{isAdmin && (
-  <>
-    <Button variant="outline" onClick={handleExport} className="rounded-2xl">
-      <Download className="w-4 h-4 mr-2" />
-      Export
-    </Button>
-    <Button variant="outline" onClick={() => setIsImportOpen(true)} className="rounded-2xl">
-      <Upload className="w-4 h-4 mr-2" />
-      Import
-    </Button>
-  </>
-)}
+---
+
+#### 2. Fix Navigation in `DepartmentDetails.tsx`
+
+Update all back navigation to use the correct route:
+
+```typescript
+navigate('/admin/preferences/departments');
 ```
 
 ---
 
-#### 2. Create `AssetPrefixImportModal.tsx`
+#### 3. Add Linked Records Queries
 
-**File:** `src/components/asset-prefixes/AssetPrefixImportModal.tsx`
-
-A modal component following the same pattern as `CategoryImportModal.tsx`:
-
-**Features:**
-- Download template button with example data:
-  ```csv
-  Prefix,Code,Category,Description
-  E,1,Electrical,Electrical equipment prefix
-  P,1,Plumbing,Plumbing items prefix
-  ```
-- File upload input (CSV only)
-- Preview table showing: Status, Prefix, Code, Category, Description
-- Validation badges (Valid, Already exists, Invalid prefix, etc.)
-- Import button (only imports valid rows)
-
-**Validation logic:**
-```typescript
-interface ParsedPrefix {
-  prefix_letter: string;
-  number_code: string;
-  category_name: string;
-  description: string;
-  isValid: boolean;
-  error?: string;
-}
-
-// Validation checks:
-// 1. Prefix letter must be single A-Z character
-// 2. Code must be number 1-999
-// 3. Prefix + Code combo must be unique (in file and database)
-// 4. Category name (if provided) must match existing category
-```
-
----
-
-#### 3. Add `importPrefixes` Mutation to `useAssetPrefixes.ts`
-
-Add a mutation function similar to `importCategories` in useCategories:
+Add three new queries to fetch linked records:
 
 ```typescript
-const importPrefixes = useMutation({
-  mutationFn: async (prefixesData: {
-    prefix_letter: string;
-    number_code: string;
-    category_id?: string;
-    description: string;
-  }[]) => {
+// Linked Assets
+const { data: linkedAssets = [] } = useQuery({
+  queryKey: ['department-assets', id],
+  queryFn: async () => {
     const { data, error } = await supabase
-      .from('asset_tag_prefixes')
-      .insert(prefixesData.map(p => ({
-        tenant_id: userProfile!.tenant_id,
-        prefix_letter: p.prefix_letter.toUpperCase(),
-        number_code: p.number_code.padStart(3, '0'),
-        category_id: p.category_id || null,
-        description: p.description,
-      })))
-      .select();
-    
+      .from('assets')
+      .select('id, asset_tag, asset_name, status')
+      .eq('department_id', id)
+      .order('asset_tag');
     if (error) throw error;
-    return data;
+    return data || [];
   },
-  onSuccess: (data) => {
-    refetch();
-    queryClient.invalidateQueries({ queryKey: ['unlinkedCategories'] });
-    toast({ title: 'Success', description: `${data.length} prefix(es) imported` });
+  enabled: !!id,
+});
+
+// Linked Users
+const { data: linkedUsers = [] } = useQuery({
+  queryKey: ['department-users', id],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, first_name, last_name, email, job_title:job_title_id(title_name)')
+      .eq('department_id', id)
+      .order('first_name');
+    if (error) throw error;
+    return data || [];
   },
+  enabled: !!id,
+});
+
+// Linked Locations
+const { data: linkedLocations = [] } = useQuery({
+  queryKey: ['department-locations', id],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from('locations')
+      .select('id, name, location_code')
+      .eq('department_id', id)
+      .order('name');
+    if (error) throw error;
+    return data || [];
+  },
+  enabled: !!id,
 });
 ```
 
 ---
 
-### Files Summary
+#### 4. Update Delete Protection Logic
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/pages/AssetPrefixManager.tsx` | **Modify** | Add Export/Import buttons, export handler, modal state |
-| `src/components/asset-prefixes/AssetPrefixImportModal.tsx` | **Create** | New import modal with CSV parsing and validation |
-| `src/hooks/useAssetPrefixes.ts` | **Modify** | Add `importPrefixes` mutation |
+Check if department is in use by any of the three tables:
+
+```typescript
+const isInUse = linkedAssets.length > 0 || linkedUsers.length > 0 || linkedLocations.length > 0;
+```
+
+---
+
+#### 5. Add Linked Records UI Sections
+
+Add three Card sections below the department info, following the LocationLevelDetails pattern:
+
+**Linked Assets Section:**
+```text
++--------------------------------------------------+
+| Linked Assets (3)                                |
++--------------------------------------------------+
+| Asset Tag    | Asset Name           | Status     |
+|--------------|----------------------|------------|
+| E1-001       | Forklift A           | Active     |
+| E1-002       | Generator B          | Maintenance|
+| E2-001       | HVAC Unit 1          | Active     |
++--------------------------------------------------+
+```
+
+**Linked Users Section:**
+```text
++--------------------------------------------------+
+| Linked Users (2)                                 |
++--------------------------------------------------+
+| Name              | Email              | Job Title|
+|-------------------|--------------------| ---------|
+| John Smith        | john@example.com   | Manager  |
+| Jane Doe          | jane@example.com   | Technician|
++--------------------------------------------------+
+```
+
+**Linked Locations Section:**
+```text
++--------------------------------------------------+
+| Linked Locations (1)                             |
++--------------------------------------------------+
+| Location Name      | Code                        |
+|--------------------|------------------------------|
+| Main Building      | MB-01                        |
++--------------------------------------------------+
+```
+
+Each table row is clickable to navigate to the respective detail page:
+- Assets: `/assets?assetId=${id}`
+- Users: `/users?userId=${id}`
+- Locations: `/admin/preferences/locations?locationId=${id}`
+
+---
+
+### Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/pages/Departments.tsx` | Fix navigation to use `/admin/preferences/departments/${id}` |
+| `src/pages/DepartmentDetails.tsx` | Fix back navigation, add linked record queries and UI sections |
 
 ---
 
 ### Technical Notes
 
-- Uses existing `generateCSV` and `downloadCSV` utilities from `src/utils/csvUtils.ts`
-- Follows the exact UI pattern from CategoryManager (admin-only, outline buttons)
-- Category lookup during import uses case-insensitive name matching
-- Number codes are stored with leading zeros (e.g., `001`) but displayed/exported without them
+- Uses the same UI pattern as `LocationLevelDetails.tsx` for consistency
+- Imports Table components from `@/components/ui/table`
+- Imports Badge for status display
+- The delete button will be disabled with a tooltip when any linked records exist
+- Empty sections show "No [items] are assigned to this department."
