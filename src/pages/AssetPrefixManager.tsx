@@ -2,12 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, TableProperties } from 'lucide-react';
+import { Settings, Plus, TableProperties, Download, Upload } from 'lucide-react';
 import { useUnlinkedCategories } from '@/components/asset-prefixes/hooks/useUnlinkedCategories';
 import { AssetPrefixList } from '@/components/asset-prefixes/AssetPrefixList';
 import { AssetPrefixForm } from '@/components/asset-prefixes/AssetPrefixForm';
+import { AssetPrefixImportModal } from '@/components/asset-prefixes/AssetPrefixImportModal';
 import { useAssetPrefixes } from '@/hooks/useAssetPrefixes';
+import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
+import { generateCSV, downloadCSV } from '@/utils/csvUtils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
 type AssetTagPrefix = Database['public']['Tables']['asset_tag_prefixes']['Row'];
@@ -15,7 +20,9 @@ type AssetTagPrefix = Database['public']['Tables']['asset_tag_prefixes']['Row'];
 const AssetPrefixManager: React.FC = () => {
   const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [editingPrefix, setEditingPrefix] = useState<AssetTagPrefix | null>(null);
+  const { isAdmin, userProfile } = useAuth();
   const {
     prefixes,
     isLoading,
@@ -25,6 +32,19 @@ const AssetPrefixManager: React.FC = () => {
   const {
     data: unlinkedCategories
   } = useUnlinkedCategories();
+  const { data: tenantName } = useQuery({
+    queryKey: ['tenant-name', userProfile?.tenant_id],
+    queryFn: async () => {
+      if (!userProfile?.tenant_id) return null;
+      const { data } = await supabase
+        .from('tenants')
+        .select('name')
+        .eq('id', userProfile.tenant_id)
+        .single();
+      return data?.name || null;
+    },
+    enabled: !!userProfile?.tenant_id,
+  });
 
   const hasUnlinkedCategories = (unlinkedCategories?.length || 0) > 0;
 
@@ -76,6 +96,22 @@ const AssetPrefixManager: React.FC = () => {
     setEditingPrefix(null);
   };
 
+  const handleExport = () => {
+    const csvData: string[][] = [
+      ['Prefix', 'Code', 'Category', 'Description'],
+      ...prefixes.map(prefix => [
+        prefix.prefix_letter,
+        parseInt(prefix.number_code).toString(),
+        (prefix as any).category?.name || '',
+        prefix.description || ''
+      ])
+    ];
+    const csv = generateCSV(csvData);
+    const date = new Date().toISOString().split('T')[0];
+    const siteName = tenantName || 'export';
+    downloadCSV(csv, `${siteName}-asset-prefixes-${date}.csv`);
+  };
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -96,6 +132,18 @@ const AssetPrefixManager: React.FC = () => {
               <span>Asset Tag Prefix Manager</span>
             </CardTitle>
             <div className="flex gap-2">
+              {isAdmin && (
+                <>
+                  <Button variant="outline" onClick={handleExport} className="rounded-2xl">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsImportOpen(true)} className="rounded-2xl">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import
+                  </Button>
+                </>
+              )}
               {hasUnlinkedCategories && (
                 <Button variant="outline" onClick={() => navigate('/admin/preferences/asset-prefixes/bulk')} className="rounded-2xl">
                   <TableProperties className="w-4 h-4 mr-2" />
@@ -115,6 +163,7 @@ const AssetPrefixManager: React.FC = () => {
       </Card>
 
       <AssetPrefixForm prefix={editingPrefix} isOpen={isFormOpen} onClose={handleFormClose} onSuccess={handleFormSuccess} onDelete={deletePrefix} />
+      <AssetPrefixImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
     </div>
   );
 };
