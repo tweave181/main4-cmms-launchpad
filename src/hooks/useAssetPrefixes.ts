@@ -1,6 +1,4 @@
-
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { toast } from '@/hooks/use-toast';
@@ -17,6 +15,7 @@ interface AssetPrefixWithCount extends AssetTagPrefix {
 
 export const useAssetPrefixes = () => {
   const { userProfile } = useAuth();
+  const queryClient = useQueryClient();
 
   const {
     data: prefixes = [],
@@ -111,11 +110,53 @@ export const useAssetPrefixes = () => {
     return prefixes.filter(prefix => !prefix.is_at_capacity && !prefix.is_archived);
   };
 
+  const importPrefixes = useMutation({
+    mutationFn: async (prefixesData: {
+      prefix_letter: string;
+      number_code: string;
+      category_id?: string;
+      description: string;
+    }[]) => {
+      if (!userProfile?.tenant_id) throw new Error('Tenant not found');
+
+      const { data, error } = await supabase
+        .from('asset_tag_prefixes')
+        .insert(prefixesData.map(p => ({
+          tenant_id: userProfile.tenant_id,
+          prefix_letter: p.prefix_letter.toUpperCase(),
+          number_code: p.number_code.padStart(3, '0'),
+          category_id: p.category_id || null,
+          description: p.description,
+        })))
+        .select();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['unlinkedCategories'] });
+      toast({
+        title: 'Success',
+        description: `${data.length} prefix${data.length === 1 ? '' : 'es'} imported successfully`,
+      });
+    },
+    onError: (error) => {
+      console.error('Error importing prefixes:', error);
+      toast({
+        title: 'Import Failed',
+        description: 'Failed to import prefixes',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     prefixes,
     isLoading,
     refetch,
     deletePrefix,
     getAvailablePrefixes,
+    importPrefixes,
   };
 };
