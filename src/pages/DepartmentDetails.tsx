@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import { DepartmentForm } from '@/components/departments/DepartmentForm';
+import { DepartmentLinkedAssets, useDepartmentLinkedAssets } from '@/components/departments/DepartmentLinkedAssets';
+import { DepartmentLinkedUsers, useDepartmentLinkedUsers } from '@/components/departments/DepartmentLinkedUsers';
+import { DepartmentLinkedLocations, useDepartmentLinkedLocations } from '@/components/departments/DepartmentLinkedLocations';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import type { Database } from '@/integrations/supabase/types';
@@ -35,39 +38,30 @@ const DepartmentDetails: React.FC = () => {
     enabled: !!id && !!userProfile?.tenant_id,
   });
 
-  const checkDepartmentUsage = async () => {
-    if (!id) return false;
-    
-    // Check if department is referenced by users
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('id')
-      .eq('department_id', id)
-      .limit(1);
+  // Check for linked records to determine if department is in use
+  const { data: linkedAssets = [] } = useDepartmentLinkedAssets(id || '');
+  const { data: linkedUsers = [] } = useDepartmentLinkedUsers(id || '');
+  const { data: linkedLocations = [] } = useDepartmentLinkedLocations(id || '');
 
-    if (error) throw error;
-    return users && users.length > 0;
-  };
+  const isInUse = linkedAssets.length > 0 || linkedUsers.length > 0 || linkedLocations.length > 0;
 
   const handleDelete = async () => {
     if (!id || !department) return;
 
+    if (isInUse) {
+      toast({
+        title: "Cannot Delete Department",
+        description: "This department has linked assets, users, or locations and cannot be deleted.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete "${department.name}"?`)) {
+      return;
+    }
+
     try {
-      const isInUse = await checkDepartmentUsage();
-      
-      if (isInUse) {
-        toast({
-          title: "Cannot Delete Department",
-          description: "This department is assigned to users and cannot be deleted.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!confirm(`Are you sure you want to delete "${department.name}"?`)) {
-        return;
-      }
-
       const { error } = await supabase
         .from('departments')
         .delete()
@@ -80,7 +74,7 @@ const DepartmentDetails: React.FC = () => {
         description: "Department deleted successfully",
       });
       
-      navigate('/departments');
+      navigate('/admin/preferences/departments');
     } catch (error: any) {
       toast({
         title: "Error",
@@ -111,10 +105,10 @@ const DepartmentDetails: React.FC = () => {
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-gray-500">Department not found</p>
+              <p className="text-muted-foreground">Department not found</p>
               <Button 
                 variant="outline" 
-                onClick={() => navigate('/departments')}
+                onClick={() => navigate('/admin/preferences/departments')}
                 className="mt-4"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -128,15 +122,15 @@ const DepartmentDetails: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <Card className="rounded-2xl shadow-sm border border-gray-200">
+    <div className="p-6 space-y-6">
+      <Card className="rounded-2xl shadow-sm border border-border">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => navigate('/departments')}
+                onClick={() => navigate('/admin/preferences/departments')}
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
@@ -157,7 +151,9 @@ const DepartmentDetails: React.FC = () => {
               <Button 
                 variant="outline"
                 onClick={handleDelete}
-                className="rounded-2xl text-red-600 hover:text-red-700 hover:bg-red-50"
+                disabled={isInUse}
+                className="rounded-2xl text-destructive hover:text-destructive hover:bg-destructive/10"
+                title={isInUse ? "Cannot delete: department has linked records" : "Delete department"}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
@@ -169,30 +165,39 @@ const DepartmentDetails: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Department Name</label>
+                <label className="text-sm font-medium text-muted-foreground">Department Name</label>
                 <p className="text-lg font-semibold mt-1">{department.name}</p>
               </div>
               
               <div>
-                <label className="text-sm font-medium text-gray-500">Description</label>
+                <label className="text-sm font-medium text-muted-foreground">Description</label>
                 <p className="mt-1">{department.description || 'No description provided'}</p>
               </div>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Created At</label>
+                <label className="text-sm font-medium text-muted-foreground">Created At</label>
                 <p className="mt-1">{format(new Date(department.created_at), 'PPP p')}</p>
               </div>
               
               <div>
-                <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
                 <p className="mt-1">{format(new Date(department.updated_at), 'PPP p')}</p>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Linked Records Sections */}
+      {id && (
+        <>
+          <DepartmentLinkedAssets departmentId={id} />
+          <DepartmentLinkedUsers departmentId={id} />
+          <DepartmentLinkedLocations departmentId={id} />
+        </>
+      )}
 
       {isEditFormOpen && (
         <DepartmentForm
