@@ -27,7 +27,7 @@ const Departments: React.FC = () => {
     refetch();
   };
   const handleDepartmentClick = (departmentId: string) => {
-    navigate(`/departments/${departmentId}`);
+    navigate(`/admin/preferences/departments/${departmentId}`);
   };
   if (isLoading) {
     return <div className="p-6">
