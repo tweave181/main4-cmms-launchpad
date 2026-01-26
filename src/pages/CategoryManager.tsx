@@ -48,7 +48,16 @@ const CategoryManager: React.FC = () => {
     setEditingCategory(null);
   };
   const handleExport = () => {
-    const csvData: string[][] = [['Category Name', 'Description'], ...categories.map(cat => [cat.name, cat.description || ''])];
+    const csvData: string[][] = [
+      ['Category Name', 'Prefix', 'Description'],
+      ...categories.map(cat => [
+        cat.name,
+        cat.prefix_letter && cat.prefix_number_code 
+          ? `${cat.prefix_letter}${parseInt(cat.prefix_number_code)}`
+          : '',
+        cat.description || ''
+      ])
+    ];
     const csv = generateCSV(csvData);
     const date = new Date().toISOString().split('T')[0];
     const siteName = tenantName || 'export';
