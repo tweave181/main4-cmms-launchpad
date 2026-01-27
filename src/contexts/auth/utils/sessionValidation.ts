@@ -29,7 +29,7 @@ export const validateSessionAndClaims = async (userId: string, retries = 3) => {
     });
 
     // Check JWT claims with retry logic
-    const tenantId = session.user.user_metadata?.tenant_id;
+    const tenantId = session.user.user_metadata?.tenant_id || session.user.app_metadata?.tenant_id;
     if (!tenantId) {
       console.warn(`No tenant_id found in JWT claims (attempt ${attempt})`);
       if (attempt === retries) {

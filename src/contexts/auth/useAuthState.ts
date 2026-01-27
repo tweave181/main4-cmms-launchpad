@@ -89,7 +89,8 @@ export const useAuthState = () => {
     }
     
     // Quick JWT claims check without aggressive validation
-    const tenantId = session.user.user_metadata?.tenant_id;
+    // NOTE: tenant_id may exist in either user_metadata or app_metadata depending on provisioning.
+    const tenantId = session.user.user_metadata?.tenant_id || session.user.app_metadata?.tenant_id;
     if (!tenantId) {
       console.log('No tenant_id in JWT claims, waiting for claims to propagate...');
       setReady(false);
@@ -202,7 +203,8 @@ export const useAuthState = () => {
 
       setUser(session.user);
       // Only proceed if JWT claims are available
-      if (session.user.user_metadata?.tenant_id) {
+      const initialTenantId = session.user.user_metadata?.tenant_id || session.user.app_metadata?.tenant_id;
+      if (initialTenantId) {
         await handleSessionReady(session);
       } else {
         console.log('Waiting for JWT claims to be available...');
