@@ -29,6 +29,7 @@ interface WorkRequestFormProps {
 }
 
 export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) => {
+  const NO_LOCATION_VALUE = '__no_location__';
   const { data: categories = [], isLoading: loadingCategories } = useWorkRequestCategories();
   const createRequest = useCreateWorkRequest();
   
@@ -173,14 +174,17 @@ export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) =
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Location (optional)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <Select
+                      onValueChange={(val) => field.onChange(val === NO_LOCATION_VALUE ? '' : val)}
+                      value={field.value ? field.value : NO_LOCATION_VALUE}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a location" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Not specified</SelectItem>
+                        <SelectItem value={NO_LOCATION_VALUE}>Not specified</SelectItem>
                         {locations.map((loc) => (
                           <SelectItem key={loc.id} value={loc.id}>
                             {loc.name}
