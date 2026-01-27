@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarGroup, SidebarGroupLabel, SidebarGroupContent } from '@/components/ui/sidebar';
-import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText, BookOpen, FolderOpen, ChevronDown, ChevronRight, Mail, Shield } from 'lucide-react';
+import { Home, Wrench, Package, Calendar, BarChart3, Tag, Users, Settings, Cog, Building2, FileText, Briefcase, MapPin, ScrollText, BookOpen, FolderOpen, ChevronDown, ChevronRight, Mail, Shield, ClipboardList, ClipboardCheck } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
@@ -43,11 +43,19 @@ export const AppSidebar = () => {
     label: 'Address Book',
     href: '/address-book'
   }, {
+    icon: ClipboardList,
+    label: 'Submit Request',
+    href: '/portal'
+  }, {
     icon: BarChart3,
     label: 'Reports',
     href: '/reports'
   }];
   const adminItems = [{
+    icon: ClipboardCheck,
+    label: 'Work Requests',
+    href: '/admin/work-requests'
+  }, {
     icon: Users,
     label: 'User Management',
     href: '/users'

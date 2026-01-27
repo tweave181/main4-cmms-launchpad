@@ -2936,6 +2936,129 @@ export type Database = {
           },
         ]
       }
+      work_request_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_request_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_requests: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          location_description: string | null
+          location_id: string | null
+          priority: string
+          rejection_reason: string | null
+          request_number: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_by: string
+          tenant_id: string
+          title: string
+          updated_at: string
+          work_order_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          location_description?: string | null
+          location_id?: string | null
+          priority?: string
+          rejection_reason?: string | null
+          request_number: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+          work_order_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          location_description?: string | null
+          location_id?: string | null
+          priority?: string
+          rejection_reason?: string | null
+          request_number?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_requests_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_requests_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       asset_hierarchy: {
@@ -3037,6 +3160,7 @@ export type Database = {
         Returns: string
       }
       generate_work_order_number: { Args: never; Returns: string }
+      generate_work_request_number: { Args: never; Returns: string }
       get_current_user_tenant_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -3056,6 +3180,7 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_admin_in_tenant: { Args: never; Returns: boolean }
       is_current_user_admin: { Args: never; Returns: boolean }
+      is_current_user_admin_or_manager: { Args: never; Returns: boolean }
       is_system_admin: { Args: never; Returns: boolean }
       is_test_site_user: { Args: never; Returns: boolean }
       remove_system_admin_role: {
