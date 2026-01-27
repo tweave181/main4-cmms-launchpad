@@ -71,7 +71,6 @@ function App() {
           <BrowserRouter>
         <AuthProvider>
           <GlobalSettingsProvider>
-              <SessionTimeoutProvider>
                 <AuthNavigationHandler />
                 <ContractNotificationWrapper>
                   <Routes>
@@ -80,76 +79,77 @@ function App() {
                      <Route path="/setup" element={<TenantSetup />} />
                      <Route path="/*" element={
                        <ProtectedRoute>
-                         <AppLayout>
-                           <Routes>
-                              <Route path="/" element={<Index />} />
-                              <Route path="/assets" element={<Assets />} />
-                              <Route path="/assets/bulk" element={<BulkAssetEntry />} />
-                              <Route path="/work-orders" element={<WorkOrders />} />
-              <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/maintenance/:jobId" element={<MaintenanceJobDetail />} />
-              <Route path="/pm/new" element={<PMScheduleDetail />} />
-               <Route path="/pm/:id" element={<PMScheduleDetail />} />
-                <Route path="/admin/checklist-library" element={<ChecklistLibrary />} />
-                <Route path="/admin/checklist-records" element={<ChecklistRecords />} />
-                <Route path="/admin/work-schedules" element={<WorkSchedules />} />
-                   <Route path="/inventory" element={<Inventory />} />
-                 <Route path="/inventory/:id" element={<InventoryPartDetail />} />
-                 <Route path="/inventory/:id/edit" element={<InventoryPartDetail />} />
-                              <Route path="/address-book" element={<AddressBook />} />
-                              <Route path="/address-book/:id" element={<AddressDetail />} />
-                              <Route path="/portal" element={<CustomerPortal />} />
-                              <Route path="/reports" element={<Reports />} />
+                         <SessionTimeoutProvider>
+                           <AppLayout>
+                             <Routes>
+                               <Route path="/" element={<Index />} />
+                               <Route path="/assets" element={<Assets />} />
+                               <Route path="/assets/bulk" element={<BulkAssetEntry />} />
+                               <Route path="/work-orders" element={<WorkOrders />} />
+                               <Route path="/maintenance" element={<Maintenance />} />
+                               <Route path="/maintenance/:jobId" element={<MaintenanceJobDetail />} />
+                               <Route path="/pm/new" element={<PMScheduleDetail />} />
+                               <Route path="/pm/:id" element={<PMScheduleDetail />} />
+                               <Route path="/admin/checklist-library" element={<ChecklistLibrary />} />
+                               <Route path="/admin/checklist-records" element={<ChecklistRecords />} />
+                               <Route path="/admin/work-schedules" element={<WorkSchedules />} />
+                               <Route path="/inventory" element={<Inventory />} />
+                               <Route path="/inventory/:id" element={<InventoryPartDetail />} />
+                               <Route path="/inventory/:id/edit" element={<InventoryPartDetail />} />
+                               <Route path="/address-book" element={<AddressBook />} />
+                               <Route path="/address-book/:id" element={<AddressDetail />} />
+                               <Route path="/portal" element={<CustomerPortal />} />
+                               <Route path="/reports" element={<Reports />} />
                                <Route path="/users" element={<UserManagement />} />
-                                <Route path="/addresses" element={<Addresses />} />
-                                <Route path="/addresses/:id" element={<AddressDetail />} />
-                                <Route path="/test/address-cards" element={<AddressCardTest />} />
+                               <Route path="/addresses" element={<Addresses />} />
+                               <Route path="/addresses/:id" element={<AddressDetail />} />
+                               <Route path="/test/address-cards" element={<AddressCardTest />} />
                                <Route path="/admin/service-contracts" element={<ServiceContracts />} />
                                <Route path="/admin/service-contracts/:id" element={<ServiceContractDetail />} />
                                <Route path="/system-audit-log" element={<SystemAuditLog />} />
-                              <Route path="/settings" element={<AdminSettings />} />
-                              <Route path="/preferences" element={<Preferences />} />
-                              <Route path="/admin/email-logs" element={<EmailLogs />} />
-                              <Route path="/admin/work-requests" element={<WorkRequestsReview />} />
-                              
-                              {/* New Preferences Routes */}
-                              <Route path="/admin/preferences/company" element={<Companies />} />
-                              <Route path="/admin/preferences/departments" element={<Departments />} />
-                              <Route path="/admin/preferences/departments/:id" element={<DepartmentDetails />} />
-                              <Route path="/admin/preferences/job-titles" element={<JobTitles />} />
-                              <Route path="/admin/preferences/job-titles/:id" element={<JobTitleDetails />} />
-                              <Route path="/admin/preferences/location-levels" element={<LocationLevels />} />
-                              <Route path="/admin/preferences/location-levels/:id" element={<LocationLevelDetails />} />
-                              <Route path="/admin/preferences/locations" element={<Locations />} />
-                              <Route path="/admin/preferences/locations/bulk" element={<BulkLocationEntry />} />
+                               <Route path="/settings" element={<AdminSettings />} />
+                               <Route path="/preferences" element={<Preferences />} />
+                               <Route path="/admin/email-logs" element={<EmailLogs />} />
+                               <Route path="/admin/work-requests" element={<WorkRequestsReview />} />
+                               
+                               {/* New Preferences Routes */}
+                               <Route path="/admin/preferences/company" element={<Companies />} />
+                               <Route path="/admin/preferences/departments" element={<Departments />} />
+                               <Route path="/admin/preferences/departments/:id" element={<DepartmentDetails />} />
+                               <Route path="/admin/preferences/job-titles" element={<JobTitles />} />
+                               <Route path="/admin/preferences/job-titles/:id" element={<JobTitleDetails />} />
+                               <Route path="/admin/preferences/location-levels" element={<LocationLevels />} />
+                               <Route path="/admin/preferences/location-levels/:id" element={<LocationLevelDetails />} />
+                               <Route path="/admin/preferences/locations" element={<Locations />} />
+                               <Route path="/admin/preferences/locations/bulk" element={<BulkLocationEntry />} />
                                <Route path="/admin/preferences/categories" element={<CategoryManager />} />
-                                <Route path="/spare-parts-categories" element={<SparePartsCategoryManager />} />
-                                <Route path="/admin/preferences/asset-prefixes" element={<AssetPrefixManager />} />
-                                <Route path="/admin/preferences/asset-prefixes/bulk" element={<BulkPrefixEntry />} />
-                                <Route path="/admin/preferences/frequency-types" element={<FrequencyTypeManager />} />
-                              
-                              {/* System Admin Routes */}
-                              <Route path="/system-admin/tenants" element={<SystemAdminTenants />} />
-                              
-                              {/* Legacy Route Redirects */}
-                              <Route path="/departments" element={<Navigate to="/admin/preferences/departments" replace />} />
-                              <Route path="/departments/:id" element={<Navigate to="/admin/preferences/departments" replace />} />
-                              <Route path="/job-titles" element={<Navigate to="/admin/preferences/job-titles" replace />} />
-                              <Route path="/job-titles/:id" element={<Navigate to="/admin/preferences/job-titles" replace />} />
-                              <Route path="/location-levels" element={<Navigate to="/admin/preferences/location-levels" replace />} />
-                              <Route path="/location-levels/:id" element={<Navigate to="/admin/preferences/location-levels" replace />} />
-                              <Route path="/companies" element={<Navigate to="/admin/preferences/company" replace />} />
-                              <Route path="/locations" element={<Navigate to="/admin/preferences/locations" replace />} />
-                              <Route path="/categories" element={<Navigate to="/admin/preferences/categories" replace />} />
-                              <Route path="/asset-prefixes" element={<Navigate to="/admin/preferences/asset-prefixes" replace />} />
-                             <Route path="*" element={<NotFound />} />
-                           </Routes>
-                         </AppLayout>
+                               <Route path="/spare-parts-categories" element={<SparePartsCategoryManager />} />
+                               <Route path="/admin/preferences/asset-prefixes" element={<AssetPrefixManager />} />
+                               <Route path="/admin/preferences/asset-prefixes/bulk" element={<BulkPrefixEntry />} />
+                               <Route path="/admin/preferences/frequency-types" element={<FrequencyTypeManager />} />
+                               
+                               {/* System Admin Routes */}
+                               <Route path="/system-admin/tenants" element={<SystemAdminTenants />} />
+                               
+                               {/* Legacy Route Redirects */}
+                               <Route path="/departments" element={<Navigate to="/admin/preferences/departments" replace />} />
+                               <Route path="/departments/:id" element={<Navigate to="/admin/preferences/departments" replace />} />
+                               <Route path="/job-titles" element={<Navigate to="/admin/preferences/job-titles" replace />} />
+                               <Route path="/job-titles/:id" element={<Navigate to="/admin/preferences/job-titles" replace />} />
+                               <Route path="/location-levels" element={<Navigate to="/admin/preferences/location-levels" replace />} />
+                               <Route path="/location-levels/:id" element={<Navigate to="/admin/preferences/location-levels" replace />} />
+                               <Route path="/companies" element={<Navigate to="/admin/preferences/company" replace />} />
+                               <Route path="/locations" element={<Navigate to="/admin/preferences/locations" replace />} />
+                               <Route path="/categories" element={<Navigate to="/admin/preferences/categories" replace />} />
+                               <Route path="/asset-prefixes" element={<Navigate to="/admin/preferences/asset-prefixes" replace />} />
+                               <Route path="*" element={<NotFound />} />
+                             </Routes>
+                           </AppLayout>
+                         </SessionTimeoutProvider>
                        </ProtectedRoute>
                      } />
                     </Routes>
                   </ContractNotificationWrapper>
-                </SessionTimeoutProvider>
           </GlobalSettingsProvider>
         </AuthProvider>
           </BrowserRouter>
