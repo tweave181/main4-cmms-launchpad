@@ -55,6 +55,8 @@ import EmailLogs from "./pages/EmailLogs";
 import WorkSchedules from "./pages/WorkSchedules";
 import FrequencyTypeManager from "./pages/FrequencyTypeManager";
 import SystemAdminTenants from "./pages/SystemAdminTenants";
+import CustomerPortal from "./pages/CustomerPortal";
+import WorkRequestsReview from "./pages/WorkRequestsReview";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -96,6 +98,7 @@ function App() {
                  <Route path="/inventory/:id/edit" element={<InventoryPartDetail />} />
                               <Route path="/address-book" element={<AddressBook />} />
                               <Route path="/address-book/:id" element={<AddressDetail />} />
+                              <Route path="/portal" element={<CustomerPortal />} />
                               <Route path="/reports" element={<Reports />} />
                                <Route path="/users" element={<UserManagement />} />
                                 <Route path="/addresses" element={<Addresses />} />
@@ -107,6 +110,7 @@ function App() {
                               <Route path="/settings" element={<AdminSettings />} />
                               <Route path="/preferences" element={<Preferences />} />
                               <Route path="/admin/email-logs" element={<EmailLogs />} />
+                              <Route path="/admin/work-requests" element={<WorkRequestsReview />} />
                               
                               {/* New Preferences Routes */}
                               <Route path="/admin/preferences/company" element={<Companies />} />
