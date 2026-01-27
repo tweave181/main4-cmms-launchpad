@@ -255,10 +255,9 @@ export const WorkRequestReviewCard: React.FC<WorkRequestReviewCardProps> = ({ re
                 <Label>Assign To</Label>
                 <Select value={assignedTo} onValueChange={setAssignedTo}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select user" />
+                    <SelectValue placeholder="Unassigned" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
                     {users.map((u) => (
                       <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
                     ))}
