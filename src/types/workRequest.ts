@@ -1,3 +1,5 @@
+import { Customer } from './customer';
+
 export type WorkRequestPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type WorkRequestStatus = 'pending' | 'approved' | 'rejected' | 'converted';
 
@@ -11,7 +13,8 @@ export interface WorkRequest {
   priority: WorkRequestPriority;
   location_id?: string | null;
   location_description?: string | null;
-  submitted_by: string;
+  submitted_by?: string | null;
+  customer_id?: string | null;
   status: WorkRequestStatus;
   rejection_reason?: string | null;
   reviewed_by?: string | null;
@@ -22,6 +25,7 @@ export interface WorkRequest {
   // Joined data
   location?: { name: string } | null;
   submitter?: { name: string; email: string } | null;
+  customer?: Customer | null;
   reviewer?: { name: string } | null;
   work_order?: { work_order_number: string } | null;
 }
@@ -44,6 +48,7 @@ export interface WorkRequestFormData {
   priority?: WorkRequestPriority;
   location_id?: string;
   location_description?: string;
+  customer_id?: string;
 }
 
 export interface WorkRequestFilters {

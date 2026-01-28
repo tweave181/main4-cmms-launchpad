@@ -990,6 +990,93 @@ export type Database = {
           },
         ]
       }
+      customers: {
+        Row: {
+          created_at: string
+          department_id: string | null
+          email: string | null
+          id: string
+          is_active: boolean
+          job_title_id: string | null
+          name: string
+          password_hash: string
+          phone: string | null
+          phone_extension: string | null
+          reports_to: string | null
+          tenant_id: string
+          updated_at: string
+          work_area_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          department_id?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          job_title_id?: string | null
+          name: string
+          password_hash: string
+          phone?: string | null
+          phone_extension?: string | null
+          reports_to?: string | null
+          tenant_id: string
+          updated_at?: string
+          work_area_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          department_id?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          job_title_id?: string | null
+          name?: string
+          password_hash?: string
+          phone?: string | null
+          phone_extension?: string | null
+          reports_to?: string | null
+          tenant_id?: string
+          updated_at?: string
+          work_area_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_job_title_id_fkey"
+            columns: ["job_title_id"]
+            isOneToOne: false
+            referencedRelation: "job_titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_reports_to_fkey"
+            columns: ["reports_to"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_work_area_id_fkey"
+            columns: ["work_area_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       department_audit_log: {
         Row: {
           action: string
@@ -2981,6 +3068,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          customer_id: string | null
           description: string
           id: string
           location_description: string | null
@@ -3000,6 +3088,7 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string
+          customer_id?: string | null
           description: string
           id?: string
           location_description?: string | null
@@ -3019,6 +3108,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          customer_id?: string | null
           description?: string
           id?: string
           location_description?: string | null
@@ -3036,6 +3126,13 @@ export type Database = {
           work_order_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "work_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "work_requests_location_id_fkey"
             columns: ["location_id"]

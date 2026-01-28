@@ -57,7 +57,14 @@ export const useWorkRequests = (filters?: WorkRequestFilters) => {
         .select(`
           *,
           location:locations(name),
-          work_order:work_orders(work_order_number)
+          work_order:work_orders(work_order_number),
+          customer:customers(
+            id, name, email, phone, phone_extension,
+            department:departments(name),
+            job_title:job_titles(title_name),
+            work_area:locations(name),
+            supervisor:customers!customers_reports_to_fkey(name)
+          )
         `)
         .order('created_at', { ascending: false });
       
@@ -119,7 +126,8 @@ export const useCreateWorkRequest = () => {
         .from('work_requests')
         .insert({
           tenant_id: userProfile.tenant_id,
-          submitted_by: user.id,
+          submitted_by: formData.customer_id ? null : user.id,
+          customer_id: formData.customer_id || null,
           title: formData.title,
           description: formData.description,
           category: formData.category,

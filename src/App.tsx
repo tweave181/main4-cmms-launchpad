@@ -57,6 +57,9 @@ import FrequencyTypeManager from "./pages/FrequencyTypeManager";
 import SystemAdminTenants from "./pages/SystemAdminTenants";
 import CustomerPortal from "./pages/CustomerPortal";
 import WorkRequestsReview from "./pages/WorkRequestsReview";
+import CustomerLogin from "./pages/CustomerLogin";
+import CustomerManagement from "./pages/CustomerManagement";
+import { CustomerAuthProvider } from "./contexts/CustomerAuthContext";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,10 +76,12 @@ function App() {
           <GlobalSettingsProvider>
                 <AuthNavigationHandler />
                 <ContractNotificationWrapper>
-                  <Routes>
-                     <Route path="/auth" element={<AuthPage />} />
-                     <Route path="/auth/callback" element={<AuthCallback />} />
-                     <Route path="/setup" element={<TenantSetup />} />
+                  <CustomerAuthProvider>
+                    <Routes>
+                       <Route path="/auth" element={<AuthPage />} />
+                       <Route path="/auth/callback" element={<AuthCallback />} />
+                       <Route path="/setup" element={<TenantSetup />} />
+                       <Route path="/customer-login" element={<CustomerLogin />} />
                      <Route path="/*" element={
                        <ProtectedRoute>
                          <SessionTimeoutProvider>
@@ -110,8 +115,9 @@ function App() {
                                <Route path="/settings" element={<AdminSettings />} />
                                <Route path="/preferences" element={<Preferences />} />
                                <Route path="/admin/email-logs" element={<EmailLogs />} />
-                               <Route path="/admin/work-requests" element={<WorkRequestsReview />} />
-                               
+                                <Route path="/admin/work-requests" element={<WorkRequestsReview />} />
+                                <Route path="/admin/customers" element={<CustomerManagement />} />
+                                
                                {/* New Preferences Routes */}
                                <Route path="/admin/preferences/company" element={<Companies />} />
                                <Route path="/admin/preferences/departments" element={<Departments />} />
@@ -148,7 +154,8 @@ function App() {
                          </SessionTimeoutProvider>
                        </ProtectedRoute>
                      } />
-                    </Routes>
+                      </Routes>
+                    </CustomerAuthProvider>
                   </ContractNotificationWrapper>
           </GlobalSettingsProvider>
         </AuthProvider>

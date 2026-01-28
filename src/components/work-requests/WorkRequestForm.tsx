@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useWorkRequestCategories, useCreateWorkRequest } from '@/hooks/useWorkRequests';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCustomerAuth } from '@/contexts/CustomerAuthContext';
 import { Loader2, Send } from 'lucide-react';
 
 const formSchema = z.object({
@@ -32,6 +33,7 @@ export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) =
   const NO_LOCATION_VALUE = '__no_location__';
   const { data: categories = [], isLoading: loadingCategories } = useWorkRequestCategories();
   const createRequest = useCreateWorkRequest();
+  const { customer, isAuthenticated: isCustomerAuth } = useCustomerAuth();
   
   const { data: locations = [] } = useQuery({
     queryKey: ['locations-simple'],
@@ -65,6 +67,8 @@ export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) =
       priority: data.priority,
       location_id: data.location_id || undefined,
       location_description: data.location_description || undefined,
+      // Include customer_id if customer is logged in
+      customer_id: isCustomerAuth && customer ? customer.id : undefined,
     });
     form.reset();
     onSuccess?.();
@@ -77,6 +81,11 @@ export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) =
           <Send className="h-5 w-5" />
           Submit a Work Request
         </CardTitle>
+        {isCustomerAuth && customer && (
+          <p className="text-sm text-muted-foreground">
+            Submitting as: <strong>{customer.name}</strong>
+          </p>
+        )}
       </CardHeader>
       <CardContent>
         <Form {...form}>
