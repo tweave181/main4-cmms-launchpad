@@ -57,6 +57,10 @@ export const AppSidebar = () => {
     href: '/admin/work-requests'
   }, {
     icon: Users,
+    label: 'Customer Management',
+    href: '/admin/customers'
+  }, {
+    icon: Users,
     label: 'User Management',
     href: '/users'
   }, {
