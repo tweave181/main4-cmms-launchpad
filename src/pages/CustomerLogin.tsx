@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Lock, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import CustomerSignupForm from '@/components/customers/CustomerSignupForm';
 
 const CustomerLogin: React.FC = () => {
   const [name, setName] = useState('');
@@ -17,6 +18,7 @@ const CustomerLogin: React.FC = () => {
   const [tenants, setTenants] = useState<{ id: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingTenants, setIsLoadingTenants] = useState(true);
+  const [showSignup, setShowSignup] = useState(false);
 
   const { login, isAuthenticated } = useCustomerAuth();
   const navigate = useNavigate();
@@ -92,6 +94,15 @@ const CustomerLogin: React.FC = () => {
     setIsLoading(false);
   };
 
+  // Show signup form if toggled
+  if (showSignup && tenantId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <CustomerSignupForm tenantId={tenantId} onBackToLogin={() => setShowSignup(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -163,6 +174,25 @@ const CustomerLogin: React.FC = () => {
               ) : (
                 'Sign In'
               )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => {
+                if (!tenantId) {
+                  toast({
+                    title: 'Select Organization',
+                    description: 'Please select your organization first.',
+                    variant: 'destructive',
+                  });
+                  return;
+                }
+                setShowSignup(true);
+              }}
+              className="w-full"
+            >
+              Don't have an account? Sign up
             </Button>
           </form>
         </CardContent>

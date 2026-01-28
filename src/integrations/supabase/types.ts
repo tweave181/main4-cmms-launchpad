@@ -995,6 +995,7 @@ export type Database = {
           created_at: string
           department_id: string | null
           email: string | null
+          email_verified: boolean
           id: string
           is_active: boolean
           job_title_id: string | null
@@ -1005,12 +1006,15 @@ export type Database = {
           reports_to: string | null
           tenant_id: string
           updated_at: string
+          verification_token: string | null
+          verification_token_expires_at: string | null
           work_area_id: string | null
         }
         Insert: {
           created_at?: string
           department_id?: string | null
           email?: string | null
+          email_verified?: boolean
           id?: string
           is_active?: boolean
           job_title_id?: string | null
@@ -1021,12 +1025,15 @@ export type Database = {
           reports_to?: string | null
           tenant_id: string
           updated_at?: string
+          verification_token?: string | null
+          verification_token_expires_at?: string | null
           work_area_id?: string | null
         }
         Update: {
           created_at?: string
           department_id?: string | null
           email?: string | null
+          email_verified?: boolean
           id?: string
           is_active?: boolean
           job_title_id?: string | null
@@ -1037,6 +1044,8 @@ export type Database = {
           reports_to?: string | null
           tenant_id?: string
           updated_at?: string
+          verification_token?: string | null
+          verification_token_expires_at?: string | null
           work_area_id?: string | null
         }
         Relationships: [
