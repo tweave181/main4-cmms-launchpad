@@ -1,285 +1,131 @@
 
-
-## Customer Portal: Work Request Submission System
+## Separate Customer Table for Work Request Submitters
 
 ### Overview
+You want to create a dedicated **customers** table for people who submit work requests. These users:
+- Will only access the portal/submit request area
+- Use their name as their username (simpler login)
+- Have a complete profile for audit trail purposes
 
-Create a customer portal where authenticated users within an organization can submit work requests for issues like equipment breakdowns, environmental problems (heating, blocked toilets), plumbing issues, and safety hazards. Requests go to a review queue where staff can approve and convert them to work orders.
-
----
-
-### Architecture Summary
-
-```text
-+-------------------+     +----------------------+     +------------------+
-|  Customer Portal  | --> |   work_requests      | --> |  Review Queue    |
-|  (Logged-in User) |     |   (New Table)        |     |  (Admin Page)    |
-+-------------------+     +----------------------+     +------------------+
-                                    |
-                                    v
-                          +------------------+
-                          |   work_orders    |
-                          |   (Existing)     |
-                          +------------------+
-```
+This separates "internal staff" (admins, managers, technicians) from "customers/requesters" who only submit work requests.
 
 ---
 
-### Database Design
+### What We Will Build
 
-#### New Table: `work_requests`
+**1. New Database Table: `customers`**
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | uuid | Primary key |
-| tenant_id | uuid | Tenant reference (required) |
-| request_number | text | Auto-generated (e.g., "REQ-001") |
-| title | text | Brief summary of issue |
-| description | text | Detailed description |
-| category | text | Equipment Breakdown, Environmental Issues, Plumbing/Water, Safety Hazard, General, Other |
-| priority | text | low, medium, high, urgent (default: medium) |
-| location_id | uuid | Optional link to locations table |
-| location_description | text | Free-text location if not in system |
-| submitted_by | uuid | User who submitted (from auth) |
-| status | text | pending, approved, rejected, converted |
-| reviewed_by | uuid | Admin who reviewed |
-| reviewed_at | timestamptz | When reviewed |
-| work_order_id | uuid | Link to created work order (after conversion) |
-| created_at | timestamptz | Submission time |
-| updated_at | timestamptz | Last update time |
+| tenant_id | uuid | Multi-tenant isolation |
+| name | text | Full name (also serves as username) |
+| email | text | Contact email |
+| phone | text | Phone number |
+| phone_extension | text | Internal extension |
+| department_id | uuid | FK to departments table |
+| job_title_id | uuid | FK to job_titles table |
+| work_area_id | uuid | FK to locations table |
+| reports_to | uuid | FK to customers table (supervisor) |
+| password_hash | text | Hashed password for login |
+| is_active | boolean | Account status |
+| created_at | timestamp | Record creation |
+| updated_at | timestamp | Last update |
 
-#### New Table: `work_request_categories`
+**2. Separate Customer Authentication**
+- New login page at `/customer-login` specifically for customers
+- Simple login: name + password (no email-based Supabase auth)
+- Session stored in app state (not Supabase auth)
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | Primary key |
-| tenant_id | uuid | Tenant reference |
-| name | text | Category name |
-| description | text | Category description |
-| icon | text | Icon identifier (optional) |
-| is_active | boolean | Whether category is available |
-| sort_order | integer | Display order |
-| created_at | timestamptz | Creation time |
+**3. Customer Portal Access**
+- Route `/portal` will detect customer vs staff login
+- Customers can only see the submit request page and their own requests
+- No access to admin areas
 
-#### RLS Policies for `work_requests`
+**4. Work Request Updates**
+- Change `submitted_by` in `work_requests` to reference `customers` table instead of `users`
+- OR add a new column `customer_id` to track customer submissions separately
 
-```sql
--- Users can view their own requests
-CREATE POLICY "Users can view own requests"
-ON work_requests FOR SELECT
-USING (tenant_id = get_current_user_tenant_id() AND submitted_by = auth.uid());
-
--- Admins/Managers can view all requests in tenant
-CREATE POLICY "Staff can view all tenant requests"
-ON work_requests FOR SELECT
-USING (tenant_id = get_current_user_tenant_id() AND is_current_user_admin_or_manager());
-
--- Users can create requests in their tenant
-CREATE POLICY "Users can submit requests"
-ON work_requests FOR INSERT
-WITH CHECK (tenant_id = get_current_user_tenant_id());
-
--- Only staff can update requests
-CREATE POLICY "Staff can update requests"
-ON work_requests FOR UPDATE
-USING (tenant_id = get_current_user_tenant_id() AND is_current_user_admin_or_manager());
-```
+**5. Admin Review Enhancement**
+- Display full customer profile on review cards
+- Show department, job title, work area, supervisor
 
 ---
 
-### Implementation Components
+### Recommended Approach: Dual Submitter Support
 
-#### 1. Navigation and Routes
+Since you may want both staff AND customers to submit requests, I recommend:
 
-**New Route:** `/portal` or `/work-requests`
+| Column | Purpose |
+|--------|---------|
+| submitted_by | UUID - for staff (existing `users` table) |
+| customer_id | UUID - for customers (new `customers` table) |
 
-Add to `App.tsx`:
-```typescript
-<Route path="/portal" element={<CustomerPortal />} />
-<Route path="/admin/work-requests" element={<WorkRequestsReview />} />
-```
-
-Add to navigation menu:
-- "Submit Request" link for all users
-- "Work Requests" link for admins/managers in Admin menu
+This way:
+- Staff can still submit requests using their regular login
+- Customers use the new customer login
+- RLS policies can handle both scenarios
 
 ---
 
-#### 2. Customer Portal Page (`src/pages/CustomerPortal.tsx`)
+### Files to Create/Modify
 
-A user-friendly page for submitting work requests:
-
-**UI Components:**
-- Header with branding and user info
-- Category selection cards (visual icons for each category)
-- Simple form with:
-  - Title (required)
-  - Description (required)
-  - Category dropdown
-  - Priority selector (optional, defaults to medium)
-  - Location selector or free-text
-  - Optional photo upload capability
-- Submit button
-- "My Requests" section showing user's submitted requests
-
-**Features:**
-- Mobile-friendly responsive design
-- Clear, simple language (not technical)
-- Confirmation message after submission
-- Ability to view status of previous requests
-
----
-
-#### 3. Work Requests Review Page (`src/pages/WorkRequestsReview.tsx`)
-
-Admin page for reviewing submitted requests:
-
-**UI Components:**
-- Filters: Status (Pending/Approved/Rejected), Category, Date range
-- Table/Card list of requests showing:
-  - Request number
-  - Title
-  - Category
-  - Submitted by
-  - Date
-  - Status badge
-- Detail panel/modal showing:
-  - Full request details
-  - Submitted by info
-  - Action buttons: Approve, Reject, Convert to Work Order
-
-**Workflow:**
-1. Admin clicks on pending request
-2. Reviews details
-3. Can either:
-   - **Approve**: Mark as approved (request stays in queue for later conversion)
-   - **Reject**: Mark as rejected with optional reason
-   - **Convert to Work Order**: Opens pre-filled work order form, creates work order, links to request
-
----
-
-#### 4. Data Hook (`src/hooks/useWorkRequests.ts`)
-
-```typescript
-// Queries
-- useWorkRequests(filters?) - fetch requests with filtering
-- useMyWorkRequests() - fetch current user's requests only
-- useWorkRequestCategories() - fetch available categories
-
-// Mutations
-- useCreateWorkRequest() - submit new request
-- useUpdateWorkRequest() - update request status
-- useConvertToWorkOrder() - create work order from request
-```
-
----
-
-#### 5. Types (`src/types/workRequest.ts`)
-
-```typescript
-export interface WorkRequest {
-  id: string;
-  tenant_id: string;
-  request_number: string;
-  title: string;
-  description: string;
-  category: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  location_id?: string;
-  location_description?: string;
-  submitted_by: string;
-  status: 'pending' | 'approved' | 'rejected' | 'converted';
-  reviewed_by?: string;
-  reviewed_at?: string;
-  work_order_id?: string;
-  created_at: string;
-  updated_at: string;
-  // Joined data
-  location?: { name: string } | null;
-  submitter?: { name: string; email: string } | null;
-  reviewer?: { name: string } | null;
-  work_order?: { work_order_number: string } | null;
-}
-
-export interface WorkRequestCategory {
-  id: string;
-  tenant_id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  is_active: boolean;
-  sort_order: number;
-}
-
-export interface WorkRequestFormData {
-  title: string;
-  description: string;
-  category: string;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  location_id?: string;
-  location_description?: string;
-}
-```
-
----
-
-### Default Request Categories
-
-When a tenant is created, seed these default categories:
-
-| Name | Description | Icon |
-|------|-------------|------|
-| Equipment Breakdown | Machinery, lifts, doors, electrical equipment failures | wrench |
-| Environmental Issues | Heating, cooling, ventilation, lighting problems | thermometer |
-| Plumbing / Water | Blocked toilets, leaks, drainage issues | droplet |
-| Safety Hazard | Trip hazards, damaged fixtures, urgent safety concerns | alert-triangle |
-| Cleaning | Spillage, mess, cleaning required | sparkles |
-| General Maintenance | Other maintenance requests | hammer |
-| Other | Requests that don't fit other categories | help-circle |
-
----
-
-### Files to Create
-
-| File | Purpose |
-|------|---------|
-| `src/pages/CustomerPortal.tsx` | Main portal page for submitting requests |
-| `src/pages/WorkRequestsReview.tsx` | Admin review queue page |
-| `src/types/workRequest.ts` | TypeScript interfaces |
-| `src/hooks/useWorkRequests.ts` | Data fetching and mutations |
-| `src/components/work-requests/WorkRequestForm.tsx` | Form component for submissions |
-| `src/components/work-requests/WorkRequestCard.tsx` | Card display component |
-| `src/components/work-requests/WorkRequestDetail.tsx` | Detail view component |
-| `src/components/work-requests/WorkRequestFilters.tsx` | Filter controls |
-| `src/components/work-requests/ConvertToWorkOrderModal.tsx` | Conversion dialog |
-| `src/components/work-requests/CategorySelector.tsx` | Visual category picker |
-
----
-
-### Files to Modify
-
-| File | Change |
+| File | Action |
 |------|--------|
-| `src/App.tsx` | Add portal and admin routes |
-| `src/components/layout/Sidebar.tsx` | Add navigation links |
-| Database migration | Create tables, RLS policies, seed categories |
+| **Database Migration** | Create `customers` table with all profile fields |
+| `src/types/customer.ts` | NEW - Customer type definitions |
+| `src/hooks/useCustomers.ts` | NEW - CRUD hooks for customers |
+| `src/contexts/CustomerAuthContext.tsx` | NEW - Customer authentication context |
+| `src/pages/CustomerLogin.tsx` | NEW - Customer login page |
+| `src/pages/CustomerPortal.tsx` | UPDATE - Support customer auth |
+| `src/components/work-requests/WorkRequestForm.tsx` | UPDATE - Capture customer_id |
+| `src/components/work-requests/WorkRequestReviewCard.tsx` | UPDATE - Display customer details |
+| `src/hooks/useWorkRequests.ts` | UPDATE - Handle customer submissions |
+| `src/App.tsx` | UPDATE - Add customer routes |
+
+---
+
+### Customer Management Admin Page
+
+We will also create an admin page to manage customers:
+- Add/edit/deactivate customers
+- Set their department, job title, work area
+- Set who they report to
+- Reset passwords
 
 ---
 
 ### Security Considerations
 
-1. **RLS Policies**: Regular users only see their own requests; admins/managers see all tenant requests
-2. **Tenant Isolation**: All requests scoped to tenant_id
-3. **Input Validation**: Zod schema validation on form inputs
-4. **Role-Based Access**: Only admin/manager roles can review and convert requests
+| Aspect | Implementation |
+|--------|----------------|
+| Password storage | Hashed using bcrypt (Edge Function) |
+| RLS Policies | Customers can only see their own requests |
+| Session management | Separate from Supabase auth |
+| Admin access | Only admins can manage customer accounts |
 
 ---
 
-### Future Enhancements (Not in Initial Scope)
+### Technical Details
 
-- Email notifications when request status changes
-- Photo/attachment uploads
-- QR code generation for quick access links
-- Request templates for common issues
-- Auto-assignment rules based on category
+**Customer Login Flow:**
+```
+1. Customer enters name + password on /customer-login
+2. Edge Function validates credentials
+3. Returns customer profile on success
+4. CustomerAuthContext stores session
+5. Portal components check customer context
+```
 
+**Work Request Submission:**
+- If customer is logged in: set `customer_id` on request
+- If staff is logged in: set `submitted_by` (existing behavior)
+- RLS policies updated to allow both types
+
+**Admin Review Display:**
+Shows customer profile with:
+- Name, email, phone + extension
+- Department name
+- Job title
+- Work area location
+- Supervisor name (from reports_to)
