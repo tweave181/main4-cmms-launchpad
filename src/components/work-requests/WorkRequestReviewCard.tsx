@@ -8,9 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useUpdateWorkRequest, useConvertToWorkOrder } from '@/hooks/useWorkRequests';
 import { format } from 'date-fns';
-import { CheckCircle, XCircle, ArrowRight, Clock, User, MapPin, AlertTriangle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowRight, Clock, User, MapPin, Loader2, ChevronDown, Building2, Briefcase, Phone, Mail, UserCheck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -81,7 +82,12 @@ export const WorkRequestReviewCard: React.FC<WorkRequestReviewCardProps> = ({ re
   };
   
   const isPending = request.status === 'pending';
+  const [showRequesterDetails, setShowRequesterDetails] = useState(false);
   
+  // Determine requester info - either customer or staff submitter
+  const requesterName = request.customer?.name || request.submitter?.name || 'Unknown';
+  const requesterEmail = request.customer?.email || request.submitter?.email;
+  const isCustomerSubmission = !!request.customer;
   return (
     <>
       <Card className="hover:shadow-md transition-shadow">
@@ -105,10 +111,62 @@ export const WorkRequestReviewCard: React.FC<WorkRequestReviewCardProps> = ({ re
               <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{request.description}</p>
               
               <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-                <span className="flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  {request.submitter?.name || 'Unknown'}
-                </span>
+                <Collapsible open={showRequesterDetails} onOpenChange={setShowRequesterDetails}>
+                  <CollapsibleTrigger asChild>
+                    <button className="flex items-center gap-1 hover:text-foreground transition-colors">
+                      <User className="h-3 w-3" />
+                      {requesterName}
+                      {isCustomerSubmission && <Badge variant="outline" className="text-[10px] ml-1">Customer</Badge>}
+                      <ChevronDown className={`h-3 w-3 transition-transform ${showRequesterDetails ? 'rotate-180' : ''}`} />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2 p-3 bg-muted/50 rounded-lg w-full">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                      {requesterEmail && (
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          <a href={`mailto:${requesterEmail}`} className="hover:underline">{requesterEmail}</a>
+                        </div>
+                      )}
+                      {request.customer && (
+                        <>
+                          {(request.customer.phone || request.customer.phone_extension) && (
+                            <div className="flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              {request.customer.phone}
+                              {request.customer.phone_extension && ` ext. ${request.customer.phone_extension}`}
+                            </div>
+                          )}
+                          {request.customer.department?.name && (
+                            <div className="flex items-center gap-1">
+                              <Building2 className="h-3 w-3" />
+                              {request.customer.department.name}
+                            </div>
+                          )}
+                          {request.customer.job_title?.title_name && (
+                            <div className="flex items-center gap-1">
+                              <Briefcase className="h-3 w-3" />
+                              {request.customer.job_title.title_name}
+                            </div>
+                          )}
+                          {request.customer.work_area?.name && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              Work Area: {request.customer.work_area.name}
+                            </div>
+                          )}
+                          {request.customer.supervisor?.name && (
+                            <div className="flex items-center gap-1">
+                              <UserCheck className="h-3 w-3" />
+                              Reports to: {request.customer.supervisor.name}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                
                 {(request.location?.name || request.location_description) && (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
