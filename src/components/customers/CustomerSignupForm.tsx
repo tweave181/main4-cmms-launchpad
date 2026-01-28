@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,13 @@ const CustomerSignupForm: React.FC<CustomerSignupFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
+
+  // Auto-select tenant if only one is available
+  useEffect(() => {
+    if (!tenantId && tenants.length === 1) {
+      onTenantChange(tenants[0].id);
+    }
+  }, [tenantId, tenants, onTenantChange]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
