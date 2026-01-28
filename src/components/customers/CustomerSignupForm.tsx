@@ -3,16 +3,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Lock, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Loader2, User, Lock, Mail, ArrowLeft, CheckCircle, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CustomerSignupFormProps {
   tenantId: string;
+  tenants: { id: string; name: string }[];
+  isLoadingTenants: boolean;
+  onTenantChange: (tenantId: string) => void;
   onBackToLogin: () => void;
 }
 
-const CustomerSignupForm: React.FC<CustomerSignupFormProps> = ({ tenantId, onBackToLogin }) => {
+const CustomerSignupForm: React.FC<CustomerSignupFormProps> = ({ 
+  tenantId, 
+  tenants, 
+  isLoadingTenants, 
+  onTenantChange,
+  onBackToLogin 
+}) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,6 +33,15 @@ const CustomerSignupForm: React.FC<CustomerSignupFormProps> = ({ tenantId, onBac
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!tenantId) {
+      toast({
+        title: 'Missing Organization',
+        description: 'Please select your organization.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     if (!name.trim() || !email.trim() || !password) {
       toast({
@@ -125,6 +144,25 @@ const CustomerSignupForm: React.FC<CustomerSignupFormProps> = ({ tenantId, onBac
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {tenants.length > 1 && (
+            <div className="space-y-2">
+              <Label htmlFor="tenant">Organization</Label>
+              <Select value={tenantId} onValueChange={onTenantChange} disabled={isLoadingTenants}>
+                <SelectTrigger>
+                  <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Select organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tenants.map((tenant) => (
+                    <SelectItem key={tenant.id} value={tenant.id}>
+                      {tenant.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="name">Your Name</Label>
             <div className="relative">

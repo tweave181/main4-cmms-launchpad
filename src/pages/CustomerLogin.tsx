@@ -95,10 +95,16 @@ const CustomerLogin: React.FC = () => {
   };
 
   // Show signup form if toggled
-  if (showSignup && tenantId) {
+  if (showSignup) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <CustomerSignupForm tenantId={tenantId} onBackToLogin={() => setShowSignup(false)} />
+        <CustomerSignupForm 
+          tenantId={tenantId} 
+          tenants={tenants}
+          isLoadingTenants={isLoadingTenants}
+          onTenantChange={setTenantId}
+          onBackToLogin={() => setShowSignup(false)} 
+        />
       </div>
     );
   }
@@ -179,17 +185,7 @@ const CustomerLogin: React.FC = () => {
             <Button
               type="button"
               variant="link"
-              onClick={() => {
-                if (!tenantId) {
-                  toast({
-                    title: 'Select Organization',
-                    description: 'Please select your organization first.',
-                    variant: 'destructive',
-                  });
-                  return;
-                }
-                setShowSignup(true);
-              }}
+              onClick={() => setShowSignup(true)}
               className="w-full"
             >
               Don't have an account? Sign up
