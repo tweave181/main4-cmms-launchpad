@@ -59,6 +59,7 @@ import CustomerPortal from "./pages/CustomerPortal";
 import WorkRequestsReview from "./pages/WorkRequestsReview";
 import CustomerLogin from "./pages/CustomerLogin";
 import CustomerManagement from "./pages/CustomerManagement";
+import VerifyCustomerEmail from "./pages/VerifyCustomerEmail";
 import { CustomerAuthProvider } from "./contexts/CustomerAuthContext";
 import NotFound from "./pages/NotFound";
 
@@ -82,6 +83,7 @@ function App() {
                        <Route path="/auth/callback" element={<AuthCallback />} />
                        <Route path="/setup" element={<TenantSetup />} />
                        <Route path="/customer-login" element={<CustomerLogin />} />
+                       <Route path="/verify-customer-email" element={<VerifyCustomerEmail />} />
                      <Route path="/*" element={
                        <ProtectedRoute>
                          <SessionTimeoutProvider>

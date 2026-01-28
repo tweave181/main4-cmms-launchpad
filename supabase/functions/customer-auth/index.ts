@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,6 +55,14 @@ serve(async (req) => {
         );
       }
 
+      // Check if email is verified
+      if (!customer.email_verified) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Please verify your email before logging in' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+        );
+      }
+
       // Verify password
       const passwordValid = await bcrypt.compare(password, customer.password_hash);
 
@@ -65,13 +74,261 @@ serve(async (req) => {
       }
 
       // Remove password_hash from response
-      const { password_hash, ...safeCustomer } = customer;
+      const { password_hash, verification_token, verification_token_expires_at, ...safeCustomer } = customer;
 
       // Generate simple token (timestamp + customer id)
       const token = btoa(`${customer.id}:${Date.now()}`);
 
       return new Response(
         JSON.stringify({ success: true, customer: safeCustomer, token }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'signup') {
+      const { tenant_id, name, email, password } = body;
+
+      if (!tenant_id || !name || !email || !password) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Name, email and password are required' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Invalid email format' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Check if customer with same name or email already exists
+      const { data: existing } = await supabase
+        .from('customers')
+        .select('id, name, email')
+        .eq('tenant_id', tenant_id)
+        .or(`name.ilike.${name},email.ilike.${email}`)
+        .maybeSingle();
+
+      if (existing) {
+        const errorMsg = existing.email?.toLowerCase() === email.toLowerCase() 
+          ? 'An account with this email already exists'
+          : 'An account with this name already exists';
+        return new Response(
+          JSON.stringify({ success: false, error: errorMsg }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash(password, salt);
+
+      // Generate verification token
+      const verification_token = crypto.randomUUID();
+      const verification_token_expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
+
+      // Create customer
+      const { data: customer, error: createError } = await supabase
+        .from('customers')
+        .insert({
+          tenant_id,
+          name,
+          email,
+          password_hash,
+          verification_token,
+          verification_token_expires_at,
+          email_verified: false,
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating customer:', createError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to create account' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      // Send verification email
+      const resendApiKey = Deno.env.get('RESEND_API_KEY');
+      if (resendApiKey) {
+        const resend = new Resend(resendApiKey);
+        
+        // Get the origin for the verification URL
+        const origin = req.headers.get('origin') || 'https://id-preview--4f5e6a65-aa71-4ffa-b277-e29dddd42aab.lovable.app';
+        const verificationUrl = `${origin}/verify-customer-email?token=${verification_token}`;
+
+        try {
+          await resend.emails.send({
+            from: 'Main4 <noreply@main4.co.uk>',
+            to: [email],
+            subject: 'Verify your email - Customer Portal',
+            html: `
+              <h1>Welcome to the Customer Portal!</h1>
+              <p>Hi ${name},</p>
+              <p>Thank you for signing up. Please verify your email address by clicking the link below:</p>
+              <p><a href="${verificationUrl}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Verify Email</a></p>
+              <p>Or copy and paste this link into your browser:</p>
+              <p>${verificationUrl}</p>
+              <p>This link will expire in 24 hours.</p>
+              <p>If you didn't create this account, you can safely ignore this email.</p>
+            `,
+          });
+          console.log('Verification email sent to:', email);
+        } catch (emailError) {
+          console.error('Failed to send verification email:', emailError);
+          // Don't fail the signup if email fails - they can request a resend
+        }
+      } else {
+        console.warn('RESEND_API_KEY not configured, skipping verification email');
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Account created. Please check your email to verify your account.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'verify_email') {
+      const { token } = body;
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Verification token is required' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Find customer by verification token
+      const { data: customer, error: findError } = await supabase
+        .from('customers')
+        .select('id, email_verified, verification_token_expires_at')
+        .eq('verification_token', token)
+        .maybeSingle();
+
+      if (findError || !customer) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Invalid verification token' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Check if already verified
+      if (customer.email_verified) {
+        return new Response(
+          JSON.stringify({ success: true, message: 'Email already verified' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check if token has expired
+      if (new Date(customer.verification_token_expires_at) < new Date()) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Verification token has expired. Please request a new one.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Verify the email
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          email_verified: true,
+          verification_token: null,
+          verification_token_expires_at: null,
+        })
+        .eq('id', customer.id);
+
+      if (updateError) {
+        console.error('Error verifying email:', updateError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to verify email' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Email verified successfully. You can now log in.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'resend_verification') {
+      const { email, tenant_id } = body;
+
+      if (!email || !tenant_id) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Email and tenant are required' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Find customer
+      const { data: customer, error: findError } = await supabase
+        .from('customers')
+        .select('id, name, email_verified')
+        .eq('tenant_id', tenant_id)
+        .ilike('email', email)
+        .maybeSingle();
+
+      if (findError || !customer) {
+        // Don't reveal whether account exists
+        return new Response(
+          JSON.stringify({ success: true, message: 'If an account exists with this email, a verification link will be sent.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (customer.email_verified) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Email is already verified' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Generate new verification token
+      const verification_token = crypto.randomUUID();
+      const verification_token_expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+      await supabase
+        .from('customers')
+        .update({ verification_token, verification_token_expires_at })
+        .eq('id', customer.id);
+
+      // Send verification email
+      const resendApiKey = Deno.env.get('RESEND_API_KEY');
+      if (resendApiKey) {
+        const resend = new Resend(resendApiKey);
+        const origin = req.headers.get('origin') || 'https://id-preview--4f5e6a65-aa71-4ffa-b277-e29dddd42aab.lovable.app';
+        const verificationUrl = `${origin}/verify-customer-email?token=${verification_token}`;
+
+        try {
+          await resend.emails.send({
+            from: 'Main4 <noreply@main4.co.uk>',
+            to: [email],
+            subject: 'Verify your email - Customer Portal',
+            html: `
+              <h1>Verify Your Email</h1>
+              <p>Hi ${customer.name},</p>
+              <p>Please verify your email address by clicking the link below:</p>
+              <p><a href="${verificationUrl}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Verify Email</a></p>
+              <p>Or copy and paste this link into your browser:</p>
+              <p>${verificationUrl}</p>
+              <p>This link will expire in 24 hours.</p>
+            `,
+          });
+        } catch (emailError) {
+          console.error('Failed to send verification email:', emailError);
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Verification email sent' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -104,6 +361,7 @@ serve(async (req) => {
           reports_to: reports_to || null,
           password_hash,
           is_active: is_active !== false,
+          email_verified: true, // Admin-created accounts are pre-verified
         })
         .select()
         .single();
@@ -118,7 +376,7 @@ serve(async (req) => {
         throw error;
       }
 
-      const { password_hash: _, ...safeCustomer } = customer;
+      const { password_hash: _, verification_token, verification_token_expires_at, ...safeCustomer } = customer;
 
       return new Response(
         JSON.stringify({ success: true, customer: safeCustomer }),
@@ -171,7 +429,7 @@ serve(async (req) => {
         throw error;
       }
 
-      const { password_hash: _, ...safeCustomer } = customer;
+      const { password_hash: _, verification_token, verification_token_expires_at, ...safeCustomer } = customer;
 
       return new Response(
         JSON.stringify({ success: true, customer: safeCustomer }),
