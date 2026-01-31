@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Customer, CustomerSession } from '@/types/customer';
 import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 
 interface CustomerAuthContextType {
   customer: Customer | null;
@@ -39,7 +40,17 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       });
 
       if (error || !data?.success) {
-        return { success: false, error: data?.error || error?.message || 'Login failed' };
+        // Supabase returns non-2xx responses as an error; the JSON body is on error.context.
+        if (error instanceof FunctionsHttpError) {
+          try {
+            const body = await error.context.json();
+            return { success: false, error: body?.error || body?.message || 'Login failed' };
+          } catch {
+            // fall through
+          }
+        }
+
+        return { success: false, error: (data as any)?.error || error?.message || 'Login failed' };
       }
 
       const session: CustomerSession = {
