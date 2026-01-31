@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Customer, CustomerSession } from '@/types/customer';
+import { Customer, CustomerSession, CustomerFormData } from '@/types/customer';
 import { supabase } from '@/integrations/supabase/client';
 import { FunctionsHttpError } from '@supabase/supabase-js';
 
@@ -9,6 +9,7 @@ interface CustomerAuthContextType {
   isAuthenticated: boolean;
   login: (name: string, password: string, tenantId: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  updateProfile: (data: Partial<CustomerFormData>) => Promise<{ success: boolean; error?: string }>;
 }
 
 const CustomerAuthContext = createContext<CustomerAuthContextType | undefined>(undefined);
@@ -72,6 +73,43 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setCustomer(null);
   }, []);
 
+  const updateProfile = useCallback(async (data: Partial<CustomerFormData>) => {
+    if (!customer) {
+      return { success: false, error: 'Not logged in' };
+    }
+
+    try {
+      const { data: result, error } = await supabase.functions.invoke('customer-auth', {
+        body: { action: 'update', customer_id: customer.id, ...data },
+      });
+
+      if (error || !result?.success) {
+        if (error instanceof FunctionsHttpError) {
+          try {
+            const body = await error.context.json();
+            return { success: false, error: body?.error || body?.message || 'Update failed' };
+          } catch {
+            // fall through
+          }
+        }
+        return { success: false, error: (result as any)?.error || error?.message || 'Update failed' };
+      }
+
+      // Update local state and storage with new customer data
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const session: CustomerSession = JSON.parse(stored);
+        session.customer = result.customer;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      }
+      setCustomer(result.customer);
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Update failed' };
+    }
+  }, [customer]);
+
   return (
     <CustomerAuthContext.Provider
       value={{
@@ -80,6 +118,7 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         isAuthenticated: !!customer,
         login,
         logout,
+        updateProfile,
       }}
     >
       {children}

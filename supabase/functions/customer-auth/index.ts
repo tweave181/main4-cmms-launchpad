@@ -505,7 +505,13 @@ serve(async (req) => {
         .from('customers')
         .update(updateData)
         .eq('id', customer_id)
-        .select()
+        .select(`
+          *,
+          department:departments(name),
+          job_title:job_titles(title_name),
+          work_area:locations(name),
+          supervisor:customers!customers_reports_to_fkey(name)
+        `)
         .single();
 
       if (error) {
@@ -522,6 +528,36 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, customer: safeCustomer }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'get_lookup_data') {
+      const { tenant_id } = body;
+
+      if (!tenant_id) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Tenant ID is required' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Fetch departments, job titles, locations, and potential supervisors for the tenant
+      const [departmentsRes, jobTitlesRes, locationsRes, customersRes] = await Promise.all([
+        supabase.from('departments').select('id, name').eq('tenant_id', tenant_id).order('name'),
+        supabase.from('job_titles').select('id, title_name').eq('tenant_id', tenant_id).order('title_name'),
+        supabase.from('locations').select('id, name').eq('tenant_id', tenant_id).order('name'),
+        supabase.from('customers').select('id, name').eq('tenant_id', tenant_id).eq('is_active', true).order('name'),
+      ]);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          departments: departmentsRes.data || [],
+          job_titles: jobTitlesRes.data || [],
+          locations: locationsRes.data || [],
+          customers: customersRes.data || [],
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
