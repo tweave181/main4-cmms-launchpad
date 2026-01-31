@@ -135,7 +135,10 @@ serve(async (req) => {
         .eq('is_active', true)
         .maybeSingle();
 
+      console.log('Login attempt for:', { name, tenant_id, customerFound: !!customer, findError });
+
       if (findError || !customer) {
+        console.log('Customer not found or query error:', findError);
         return new Response(
           JSON.stringify({ success: false, error: 'Invalid credentials' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
@@ -144,6 +147,7 @@ serve(async (req) => {
 
       // Check if email is verified
       if (!customer.email_verified) {
+        console.log('Customer email not verified:', customer.email);
         return new Response(
           JSON.stringify({ success: false, error: 'Please verify your email before logging in' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
@@ -152,6 +156,7 @@ serve(async (req) => {
 
       // Verify password using Web Crypto API
       const passwordValid = await verifyPassword(password, customer.password_hash);
+      console.log('Password verification result:', passwordValid);
 
       if (!passwordValid) {
         return new Response(
