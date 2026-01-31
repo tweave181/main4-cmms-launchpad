@@ -51,7 +51,7 @@ const TenantPortal: React.FC = () => {
     return null;
   };
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated as customer
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/portal');
