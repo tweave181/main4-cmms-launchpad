@@ -2486,6 +2486,7 @@ export type Database = {
           id: string
           is_test_site: boolean
           name: string
+          subdomain: string | null
         }
         Insert: {
           business_type?: string | null
@@ -2493,6 +2494,7 @@ export type Database = {
           id?: string
           is_test_site?: boolean
           name: string
+          subdomain?: string | null
         }
         Update: {
           business_type?: string | null
@@ -2500,6 +2502,7 @@ export type Database = {
           id?: string
           is_test_site?: boolean
           name?: string
+          subdomain?: string | null
         }
         Relationships: []
       }
