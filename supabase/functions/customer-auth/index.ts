@@ -251,7 +251,7 @@ serve(async (req) => {
 
         try {
           await resend.emails.send({
-            from: 'Main4 <noreply@main4.co.uk>',
+            from: 'Main4 <noreply@main4.uk>',
             to: [email],
             subject: 'Verify your email - Customer Portal',
             html: `
@@ -395,7 +395,7 @@ serve(async (req) => {
 
         try {
           await resend.emails.send({
-            from: 'Main4 <noreply@main4.co.uk>',
+            from: 'Main4 <noreply@main4.uk>',
             to: [email],
             subject: 'Verify your email - Customer Portal',
             html: `
