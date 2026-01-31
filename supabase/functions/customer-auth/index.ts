@@ -1,12 +1,99 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Web Crypto API-based password hashing (compatible with Edge Runtime)
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  
+  // Generate a random salt (16 bytes)
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  
+  // Import the password as a key
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  
+  // Derive a key using PBKDF2
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: salt,
+      iterations: 100000,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    256
+  );
+  
+  // Convert to Uint8Array
+  const hashArray = new Uint8Array(derivedBits);
+  
+  // Combine salt and hash, then encode as base64
+  const combined = new Uint8Array(salt.length + hashArray.length);
+  combined.set(salt);
+  combined.set(hashArray, salt.length);
+  
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  try {
+    const encoder = new TextEncoder();
+    
+    // Decode the stored hash
+    const combined = Uint8Array.from(atob(storedHash), c => c.charCodeAt(0));
+    
+    // Extract salt (first 16 bytes) and hash
+    const salt = combined.slice(0, 16);
+    const storedHashBytes = combined.slice(16);
+    
+    // Import the password as a key
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
+    );
+    
+    // Derive the key using the same parameters
+    const derivedBits = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt: salt,
+        iterations: 100000,
+        hash: "SHA-256",
+      },
+      keyMaterial,
+      256
+    );
+    
+    const hashArray = new Uint8Array(derivedBits);
+    
+    // Compare the hashes
+    if (hashArray.length !== storedHashBytes.length) return false;
+    
+    let result = 0;
+    for (let i = 0; i < hashArray.length; i++) {
+      result |= hashArray[i] ^ storedHashBytes[i];
+    }
+    
+    return result === 0;
+  } catch (error) {
+    console.error('Password verification error:', error);
+    return false;
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -63,8 +150,8 @@ serve(async (req) => {
         );
       }
 
-      // Verify password
-      const passwordValid = await bcrypt.compare(password, customer.password_hash);
+      // Verify password using Web Crypto API
+      const passwordValid = await verifyPassword(password, customer.password_hash);
 
       if (!passwordValid) {
         return new Response(
@@ -122,9 +209,8 @@ serve(async (req) => {
         );
       }
 
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const password_hash = await bcrypt.hash(password, salt);
+      // Hash password using Web Crypto API
+      const password_hash = await hashPassword(password);
 
       // Generate verification token
       const verification_token = crypto.randomUUID();
@@ -343,9 +429,8 @@ serve(async (req) => {
         );
       }
 
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const password_hash = await bcrypt.hash(password, salt);
+      // Hash password using Web Crypto API
+      const password_hash = await hashPassword(password);
 
       const { data: customer, error } = await supabase
         .from('customers')
@@ -406,10 +491,9 @@ serve(async (req) => {
       if (reports_to !== undefined) updateData.reports_to = reports_to || null;
       if (is_active !== undefined) updateData.is_active = is_active;
 
-      // Hash new password if provided
+      // Hash new password if provided using Web Crypto API
       if (password) {
-        const salt = await bcrypt.genSalt(10);
-        updateData.password_hash = await bcrypt.hash(password, salt);
+        updateData.password_hash = await hashPassword(password);
       }
 
       const { data: customer, error } = await supabase
@@ -433,6 +517,37 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, customer: safeCustomer }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'get_tenant_by_subdomain') {
+      const { subdomain } = body;
+
+      if (!subdomain) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Subdomain is required' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Find tenant by subdomain (only return id and name for privacy until login)
+      const { data: tenant, error: findError } = await supabase
+        .from('tenants')
+        .select('id, name, subdomain')
+        .eq('subdomain', subdomain.toLowerCase())
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (findError || !tenant) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Organization not found' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, tenant }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
