@@ -509,8 +509,7 @@ serve(async (req) => {
           *,
           department:departments(name),
           job_title:job_titles(title_name),
-          work_area:locations(name),
-          supervisor:customers!customers_reports_to_fkey(name)
+          work_area:locations(name)
         `)
         .single();
 
@@ -523,11 +522,22 @@ serve(async (req) => {
         }
         throw error;
       }
+      
+      // Fetch supervisor separately if reports_to is set (avoids PGRST200 self-join issue)
+      let supervisor = null;
+      if (customer?.reports_to) {
+        const { data: supervisorData } = await supabase
+          .from('customers')
+          .select('name')
+          .eq('id', customer.reports_to)
+          .single();
+        supervisor = supervisorData;
+      }
 
       const { password_hash: _, verification_token, verification_token_expires_at, ...safeCustomer } = customer;
 
       return new Response(
-        JSON.stringify({ success: true, customer: safeCustomer }),
+        JSON.stringify({ success: true, customer: { ...safeCustomer, supervisor } }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
