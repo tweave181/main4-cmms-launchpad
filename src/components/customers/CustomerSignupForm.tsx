@@ -14,6 +14,7 @@ interface CustomerSignupFormProps {
   isLoadingTenants: boolean;
   onTenantChange: (tenantId: string) => void;
   onBackToLogin: () => void;
+  fixedTenant?: boolean; // When true, hides tenant selector (subdomain-based access)
 }
 
 const CustomerSignupForm: React.FC<CustomerSignupFormProps> = ({ 
@@ -21,7 +22,8 @@ const CustomerSignupForm: React.FC<CustomerSignupFormProps> = ({
   tenants, 
   isLoadingTenants, 
   onTenantChange,
-  onBackToLogin 
+  onBackToLogin,
+  fixedTenant = false
 }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -151,7 +153,7 @@ const CustomerSignupForm: React.FC<CustomerSignupFormProps> = ({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {tenants.length > 1 && (
+          {tenants.length > 1 && !fixedTenant && (
             <div className="space-y-2">
               <Label htmlFor="tenant">Organization</Label>
               <Select value={tenantId} onValueChange={onTenantChange} disabled={isLoadingTenants}>
