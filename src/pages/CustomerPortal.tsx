@@ -44,7 +44,7 @@ const CustomerPortal: React.FC = () => {
       {/* Show customer profile card if logged in as customer */}
       {isCustomerAuth && customer && (
         <div className="mb-6">
-          <CustomerProfileCard customer={customer} compact />
+          <CustomerProfileCard customer={customer} compact editable />
         </div>
       )}
       
