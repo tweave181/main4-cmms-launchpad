@@ -127,8 +127,7 @@ serve(async (req) => {
           *,
           department:departments(name),
           job_title:job_titles(title_name),
-          work_area:locations(name),
-          supervisor:customers!customers_reports_to_fkey(name)
+          work_area:locations(name)
         `)
         .eq('tenant_id', tenant_id)
         .ilike('name', name)
