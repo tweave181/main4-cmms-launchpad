@@ -76,7 +76,6 @@ function App() {
           <BrowserRouter>
         <AuthProvider>
           <GlobalSettingsProvider>
-                <AuthNavigationHandler />
                 <ContractNotificationWrapper>
                   <CustomerAuthProvider>
                     <Routes>
@@ -88,6 +87,7 @@ function App() {
                        <Route path="/verify-customer-email" element={<VerifyCustomerEmail />} />
                      <Route path="/*" element={
                        <ProtectedRoute>
+                          <AuthNavigationHandler />
                          <SessionTimeoutProvider>
                            <AppLayout>
                              <Routes>
