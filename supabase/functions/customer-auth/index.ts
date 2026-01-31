@@ -536,7 +536,6 @@ serve(async (req) => {
         .from('tenants')
         .select('id, name, subdomain')
         .eq('subdomain', subdomain.toLowerCase())
-        .eq('is_active', true)
         .maybeSingle();
 
       if (findError || !tenant) {
