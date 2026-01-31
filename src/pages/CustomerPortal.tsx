@@ -4,6 +4,7 @@ import { WorkRequestForm } from '@/components/work-requests/WorkRequestForm';
 import { MyRequestsList } from '@/components/work-requests/MyRequestsList';
 import { useAuth } from '@/contexts/auth';
 import { useCustomerAuth } from '@/contexts/CustomerAuthContext';
+import { CustomerProfileCard } from '@/components/customers/CustomerProfileCard';
 import { ClipboardList, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -38,12 +39,21 @@ const CustomerPortal: React.FC = () => {
         <p className="text-muted-foreground">
           Report an issue or request maintenance. Your request will be reviewed by our team.
         </p>
-        {displayName && (
-          <p className="text-sm text-muted-foreground mt-1">
-            Logged in as: <strong>{displayName}</strong>
-          </p>
-        )}
       </div>
+      
+      {/* Show customer profile card if logged in as customer */}
+      {isCustomerAuth && customer && (
+        <div className="mb-6">
+          <CustomerProfileCard customer={customer} compact />
+        </div>
+      )}
+      
+      {/* Show simple logged in message for staff users */}
+      {!isCustomerAuth && displayName && (
+        <p className="text-sm text-muted-foreground mb-6">
+          Logged in as: <strong>{displayName}</strong>
+        </p>
+      )}
       
       <div className="space-y-8">
         <WorkRequestForm />

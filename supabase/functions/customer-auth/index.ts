@@ -120,14 +120,15 @@ serve(async (req) => {
         );
       }
 
-      // Find customer by name and tenant
+      // Find customer by name and tenant with all joined profile data
       const { data: customer, error: findError } = await supabase
         .from('customers')
         .select(`
           *,
           department:departments(name),
           job_title:job_titles(title_name),
-          work_area:locations(name)
+          work_area:locations(name),
+          supervisor:customers!customers_reports_to_fkey(name)
         `)
         .eq('tenant_id', tenant_id)
         .ilike('name', name)
