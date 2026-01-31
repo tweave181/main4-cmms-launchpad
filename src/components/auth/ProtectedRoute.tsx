@@ -7,6 +7,18 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+// Public routes that should NEVER trigger the protected route redirect
+// These should be handled by their own Route definitions
+const PUBLIC_ROUTES = [
+  '/auth',
+  '/auth/callback',
+  '/setup',
+  '/customer-login',
+  '/tenant-portal',
+  '/portal',
+  '/verify-customer-email',
+];
+
 // Routes allowed during setup phase - users can navigate to these even if setup isn't complete
 const SETUP_ALLOWED_ROUTES = [
   '/admin/preferences/locations',
@@ -34,7 +46,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
   const [setupCheck, setSetupCheck] = useState<'loading' | 'needs-setup' | 'done'>('loading');
 
+  // Check if we're on a public route (safety check in case routing matches unexpectedly)
+  const isPublicRoute = PUBLIC_ROUTES.some(route => 
+    location.pathname === route || location.pathname.startsWith(route + '/')
+  );
+
   useEffect(() => {
+    // Skip setup check for public routes
+    if (isPublicRoute) {
+      setSetupCheck('done');
+      return;
+    }
+
     const checkSetupStatus = async () => {
       if (!tenantId || location.pathname === '/setup') {
         setSetupCheck('done');
@@ -79,7 +102,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     } else if (!loading) {
       setSetupCheck('done');
     }
-  }, [tenantId, user, loading, location.pathname]);
+  }, [tenantId, user, loading, location.pathname, isPublicRoute]);
+
+  // If we're on a public route, don't apply protection (this is a safety check)
+  if (isPublicRoute) {
+    console.log('ProtectedRoute: Skipping protection for public route:', location.pathname);
+    return <>{children}</>;
+  }
 
   if (loading || (user && setupCheck === 'loading')) {
     return (

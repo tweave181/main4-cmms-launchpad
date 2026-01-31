@@ -79,12 +79,15 @@ function App() {
                 <ContractNotificationWrapper>
                   <CustomerAuthProvider>
                     <Routes>
+                       {/* Public routes - must be before protected catch-all */}
                        <Route path="/auth" element={<AuthPage />} />
                        <Route path="/auth/callback" element={<AuthCallback />} />
                        <Route path="/setup" element={<TenantSetup />} />
                        <Route path="/customer-login" element={<CustomerLogin />} />
                        <Route path="/tenant-portal" element={<TenantPortal />} />
+                       <Route path="/portal" element={<CustomerPortal />} />
                        <Route path="/verify-customer-email" element={<VerifyCustomerEmail />} />
+                     {/* Protected routes - catch-all for authenticated staff */}
                      <Route path="/*" element={
                        <ProtectedRoute>
                           <AuthNavigationHandler />
@@ -107,7 +110,6 @@ function App() {
                                <Route path="/inventory/:id/edit" element={<InventoryPartDetail />} />
                                <Route path="/address-book" element={<AddressBook />} />
                                <Route path="/address-book/:id" element={<AddressDetail />} />
-                               <Route path="/portal" element={<CustomerPortal />} />
                                <Route path="/reports" element={<Reports />} />
                                <Route path="/users" element={<UserManagement />} />
                                <Route path="/addresses" element={<Addresses />} />
