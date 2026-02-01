@@ -132,6 +132,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode, onRegistratio
               placeholder="Your organization name"
               value={formData.tenantName}
               onChange={handleInputChange}
+              autoComplete="off"
               required
             />
           </div>
@@ -143,6 +144,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode, onRegistratio
               placeholder="organization-slug"
               value={formData.tenantSlug}
               onChange={handleInputChange}
+              autoComplete="off"
               pattern="^[a-z0-9-]+$"
               title="Only lowercase letters, numbers, and hyphens allowed"
               required
@@ -158,6 +160,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode, onRegistratio
                 placeholder="Your full name"
                 value={formData.name}
                 onChange={handleInputChange}
+                autoComplete="off"
                 required
               />
             </div>
@@ -170,6 +173,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode, onRegistratio
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleInputChange}
+                autoComplete="off"
                 required
               />
             </div>
@@ -182,6 +186,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode, onRegistratio
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleInputChange}
+                autoComplete="new-password"
                 required
               />
             </div>
@@ -194,6 +199,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode, onRegistratio
                 placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
+                autoComplete="new-password"
                 required
               />
             </div>
