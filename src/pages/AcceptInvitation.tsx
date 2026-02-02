@@ -127,40 +127,46 @@ const AcceptInvitation: React.FC = () => {
     try {
       const token = searchParams.get('token');
       
-      // Create the user account via Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: invitation.email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            name: invitation.name,
-            tenant_id: invitation.tenant_id,
-            role: invitation.role,
-            invitation_token: token,
-          },
+      // Create the user account via Edge Function (auto-confirms email)
+      const { data, error } = await supabase.functions.invoke('accept-invitation', {
+        body: {
+          token,
+          password,
         },
       });
 
-      if (authError) {
-        throw authError;
+      if (error) {
+        throw new Error(error.message || 'Failed to create account');
       }
 
-      // Mark the invitation as accepted by setting accepted_at
-      const { error: updateError } = await supabase
-        .from('user_invitations')
-        .update({ accepted_at: new Date().toISOString() })
-        .eq('id', invitation.id);
-
-      if (updateError) {
-        console.error('Error updating invitation status:', updateError);
-        // Don't throw - user was created successfully
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
+      // Mark invitation as accepted locally (edge function already did this)
       setStatus('success');
       setMessage('Your account has been created successfully!');
 
-      // Auto-login should have happened, redirect after a short delay
+      // Sign in the user with their new credentials
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: invitation.email,
+        password: password,
+      });
+
+      if (signInError) {
+        console.error('Auto-login failed:', signInError);
+        // Still show success, but redirect to login
+        toast({
+          title: 'Account created!',
+          description: 'Please sign in with your new credentials.',
+        });
+        setTimeout(() => {
+          navigate('/auth');
+        }, 2000);
+        return;
+      }
+
+      // Redirect to dashboard after successful login
       setTimeout(() => {
         navigate('/');
       }, 2000);

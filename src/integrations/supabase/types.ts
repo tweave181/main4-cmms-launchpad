@@ -3234,6 +3234,10 @@ export type Database = {
         Returns: undefined
       }
       check_contract_reminders: { Args: never; Returns: undefined }
+      confirm_invited_user: {
+        Args: { p_invitation_token: string; p_user_id: string }
+        Returns: boolean
+      }
       consume_tenant_invitation: {
         Args: { p_code: string; p_tenant_id: string; p_user_id: string }
         Returns: boolean
