@@ -12,6 +12,7 @@ const corsHeaders = {
 
 interface InvitationEmailRequest {
   invitationId: string;
+  name: string;
   email: string;
   role: string;
   inviterName: string;
@@ -26,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { invitationId, email, role, inviterName, tenantName, token }: InvitationEmailRequest = await req.json();
+    const { invitationId, name, email, role, inviterName, tenantName, token }: InvitationEmailRequest = await req.json();
 
     // Validate required fields
     if (!email || !token || !tenantName) {
@@ -57,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
-            <p style="font-size: 16px; margin-bottom: 20px;">Hi there,</p>
+            <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name || 'there'},</p>
             
             <p style="font-size: 16px; margin-bottom: 20px;">
               <strong>${inviterName || 'A team administrator'}</strong> has invited you to join <strong>${tenantName}</strong> as a <strong>${role}</strong>.
