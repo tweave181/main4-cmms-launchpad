@@ -34,6 +34,7 @@ import { useFormDialog } from '@/hooks/useFormDialog';
 import { handleError, showSuccessToast } from '@/utils/errorHandling';
 
 const inviteUserSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
   role: z.enum(['admin', 'manager', 'technician', 'contractor'], {
     required_error: 'Please select a role',
@@ -53,6 +54,7 @@ export const InviteUserDialog: React.FC = () => {
   const form = useForm<InviteUserFormData>({
     resolver: zodResolver(inviteUserSchema),
     defaultValues: {
+      name: '',
       email: '',
       role: 'technician',
     },
@@ -61,6 +63,7 @@ export const InviteUserDialog: React.FC = () => {
   const onSubmit = async (data: InviteUserFormData) => {
     try {
       await createInvitationMutation.mutateAsync({
+        name: data.name,
         email: data.email,
         role: data.role,
       });
@@ -95,6 +98,24 @@ export const InviteUserDialog: React.FC = () => {
           </FormDialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="John Smith" 
+                        autoComplete="off"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="email"

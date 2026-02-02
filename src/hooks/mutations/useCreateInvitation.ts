@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/auth';
 import { useProgramSettings } from '@/hooks/useProgramSettings';
 
 interface CreateInvitationParams {
+  name: string;
   email: string;
   role: 'admin' | 'manager' | 'technician' | 'contractor';
 }
@@ -15,8 +16,8 @@ export const useCreateInvitation = () => {
   const { data: settings } = useProgramSettings();
 
   return useMutation({
-    mutationFn: async ({ email, role }: CreateInvitationParams) => {
-      console.log('Creating invitation:', { email, role });
+    mutationFn: async ({ name, email, role }: CreateInvitationParams) => {
+      console.log('Creating invitation:', { name, email, role });
 
       if (!userProfile?.tenant_id) {
         throw new Error('No tenant ID found');
@@ -28,6 +29,7 @@ export const useCreateInvitation = () => {
       const { data, error } = await supabase
         .from('user_invitations')
         .insert({
+          name,
           email,
           role,
           tenant_id: userProfile.tenant_id,
@@ -48,6 +50,7 @@ export const useCreateInvitation = () => {
       const { error: emailError } = await supabase.functions.invoke('send-user-invitation', {
         body: {
           invitationId: data.id,
+          name,
           email,
           role,
           inviterName,
