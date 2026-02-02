@@ -17,6 +17,7 @@ const PUBLIC_ROUTES = [
   '/tenant-portal',
   '/portal',
   '/verify-customer-email',
+  '/accept-invitation',
 ];
 
 // Routes allowed during setup phase - users can navigate to these even if setup isn't complete
