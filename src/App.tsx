@@ -61,6 +61,7 @@ import CustomerLogin from "./pages/CustomerLogin";
 import CustomerManagement from "./pages/CustomerManagement";
 import VerifyCustomerEmail from "./pages/VerifyCustomerEmail";
 import TenantPortal from "./pages/TenantPortal";
+import AcceptInvitation from "./pages/AcceptInvitation";
 import { CustomerAuthProvider } from "./contexts/CustomerAuthContext";
 import NotFound from "./pages/NotFound";
 
@@ -87,6 +88,7 @@ function App() {
                        <Route path="/tenant-portal" element={<TenantPortal />} />
                        <Route path="/portal" element={<CustomerPortal />} />
                        <Route path="/verify-customer-email" element={<VerifyCustomerEmail />} />
+                       <Route path="/accept-invitation" element={<AcceptInvitation />} />
                      {/* Protected routes - catch-all for authenticated staff */}
                      <Route path="/*" element={
                        <ProtectedRoute>
