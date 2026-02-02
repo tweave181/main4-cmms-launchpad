@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WorkRequestForm } from '@/components/work-requests/WorkRequestForm';
 import { MyRequestsList } from '@/components/work-requests/MyRequestsList';
@@ -7,11 +7,13 @@ import { useCustomerAuth } from '@/contexts/CustomerAuthContext';
 import { CustomerProfileCard } from '@/components/customers/CustomerProfileCard';
 import { ClipboardList, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 const CustomerPortal: React.FC = () => {
   const { user } = useAuth();
   const { customer, isAuthenticated: isCustomerAuth, logout } = useCustomerAuth();
   const navigate = useNavigate();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
   const handleLogout = () => {
     logout();
@@ -30,7 +32,7 @@ const CustomerPortal: React.FC = () => {
             <h1 className="text-3xl font-bold">Submit a Work Request</h1>
           </div>
           {isCustomerAuth && (
-            <Button variant="outline" onClick={handleLogout}>
+            <Button variant="outline" onClick={() => setShowLogoutConfirm(true)}>
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
@@ -40,6 +42,16 @@ const CustomerPortal: React.FC = () => {
           Report an issue or request maintenance. Your request will be reviewed by our team.
         </p>
       </div>
+      
+      <ConfirmationDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Sign Out"
+        description="Are you sure you want to sign out? You will need to log in again to submit or view your work requests."
+        confirmText="Sign Out"
+        cancelText="Cancel"
+      />
       
       {/* Show customer profile card if logged in as customer */}
       {isCustomerAuth && customer && (
