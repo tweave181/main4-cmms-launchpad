@@ -1,131 +1,45 @@
 
-## Separate Customer Table for Work Request Submitters
 
-### Overview
-You want to create a dedicated **customers** table for people who submit work requests. These users:
-- Will only access the portal/submit request area
-- Use their name as their username (simpler login)
-- Have a complete profile for audit trail purposes
+# Blocker: Database Schema Must Be Restored First
 
-This separates "internal staff" (admins, managers, technicians) from "customers/requesters" who only submit work requests.
+When Lovable Cloud was enabled, it created a fresh empty database. The original database tables (tenants, users, assets, departments, locations, categories, etc.) were not carried over. This is causing **all the build errors** you see -- the generated types file shows no tables, so every database query in the codebase fails to compile.
+
+Before building the Asset Reports module, we need to restore the full database schema.
 
 ---
 
-### What We Will Build
+## Step 1: Restore Core Database Schema (migration)
 
-**1. New Database Table: `customers`**
+Create a single consolidated migration that recreates all foundational tables and enums in dependency order:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | Primary key |
-| tenant_id | uuid | Multi-tenant isolation |
-| name | text | Full name (also serves as username) |
-| email | text | Contact email |
-| phone | text | Phone number |
-| phone_extension | text | Internal extension |
-| department_id | uuid | FK to departments table |
-| job_title_id | uuid | FK to job_titles table |
-| work_area_id | uuid | FK to locations table |
-| reports_to | uuid | FK to customers table (supervisor) |
-| password_hash | text | Hashed password for login |
-| is_active | boolean | Account status |
-| created_at | timestamp | Record creation |
-| updated_at | timestamp | Last update |
+1. **Enums**: `user_role`, `employment_status`, `contract_status`, `app_role`
+2. **Core tables**: `tenants`, `users` (with all columns from later migrations like status, phone_number, employment_status, department_id, job_title_id, available_for_time_tracking)
+3. **Supporting tables**: `departments`, `locations`, `location_levels`, `categories`, `company_details`, `contacts`, `address_book`
+4. **Asset tables**: `assets` (with all columns including hierarchy fields, manufacturer_company_id, service_contract_id, barcode_printed_at, location_id), `asset_tag_prefixes`
+5. **Work order tables**: `work_orders`, `work_order_comments`
+6. **Inventory tables**: `inventory_parts`, `stock_transactions`, `part_asset_associations`, `part_work_order_usage`
+7. **Contract tables**: `service_contracts`, `contract_asset_associations`, `contract_reminders`, `contract_lines`
+8. **Auth/permissions tables**: `user_roles`, `user_invitations`, `permissions`, `role_permissions`, `user_permission_overrides`
+9. **Other tables**: `maintenance_jobs`, `time_records`, `audit_logs`, `email_templates`, `checklist_records`, job titles, work requests, comment status options, department/job title audit logs
+10. **Functions & triggers**: `handle_new_user`, `get_current_user_tenant_id`, `is_current_user_admin`, `has_role`, `update_updated_at_column`, location code generation, etc.
+11. **RLS policies**: Tenant-scoped policies for all tables
 
-**2. Separate Customer Authentication**
-- New login page at `/customer-login` specifically for customers
-- Simple login: name + password (no email-based Supabase auth)
-- Session stored in app state (not Supabase auth)
+This will be a large SQL migration (~500-800 lines) that replaces all 120+ existing migration files.
 
-**3. Customer Portal Access**
-- Route `/portal` will detect customer vs staff login
-- Customers can only see the submit request page and their own requests
-- No access to admin areas
+## Step 2: Build the Asset Reports Module (5 files)
 
-**4. Work Request Updates**
-- Change `submitted_by` in `work_requests` to reference `customers` table instead of `users`
-- OR add a new column `customer_id` to track customer submissions separately
+Once the schema is restored and types regenerate:
 
-**5. Admin Review Enhancement**
-- Display full customer profile on review cards
-- Show department, job title, work area, supervisor
+- **`src/hooks/useAssetReportData.ts`** -- Hook that fetches assets with department joins and computes aggregations (counts by status, department, category, priority, warranty analysis)
+- **`src/components/reports/AssetReportSummary.tsx`** -- KPI cards row (total assets, status breakdown, critical priority count, expiring warranties)
+- **`src/components/reports/AssetCharts.tsx`** -- Recharts pie/bar charts for status, department, category, priority
+- **`src/components/reports/AssetListExport.tsx`** -- Filterable table with PDF/CSV export
+- **`src/components/reports/WarrantyExpiryReport.tsx`** -- Color-coded warranty expiry table
+- **`src/pages/Reports.tsx`** -- Updated to include tabbed layout with all report sections + existing Mermaid diagram
 
 ---
 
-### Recommended Approach: Dual Submitter Support
+## Important Note
 
-Since you may want both staff AND customers to submit requests, I recommend:
+The migration will be extensive since it recreates the entire schema from scratch. All existing migration files will remain (they won't conflict since the new migration uses `IF NOT EXISTS` patterns). Your existing data from the previous database will not be restored -- only the schema structure.
 
-| Column | Purpose |
-|--------|---------|
-| submitted_by | UUID - for staff (existing `users` table) |
-| customer_id | UUID - for customers (new `customers` table) |
-
-This way:
-- Staff can still submit requests using their regular login
-- Customers use the new customer login
-- RLS policies can handle both scenarios
-
----
-
-### Files to Create/Modify
-
-| File | Action |
-|------|--------|
-| **Database Migration** | Create `customers` table with all profile fields |
-| `src/types/customer.ts` | NEW - Customer type definitions |
-| `src/hooks/useCustomers.ts` | NEW - CRUD hooks for customers |
-| `src/contexts/CustomerAuthContext.tsx` | NEW - Customer authentication context |
-| `src/pages/CustomerLogin.tsx` | NEW - Customer login page |
-| `src/pages/CustomerPortal.tsx` | UPDATE - Support customer auth |
-| `src/components/work-requests/WorkRequestForm.tsx` | UPDATE - Capture customer_id |
-| `src/components/work-requests/WorkRequestReviewCard.tsx` | UPDATE - Display customer details |
-| `src/hooks/useWorkRequests.ts` | UPDATE - Handle customer submissions |
-| `src/App.tsx` | UPDATE - Add customer routes |
-
----
-
-### Customer Management Admin Page
-
-We will also create an admin page to manage customers:
-- Add/edit/deactivate customers
-- Set their department, job title, work area
-- Set who they report to
-- Reset passwords
-
----
-
-### Security Considerations
-
-| Aspect | Implementation |
-|--------|----------------|
-| Password storage | Hashed using bcrypt (Edge Function) |
-| RLS Policies | Customers can only see their own requests |
-| Session management | Separate from Supabase auth |
-| Admin access | Only admins can manage customer accounts |
-
----
-
-### Technical Details
-
-**Customer Login Flow:**
-```
-1. Customer enters name + password on /customer-login
-2. Edge Function validates credentials
-3. Returns customer profile on success
-4. CustomerAuthContext stores session
-5. Portal components check customer context
-```
-
-**Work Request Submission:**
-- If customer is logged in: set `customer_id` on request
-- If staff is logged in: set `submitted_by` (existing behavior)
-- RLS policies updated to allow both types
-
-**Admin Review Display:**
-Shows customer profile with:
-- Name, email, phone + extension
-- Department name
-- Job title
-- Work area location
-- Supervisor name (from reports_to)
