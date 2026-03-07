@@ -1,65 +1,131 @@
 
+## Separate Customer Table for Work Request Submitters
 
-# Asset Reports Module
+### Overview
+You want to create a dedicated **customers** table for people who submit work requests. These users:
+- Will only access the portal/submit request area
+- Use their name as their username (simpler login)
+- Have a complete profile for audit trail purposes
 
-Replace the "under construction" placeholder on the Reports page with a full asset reporting section featuring summary KPIs, interactive charts, a filterable/exportable asset list, and a warranty expiry report.
+This separates "internal staff" (admins, managers, technicians) from "customers/requesters" who only submit work requests.
 
-## Data Source
+---
 
-All reports will query the existing `assets` table (with joins to `departments`) using the same `useOfflineAssets` or a dedicated report hook. No database changes needed.
+### What We Will Build
 
-## Components to Build
+**1. New Database Table: `customers`**
 
-### 1. Asset Report Summary Cards (KPI row)
-A row of stat cards at the top:
-- **Total Assets** count
-- **Active / Inactive / Maintenance / Disposed** breakdown
-- **Critical Priority** count
-- **Expiring Warranties** (within 30 days)
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| tenant_id | uuid | Multi-tenant isolation |
+| name | text | Full name (also serves as username) |
+| email | text | Contact email |
+| phone | text | Phone number |
+| phone_extension | text | Internal extension |
+| department_id | uuid | FK to departments table |
+| job_title_id | uuid | FK to job_titles table |
+| work_area_id | uuid | FK to locations table |
+| reports_to | uuid | FK to customers table (supervisor) |
+| password_hash | text | Hashed password for login |
+| is_active | boolean | Account status |
+| created_at | timestamp | Record creation |
+| updated_at | timestamp | Last update |
 
-### 2. Asset Charts Section
-Using `recharts` (already installed):
-- **Assets by Status** - Pie chart (active, inactive, maintenance, disposed)
-- **Assets by Department** - Bar chart (horizontal)
-- **Assets by Category** - Pie chart
-- **Assets by Priority** - Bar chart (low, medium, high, critical with color coding)
+**2. Separate Customer Authentication**
+- New login page at `/customer-login` specifically for customers
+- Simple login: name + password (no email-based Supabase auth)
+- Session stored in app state (not Supabase auth)
 
-### 3. Asset List Export
-- Filterable table with status/department/category filters
-- Export buttons for **PDF** (using `jspdf`, already installed) and **CSV** (manual generation)
-- Columns: Asset Tag, Name, Status, Department, Category, Priority, Purchase Date, Warranty Expiry
+**3. Customer Portal Access**
+- Route `/portal` will detect customer vs staff login
+- Customers can only see the submit request page and their own requests
+- No access to admin areas
 
-### 4. Warranty Expiry Report
-- Table showing assets with warranty dates, sorted by expiry
-- Color-coded rows: red for expired, amber for expiring within 30 days, green for valid
-- Filter toggle: show all / expired only / expiring soon
+**4. Work Request Updates**
+- Change `submitted_by` in `work_requests` to reference `customers` table instead of `users`
+- OR add a new column `customer_id` to track customer submissions separately
 
-## File Structure
+**5. Admin Review Enhancement**
+- Display full customer profile on review cards
+- Show department, job title, work area, supervisor
 
+---
+
+### Recommended Approach: Dual Submitter Support
+
+Since you may want both staff AND customers to submit requests, I recommend:
+
+| Column | Purpose |
+|--------|---------|
+| submitted_by | UUID - for staff (existing `users` table) |
+| customer_id | UUID - for customers (new `customers` table) |
+
+This way:
+- Staff can still submit requests using their regular login
+- Customers use the new customer login
+- RLS policies can handle both scenarios
+
+---
+
+### Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| **Database Migration** | Create `customers` table with all profile fields |
+| `src/types/customer.ts` | NEW - Customer type definitions |
+| `src/hooks/useCustomers.ts` | NEW - CRUD hooks for customers |
+| `src/contexts/CustomerAuthContext.tsx` | NEW - Customer authentication context |
+| `src/pages/CustomerLogin.tsx` | NEW - Customer login page |
+| `src/pages/CustomerPortal.tsx` | UPDATE - Support customer auth |
+| `src/components/work-requests/WorkRequestForm.tsx` | UPDATE - Capture customer_id |
+| `src/components/work-requests/WorkRequestReviewCard.tsx` | UPDATE - Display customer details |
+| `src/hooks/useWorkRequests.ts` | UPDATE - Handle customer submissions |
+| `src/App.tsx` | UPDATE - Add customer routes |
+
+---
+
+### Customer Management Admin Page
+
+We will also create an admin page to manage customers:
+- Add/edit/deactivate customers
+- Set their department, job title, work area
+- Set who they report to
+- Reset passwords
+
+---
+
+### Security Considerations
+
+| Aspect | Implementation |
+|--------|----------------|
+| Password storage | Hashed using bcrypt (Edge Function) |
+| RLS Policies | Customers can only see their own requests |
+| Session management | Separate from Supabase auth |
+| Admin access | Only admins can manage customer accounts |
+
+---
+
+### Technical Details
+
+**Customer Login Flow:**
 ```
-src/pages/Reports.tsx                          -- Main page, orchestrates sections
-src/components/reports/AssetReportSummary.tsx   -- KPI cards
-src/components/reports/AssetCharts.tsx          -- Recharts visualizations
-src/components/reports/AssetListExport.tsx      -- Filterable table + export
-src/components/reports/WarrantyExpiryReport.tsx -- Warranty-specific report
-src/hooks/useAssetReportData.ts                -- Shared hook fetching & computing report data
+1. Customer enters name + password on /customer-login
+2. Edge Function validates credentials
+3. Returns customer profile on success
+4. CustomerAuthContext stores session
+5. Portal components check customer context
 ```
 
-## Technical Approach
+**Work Request Submission:**
+- If customer is logged in: set `customer_id` on request
+- If staff is logged in: set `submitted_by` (existing behavior)
+- RLS policies updated to allow both types
 
-- **`useAssetReportData`** hook: fetches assets with department join, computes all aggregations (counts by status, department, category, priority, warranty analysis). Single query, memoized computations.
-- **Charts**: `recharts` PieChart, BarChart with responsive containers and custom colors matching the app's design system.
-- **PDF Export**: `jspdf` with auto-table layout listing all filtered assets.
-- **CSV Export**: Generate CSV string from filtered data, trigger browser download.
-- **Warranty logic**: Compare `warranty_expiry` against today using `date-fns`.
-- Keep the existing Mermaid relationship diagram at the bottom of the page.
-
-## Layout
-
-The Reports page will have tabs or sections in this order:
-1. Summary KPI cards (always visible at top)
-2. Charts section
-3. Asset List with Export
-4. Warranty Expiry Report
-5. CMMS Relationship Diagram (existing, kept at bottom)
-
+**Admin Review Display:**
+Shows customer profile with:
+- Name, email, phone + extension
+- Department name
+- Job title
+- Work area location
+- Supervisor name (from reports_to)
