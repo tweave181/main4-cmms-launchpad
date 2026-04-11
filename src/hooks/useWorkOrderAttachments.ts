@@ -130,7 +130,7 @@ export const useDeleteAttachment = () => {
       if (storageError) throw storageError;
 
       // Delete record
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('work_order_attachments')
         .delete()
         .eq('id', attachmentId);

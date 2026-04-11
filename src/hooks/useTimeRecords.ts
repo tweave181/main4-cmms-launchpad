@@ -214,7 +214,7 @@ export const useWorkOrderTimeSummary = (workOrderId?: string) => {
         return [];
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('time_records')
         .select(`
           user_id,
@@ -230,7 +230,7 @@ export const useWorkOrderTimeSummary = (workOrderId?: string) => {
       }
 
       // Group by user and sum hours
-      const summary = data.reduce((acc, record) => {
+      const summary = (data as any[]).reduce((acc: Record<string, any>, record: any) => {
         const userId = record.user_id;
         if (!acc[userId]) {
           acc[userId] = {

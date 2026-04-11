@@ -22,7 +22,7 @@ interface ServiceContract {
   status: string;
   description: string | null;
   email_reminder_enabled: boolean;
-  reminder_days_before: number | null;
+  reminder_days_before: number | number[] | null;
   visit_count: number | null;
   company_details?: {
     id: string;
