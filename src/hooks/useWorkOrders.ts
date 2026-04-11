@@ -77,7 +77,7 @@ export const useWorkOrders = (filters?: WorkOrderFilters) => {
         console.log('🔍 DEBUG: No work orders found with current filters');
       }
 
-      return data as WorkOrder[];
+      return data as unknown as WorkOrder[];
     },
     enabled: !!userProfile?.tenant_id,
   });

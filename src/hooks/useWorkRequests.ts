@@ -234,18 +234,16 @@ export const useConvertToWorkOrder = () => {
       }
       
       // Create the work order
-      const { data: workOrder, error: woError } = await supabase
+      const { data: workOrder, error: woError } = await (supabase as any)
         .from('work_orders')
         .insert({
           tenant_id: userProfile.tenant_id,
           title: workOrderData.title,
           description: workOrderData.description,
           priority: workOrderData.priority,
-          location_id: workOrderData.location_id || null,
           assigned_to: workOrderData.assigned_to || null,
-          status: 'Open',
+          status: 'open',
           created_by: user.id,
-          work_order_number: '', // Will be auto-generated
         })
         .select()
         .single();

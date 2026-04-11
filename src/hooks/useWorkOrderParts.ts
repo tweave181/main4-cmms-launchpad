@@ -85,13 +85,12 @@ export const useAddPartToWorkOrder = () => {
         );
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('part_work_order_usage')
         .insert({
           work_order_id: workOrderId,
           part_id: partId,
           quantity_used: quantityUsed,
-          tenant_id: tenantId,
         })
         .select()
         .single();
@@ -159,10 +158,9 @@ export const useBulkAddPartsToWorkOrder = () => {
         work_order_id: workOrderId,
         part_id: part.partId,
         quantity_used: part.quantity,
-        tenant_id: tenantId,
       }));
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('part_work_order_usage')
         .insert(insertData)
         .select();

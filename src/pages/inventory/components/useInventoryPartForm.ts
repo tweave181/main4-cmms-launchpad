@@ -43,7 +43,7 @@ export const useInventoryPartForm = ({ initialData, onSubmit, generatedSKU }: Us
       spare_parts_category_id: (initialData as any)?.spare_parts_category_id || '',
       quantity_in_stock: initialData?.quantity_in_stock || 0,
       reorder_threshold: initialData?.reorder_threshold || 0,
-      unit_of_measure: initialData?.unit_of_measure || 'pieces',
+      unit_of_measure: (initialData?.unit_of_measure || 'pieces') as any,
       unit_cost: (initialData as any)?.unit_cost ? Number((initialData as any).unit_cost) : undefined,
       storage_locations: initialData?.storage_locations?.join(', ') || '',
       linked_asset_type: initialData?.linked_asset_type || '',
