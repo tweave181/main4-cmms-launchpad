@@ -179,7 +179,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
         email_reminder_enabled: data.email_reminder_enabled,
         tenant_id: userProfile.tenant_id,
         contract_cost: data.contract_cost || null,
-        reminder_days_before: data.email_reminder_enabled ? data.reminder_days_before || null : null,
+        reminder_days_before: data.email_reminder_enabled && data.reminder_days_before ? [data.reminder_days_before] : null,
         visit_count: data.visit_count || null
       };
 
@@ -248,7 +248,7 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
         status: data.status,
         email_reminder_enabled: data.email_reminder_enabled,
         contract_cost: data.contract_cost || null,
-        reminder_days_before: data.email_reminder_enabled ? data.reminder_days_before || null : null,
+        reminder_days_before: data.email_reminder_enabled && data.reminder_days_before ? [data.reminder_days_before] : null,
         visit_count: data.visit_count || null
       };
 

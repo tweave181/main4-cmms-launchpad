@@ -42,10 +42,10 @@ export const useAllPMSchedules = () => {
         frequency_type: schedule.frequency_type as 'daily' | 'weekly' | 'monthly' | 'custom',
         frequency_unit: schedule.frequency_unit as 'days' | 'weeks' | 'months' | undefined,
         assets: schedule.pm_schedule_assets?.map(psa => psa.assets).filter(Boolean) || [],
-        assigned_user: schedule.assigned_user ? {
-          id: schedule.assigned_user.id,
-          name: schedule.assigned_user.name,
-          email: schedule.assigned_user.email
+        assigned_user: (schedule as any).assigned_user ? {
+          id: (schedule as any).assigned_user.id,
+          name: (schedule as any).assigned_user.name,
+          email: (schedule as any).assigned_user.email
         } : undefined,
       }));
 

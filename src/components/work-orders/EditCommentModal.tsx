@@ -78,8 +78,8 @@ export const EditCommentModal: React.FC<EditCommentModalProps> = ({
         .from('work_order_comments')
         .update({
           comment: data.comment,
-          comment_status_name: data.comment_status_name,
-        })
+          status_id: (data as any).comment_status_name || null,
+        } as any)
         .eq('id', comment.id);
 
       if (error) throw error;

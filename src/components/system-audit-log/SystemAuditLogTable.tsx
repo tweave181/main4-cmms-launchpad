@@ -44,16 +44,12 @@ export const SystemAuditLogTable: React.FC<SystemAuditLogTableProps> = ({ filter
           .select(`
             id,
             action,
-            changed_by,
-            change_summary,
-            timestamp,
-            users!changed_by (
-              name,
-              email
-            )
+            performed_by,
+            old_values,
+            new_values,
+            created_at
           `)
-          .eq('tenant_id', userProfile.tenant_id)
-          .order('timestamp', { ascending: false });
+          .order('created_at', { ascending: false });
 
         if (assetPrefixError) throw assetPrefixError;
 

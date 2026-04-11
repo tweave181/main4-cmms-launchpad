@@ -37,7 +37,7 @@ export const AssetWorkOrders: React.FC<AssetWorkOrdersProps> = ({
         ascending: false
       });
       if (error) throw error;
-      return data as (WorkOrder & {
+      return (data as any) as (WorkOrder & {
         assigned_user?: {
           name: string;
         } | null;

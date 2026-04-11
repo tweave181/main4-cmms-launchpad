@@ -114,7 +114,7 @@ export const PrintBarcodeLabelModal: React.FC<PrintBarcodeLabelModalProps> = ({
       // Cast needed because types file is auto-generated and may not include new column yet
       await supabase
         .from('assets')
-        .update({ barcode_printed_at: new Date().toISOString() } as Record<string, unknown>)
+        .update({ barcode_printed_at: new Date().toISOString() })
         .eq('id', assetId);
       onPrinted?.();
     }

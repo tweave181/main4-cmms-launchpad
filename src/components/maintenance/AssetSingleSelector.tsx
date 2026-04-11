@@ -45,7 +45,7 @@ export const AssetSingleSelector: React.FC<AssetSingleSelectorProps> = ({
 
       let query = supabase
         .from('assets')
-        .select('id, name, asset_tag, location')
+        .select('id, name, asset_tag, location_id')
         .eq('tenant_id', userProfile.tenant_id)
         .eq('status', 'active');
 

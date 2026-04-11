@@ -22,9 +22,8 @@ export const useUpdatePMSchedule = () => {
           frequency_unit: data.frequency_unit,
           next_due_date: data.next_due_date,
           assigned_to: data.assigned_to || null,
-          checklist_record_id: data.checklist_record_id || null,
           is_active: data.is_active,
-        })
+        } as any)
         .eq('id', id);
 
       if (error) throw error;
