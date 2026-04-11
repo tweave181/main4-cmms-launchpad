@@ -64,7 +64,7 @@ export const useAddressContracts = (addressId: string) => {
         throw error;
       }
 
-      return data as ServiceContract[];
+      return (data as any) as ServiceContract[];
     },
     enabled: !!userProfile?.tenant_id && !!addressId,
   });

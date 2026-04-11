@@ -104,7 +104,14 @@ export const useCreateCompany = () => {
 
       const { data: result, error } = await supabase
         .from('company_details')
-        .insert(companyData)
+        .insert({
+          company_name: companyData.company_name,
+          email: companyData.email,
+          phone: companyData.phone,
+          website: companyData.company_website,
+          notes: companyData.company_description,
+          tenant_id: companyData.tenant_id,
+        } as any)
         .select(`
           *
         `)
@@ -146,7 +153,13 @@ export const useUpdateCompany = () => {
 
       const { data: result, error } = await supabase
         .from('company_details')
-        .update(updateData)
+        .update({
+          company_name: updateData.company_name,
+          email: updateData.email,
+          phone: updateData.phone,
+          website: updateData.company_website,
+          notes: updateData.company_description,
+        } as any)
         .eq('id', id)
         .select(`
           *

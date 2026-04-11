@@ -193,7 +193,7 @@ export const useUpdateChecklistRecord = () => {
 
       const { data: record, error } = await supabase
         .from('checklist_records')
-        .update(updateData)
+        .update(updateData as any)
         .eq('id', id)
         .select()
         .single();

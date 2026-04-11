@@ -54,11 +54,16 @@ export const useCreateAddressContact = () => {
       const { data, error } = await supabase
         .from('address_contacts')
         .insert({
-          ...contactData,
+          name: contactData.name,
+          email: contactData.email,
+          phone: contactData.telephone || contactData.phone,
+          mobile: contactData.mobile,
+          job_title: contactData.job_title,
+          notes: contactData.general_notes || contactData.notes,
           address_id: addressId,
           tenant_id: userProfile.tenant_id,
           is_primary: contactData.is_primary || false,
-        })
+        } as any)
         .select()
         .single();
 
@@ -109,9 +114,14 @@ export const useUpdateAddressContact = () => {
       const { data, error } = await supabase
         .from('address_contacts')
         .update({
-          ...contactData,
+          name: contactData.name,
+          email: contactData.email,
+          phone: contactData.telephone || contactData.phone,
+          mobile: contactData.mobile,
+          job_title: contactData.job_title,
+          notes: contactData.general_notes || contactData.notes,
           is_primary: contactData.is_primary || false,
-        })
+        } as any)
         .eq('id', id)
         .select()
         .single();

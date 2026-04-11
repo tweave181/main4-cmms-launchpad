@@ -43,7 +43,7 @@ export const useLocations = (filters?: LocationFilters) => {
 
       if (error) throw error;
 
-      return data as Location[];
+      return (data as any) as Location[];
     },
     enabled: !!userProfile?.tenant_id,
   });

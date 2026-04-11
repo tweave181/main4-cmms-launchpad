@@ -21,10 +21,9 @@ export const useContractReminderNotifications = () => {
         .from('contract_reminders_log')
         .insert({
           contract_id: contractId,
-          user_id: userProfile.id,
-          delivery_method: deliveryMethod,
+          reminder_type: deliveryMethod,
           tenant_id: userProfile.tenant_id,
-        });
+        } as any);
     } catch (error) {
       console.error('Error logging contract reminder:', error);
     }
@@ -39,9 +38,9 @@ export const useContractReminderNotifications = () => {
     const { data, error } = await supabase
       .from('contract_reminders_log')
       .select('id')
-      .eq('user_id', userProfile.id)
-      .eq('delivery_method', 'toast')
-      .gte('reminder_date', today)
+      .eq('tenant_id', userProfile.tenant_id as string)
+      .eq('reminder_type', 'toast')
+      .gte('sent_at', today)
       .in('contract_id', contractIds)
       .limit(1);
 
