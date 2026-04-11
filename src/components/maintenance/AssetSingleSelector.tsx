@@ -50,7 +50,7 @@ export const AssetSingleSelector: React.FC<AssetSingleSelectorProps> = ({
         .eq('status', 'active');
 
       if (searchTerm.trim()) {
-        query = query.or(`name.ilike.%${searchTerm}%,asset_tag.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
+        query = query.or(`name.ilike.%${searchTerm}%,asset_tag.ilike.%${searchTerm}%`);
       }
 
       const { data, error } = await query
