@@ -116,10 +116,10 @@ export const useUpdateAddressContact = () => {
         .update({
           name: contactData.name,
           email: contactData.email,
-          phone: contactData.telephone || contactData.phone,
+          phone: (contactData as any).telephone || (contactData as any).phone,
           mobile: contactData.mobile,
           job_title: contactData.job_title,
-          notes: contactData.general_notes || contactData.notes,
+          notes: (contactData as any).general_notes || (contactData as any).notes,
           is_primary: contactData.is_primary || false,
         } as any)
         .eq('id', id)

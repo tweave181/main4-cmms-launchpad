@@ -16,9 +16,9 @@ export const useSystemAdminUsers = () => {
   return useQuery({
     queryKey: ['systemAdminUsers'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_get_all_system_admins');
+      const { data, error } = await (supabase.rpc as any)('admin_get_all_system_admins');
       if (error) throw error;
-      return (data || []).map((row: any) => ({
+      return ((data as any[]) || []).map((row: any) => ({
         userId: row.user_id,
         userName: row.user_name,
         email: row.email,

@@ -61,7 +61,7 @@ export const useTimeRecords = (filters?: TimeRecordFilters) => {
 
       if (error) throw error;
 
-      return data as TimeRecord[];
+      return (data as any) as TimeRecord[];
     },
     enabled: !!userProfile?.tenant_id,
   });
@@ -103,7 +103,7 @@ export const useCreateTimeRecord = () => {
 
       const { data: result, error } = await supabase
         .from('time_records')
-        .insert(timeRecordData)
+        .insert(timeRecordData as any)
         .select()
         .single();
 

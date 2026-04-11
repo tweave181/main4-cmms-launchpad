@@ -178,7 +178,7 @@ export const useSystemAdminStats = () => {
 
 export const useInitializeTenantDefaults = () => {
   const initializeDefaults = async (tenantId: string) => {
-    const { error } = await supabase.rpc('initialize_tenant_defaults', { p_tenant_id: tenantId });
+    const { error } = await (supabase.rpc as any)('initialize_tenant_defaults', { p_tenant_id: tenantId });
     if (error) throw error;
     return true;
   };
