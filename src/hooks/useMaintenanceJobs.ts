@@ -78,7 +78,7 @@ export const useMaintenanceJob = (jobId: string) => {
         throw error;
       }
 
-      return data as MaintenanceJob;
+      return (data as any) as MaintenanceJob;
     },
     enabled: !!jobId,
   });

@@ -29,8 +29,8 @@ export const useAssignSystemAdminRole = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.rpc('assign_system_admin_role', {
-        target_user_id: userId,
+      const { error } = await (supabase.rpc as any)('assign_system_admin_role', {
+        p_user_id: userId,
       });
 
       if (error) throw error;
@@ -51,8 +51,8 @@ export const useRemoveSystemAdminRole = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.rpc('remove_system_admin_role', {
-        target_user_id: userId,
+      const { error } = await (supabase.rpc as any)('remove_system_admin_role', {
+        p_user_id: userId,
       });
 
       if (error) throw error;

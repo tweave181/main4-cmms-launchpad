@@ -94,11 +94,10 @@ export const useSystemAdminStats = () => {
     queryKey: ['systemAdminStats'],
     queryFn: async () => {
       // Use SECURITY DEFINER function to get cross-tenant data
-      const { data, error } = await supabase.rpc('admin_get_all_tenants_stats');
+      const { data, error } = await (supabase.rpc as any)('admin_get_all_tenants_stats');
 
       if (error) throw error;
 
-      // Transform the data to match our interface
       const tenantStats: TenantStats[] = (data || []).map((tenant: {
         id: string;
         name: string;
