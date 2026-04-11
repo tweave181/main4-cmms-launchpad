@@ -20,7 +20,7 @@ export const useWorkOrderAttachments = (workOrderId: string) => {
   return useQuery({
     queryKey: ['work-order-attachments', workOrderId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('work_order_attachments')
         .select(`
           *,
@@ -30,7 +30,7 @@ export const useWorkOrderAttachments = (workOrderId: string) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as WorkOrderAttachment[];
+      return (data || []) as WorkOrderAttachment[];
     },
   });
 };
@@ -67,7 +67,7 @@ export const useUploadAttachment = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('work_order_attachments')
         .insert({
           work_order_id: workOrderId,

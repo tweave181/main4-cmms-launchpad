@@ -45,12 +45,12 @@ export const AssetSingleSelector: React.FC<AssetSingleSelectorProps> = ({
 
       let query = supabase
         .from('assets')
-        .select('id, name, asset_tag, location')
+        .select('id, name, asset_tag, location_id')
         .eq('tenant_id', userProfile.tenant_id)
         .eq('status', 'active');
 
       if (searchTerm.trim()) {
-        query = query.or(`name.ilike.%${searchTerm}%,asset_tag.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
+        query = query.or(`name.ilike.%${searchTerm}%,asset_tag.ilike.%${searchTerm}%`);
       }
 
       const { data, error } = await query

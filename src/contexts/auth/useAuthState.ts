@@ -298,10 +298,12 @@ export const useAuthState = () => {
               .insert({
                 user_id: currentUser.id,
                 action: 'login',
-                entity_type: 'user',
-                entity_id: currentUser.id,
-                user_agent: navigator.userAgent,
-              });
+                details: {
+                  entity_type: 'user',
+                  entity_id: currentUser.id,
+                  user_agent: navigator.userAgent,
+                },
+              } as any);
             
             if (auditError) {
               console.error('Failed to create audit log:', auditError);

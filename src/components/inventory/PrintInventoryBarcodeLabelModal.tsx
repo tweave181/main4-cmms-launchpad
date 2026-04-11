@@ -110,7 +110,7 @@ export const PrintInventoryBarcodeLabelModal: React.FC<PrintInventoryBarcodeLabe
     if (!barcodePrintedAt) {
       await supabase
         .from('inventory_parts')
-        .update({ barcode_printed_at: new Date().toISOString() } as Record<string, unknown>)
+        .update({ barcode_printed_at: new Date().toISOString() })
         .eq('id', partId);
       onPrinted?.();
     }

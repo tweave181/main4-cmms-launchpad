@@ -32,7 +32,7 @@ export const PMAssetSelector: React.FC<PMAssetSelectorProps> = ({
       
       const { data, error } = await supabase
         .from('assets')
-        .select('id, name, asset_tag, location')
+        .select('id, name, asset_tag, location_id')
         .eq('tenant_id', userProfile?.tenant_id)
         .eq('status', 'active')
         .order('name');

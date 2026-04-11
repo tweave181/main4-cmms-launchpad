@@ -63,10 +63,10 @@ export const usePMSchedule = (id?: string) => {
         frequency_type: data.frequency_type as 'daily' | 'weekly' | 'monthly' | 'custom',
         frequency_unit: data.frequency_unit as 'days' | 'weeks' | 'months' | undefined,
         assets: data.pm_schedule_assets?.map(psa => psa.assets).filter(Boolean) || [],
-        assigned_user: data.assigned_user ? {
-          id: data.assigned_user.id,
-          name: data.assigned_user.name,
-          email: data.assigned_user.email
+        assigned_user: (data as any).assigned_user ? {
+          id: (data as any).assigned_user.id,
+          name: (data as any).assigned_user.name,
+          email: (data as any).assigned_user.email
         } : undefined,
         checklist_items: checklistItems?.map(item => ({
           id: item.id,

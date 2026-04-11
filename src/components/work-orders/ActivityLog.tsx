@@ -48,7 +48,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ workOrderId }) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as (WorkOrderComment & { user: { name: string } })[];
+      return (data as any) as (WorkOrderComment & { user: { name: string } })[];
     },
     enabled: !!userProfile?.tenant_id && !!workOrderId,
   });

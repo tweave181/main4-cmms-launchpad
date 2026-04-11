@@ -24,7 +24,7 @@ export const useTenantInvitations = () => {
   return useQuery({
     queryKey: ['tenant-invitations'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tenant_invitations')
         .select('*')
         .order('created_at', { ascending: false });
@@ -40,7 +40,7 @@ export const useGenerateInvitation = () => {
 
   return useMutation({
     mutationFn: async ({ expiresInDays, notes }: { expiresInDays: number; notes?: string }) => {
-      const { data, error } = await supabase.rpc('generate_tenant_invitation', {
+      const { data, error } = await (supabase.rpc as any)('generate_tenant_invitation', {
         p_expires_in_days: expiresInDays,
         p_notes: notes || null,
       });
@@ -72,7 +72,7 @@ export const useRevokeInvitation = () => {
 
   return useMutation({
     mutationFn: async (code: string) => {
-      const { data, error } = await supabase.rpc('revoke_tenant_invitation', {
+      const { data, error } = await (supabase.rpc as any)('revoke_tenant_invitation', {
         p_code: code,
       });
 

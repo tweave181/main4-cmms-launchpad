@@ -39,8 +39,7 @@ export const useUpdateUserPermissionOverrides = () => {
             user_id: userId,
             permission_id: permissionId,
             granted,
-            tenant_id: userProfile?.tenant_id,
-          });
+          } as any);
 
         if (error) throw error;
       }

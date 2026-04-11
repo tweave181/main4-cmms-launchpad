@@ -52,7 +52,7 @@ export const useMaintenanceJobs = (filters?: MaintenanceJobFilters) => {
 
       if (error) throw error;
 
-      return data as MaintenanceJob[];
+      return (data as any) as MaintenanceJob[];
     },
     enabled: !!userProfile?.tenant_id,
   });
@@ -78,7 +78,7 @@ export const useMaintenanceJob = (jobId: string) => {
         throw error;
       }
 
-      return data as MaintenanceJob;
+      return (data as any) as MaintenanceJob;
     },
     enabled: !!jobId,
   });

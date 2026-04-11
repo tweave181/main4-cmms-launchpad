@@ -48,7 +48,7 @@ export const useWorkOrderComments = (workOrderId: string) => {
 
       if (error) throw error;
 
-      return data as WorkOrderComment[];
+      return (data as any) as WorkOrderComment[];
     },
     enabled: !!workOrderId,
   });
@@ -86,7 +86,7 @@ export const useCreateWorkOrderComment = () => {
         .insert({
           ...data,
           user_id: userProfile.id,
-        })
+        } as any)
         .select()
         .single();
 

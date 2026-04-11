@@ -111,6 +111,8 @@ export const useAssetDuplication = () => {
       // Transform the result to match Asset type
       const typedNewAsset: Asset = {
         ...newAsset,
+        status: newAsset.status as any,
+        priority: newAsset.priority as any,
         asset_level: newAsset.asset_level as 1 | 2 | 3,
         asset_type: newAsset.asset_type as 'unit' | 'component' | 'consumable'
       };

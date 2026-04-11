@@ -30,14 +30,13 @@ export const useEmailLogs = (params: UseEmailLogsParams = {}) => {
         .from('email_delivery_log')
         .select(`
           *,
-          recipient_user:users!email_delivery_log_recipient_user_id_fkey(name),
           template:email_templates(template_type, template_name)
         `, { count: 'exact' })
         .order('created_at', { ascending: false });
 
       // Apply filters
       if (status) {
-        query = query.eq('delivery_status', status);
+        query = query.eq('status', status);
       }
 
       if (templateType) {

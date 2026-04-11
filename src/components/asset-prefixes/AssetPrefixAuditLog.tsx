@@ -32,16 +32,12 @@ export const AssetPrefixAuditLog: React.FC = () => {
         .select(`
           id,
           action,
-          changed_by,
-          change_summary,
-          timestamp,
-          users!changed_by (
-            name,
-            email
-          )
+          performed_by,
+          old_values,
+          new_values,
+          created_at
         `)
-        .eq('tenant_id', userProfile?.tenant_id)
-        .order('timestamp', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
@@ -49,10 +45,10 @@ export const AssetPrefixAuditLog: React.FC = () => {
       return data.map((entry: any) => ({
         id: entry.id,
         action: entry.action,
-        changed_by: entry.changed_by,
-        change_summary: entry.change_summary,
-        timestamp: entry.timestamp,
-        user: entry.users
+        changed_by: entry.performed_by,
+        change_summary: JSON.stringify(entry.new_values || entry.old_values || {}),
+        timestamp: entry.created_at,
+        user: null
       }));
     },
     enabled: !!userProfile?.tenant_id,
