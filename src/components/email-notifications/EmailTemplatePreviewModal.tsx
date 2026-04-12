@@ -79,7 +79,7 @@ export const EmailTemplatePreviewModal: React.FC<EmailTemplatePreviewModalProps>
             <h4 className="text-sm font-medium mb-2">HTML Preview:</h4>
             <div
               className="p-4 bg-background border rounded-md overflow-auto max-h-96"
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewHtml) }}
             />
           </div>
 
