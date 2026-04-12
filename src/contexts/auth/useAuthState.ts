@@ -88,14 +88,10 @@ export const useAuthState = () => {
       return;
     }
     
-    // Quick JWT claims check without aggressive validation
-    // NOTE: tenant_id may exist in either user_metadata or app_metadata depending on provisioning.
+    // Don’t block app access on delayed tenant claims; the profile query can recover tenant context.
     const tenantId = session.user.user_metadata?.tenant_id || session.user.app_metadata?.tenant_id;
     if (!tenantId) {
-      console.log('No tenant_id in JWT claims, waiting for claims to propagate...');
-      setReady(false);
-      setProfileStatus('loading');
-      return;
+      console.warn('No tenant_id in JWT claims yet, continuing with profile-based recovery');
     }
 
     sessionChecked.current = session.access_token;
@@ -202,15 +198,7 @@ export const useAuthState = () => {
       }
 
       setUser(session.user);
-      // Only proceed if JWT claims are available
-      const initialTenantId = session.user.user_metadata?.tenant_id || session.user.app_metadata?.tenant_id;
-      if (initialTenantId) {
-        await handleSessionReady(session);
-      } else {
-        console.log('Waiting for JWT claims to be available...');
-        setReady(false);
-        setProfileStatus('loading');
-      }
+      await handleSessionReady(session);
     };
 
     const initializeAuth = async () => {

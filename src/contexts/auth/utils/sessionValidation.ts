@@ -1,7 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Fix: Enhanced session validation with retry logic for JWT claims
+// Validate that a session exists before profile reads.
+// Tenant claims can lag briefly after signup, so they are advisory rather than blocking.
 export const validateSessionAndClaims = async (userId: string, retries = 3) => {
   console.log(`=== Starting profile fetch for user: ${userId} (retries left: ${retries}) ===`);
   
@@ -28,17 +29,11 @@ export const validateSessionAndClaims = async (userId: string, retries = 3) => {
       appMetadata: session.user.app_metadata
     });
 
-    // Check JWT claims with retry logic
+    // Check JWT claims, but don't block profile access if they are still propagating.
     const tenantId = session.user.user_metadata?.tenant_id || session.user.app_metadata?.tenant_id;
     if (!tenantId) {
-      console.warn(`No tenant_id found in JWT claims (attempt ${attempt})`);
-      if (attempt === retries) {
-        console.error('No tenant_id found in JWT claims after all retries, aborting profile fetch');
-        throw new Error('No tenant_id found in JWT claims');
-      }
-      // Wait before retry - JWT might be updating
-      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-      continue;
+      console.warn(`No tenant_id found in JWT claims (attempt ${attempt}); continuing with auth session`);
+      return session;
     }
 
     console.log(`JWT claims confirmed on attempt ${attempt}, proceeding with profile fetch. Tenant ID:`, tenantId);
