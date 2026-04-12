@@ -168,8 +168,9 @@ serve(async (req) => {
       // Remove password_hash from response
       const { password_hash, verification_token, verification_token_expires_at, ...safeCustomer } = customer;
 
-      // Generate simple token (timestamp + customer id)
-      const token = btoa(`${customer.id}:${Date.now()}`);
+      // Generate cryptographically secure session token
+      const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
+      const token = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, '0')).join('');
 
       return new Response(
         JSON.stringify({ success: true, customer: safeCustomer, token }),
