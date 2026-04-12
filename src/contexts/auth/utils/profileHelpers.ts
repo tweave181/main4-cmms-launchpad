@@ -8,7 +8,7 @@ export const createMissingProfile = async (session: any): Promise<UserProfile> =
   try {
     console.log('Creating missing profile for user:', session.user.id);
     
-    const tenantId = session.user.user_metadata?.tenant_id;
+    const tenantId = session.user.user_metadata?.tenant_id || session.user.app_metadata?.tenant_id;
     if (!tenantId) {
       throw new Error('No tenant_id found in session metadata');
     }
@@ -18,7 +18,7 @@ export const createMissingProfile = async (session: any): Promise<UserProfile> =
       tenant_id: tenantId,
       email: session.user.email,
       name: session.user.user_metadata?.name || 'User',
-      role: session.user.user_metadata?.role || 'technician'
+      role: session.user.user_metadata?.role || session.user.app_metadata?.role || 'technician'
     };
 
     console.log('Inserting profile data:', profileData);
