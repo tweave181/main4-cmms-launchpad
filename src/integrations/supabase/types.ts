@@ -228,6 +228,7 @@ export type Database = {
           old_values: Json | null
           performed_by: string | null
           prefix_id: string | null
+          tenant_id: string | null
         }
         Insert: {
           action: string
@@ -237,6 +238,7 @@ export type Database = {
           old_values?: Json | null
           performed_by?: string | null
           prefix_id?: string | null
+          tenant_id?: string | null
         }
         Update: {
           action?: string
@@ -246,6 +248,7 @@ export type Database = {
           old_values?: Json | null
           performed_by?: string | null
           prefix_id?: string | null
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -253,6 +256,13 @@ export type Database = {
             columns: ["prefix_id"]
             isOneToOne: false
             referencedRelation: "asset_tag_prefixes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_tag_prefix_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

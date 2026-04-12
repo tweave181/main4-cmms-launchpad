@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -14,17 +15,38 @@ interface VerifyDomainRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Authenticate the caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     console.log("Domain verification request received");
 
     const { email_address }: VerifyDomainRequest = await req.json();
 
-    // Extract domain from email address
     const domain = email_address.split("@")[1];
     
     if (!domain) {
@@ -43,7 +65,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Checking domain verification for: ${domain}`);
 
-    // Check if using Resend's test domain
     if (domain === "resend.dev") {
       return new Response(JSON.stringify({ 
         success: true,
@@ -52,24 +73,18 @@ const handler = async (req: Request): Promise<Response> => {
         message: "Using Resend test domain"
       }), {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    // Fetch domain details from Resend
     const domainsResponse = await resend.domains.list();
     
-    console.log("Domains response:", domainsResponse);
-
     if (!domainsResponse.data) {
       return new Response(
         JSON.stringify({ 
           success: false,
           verified: false,
-          error: "Could not fetch domain information from Resend" 
+          error: "Could not fetch domain information" 
         }),
         {
           status: 500,
@@ -78,7 +93,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Find the domain in the list
     const domainInfo = domainsResponse.data.data?.find(
       (d: any) => d.name === domain
     );
@@ -88,17 +102,13 @@ const handler = async (req: Request): Promise<Response> => {
         success: true,
         verified: false,
         domain: domain,
-        message: `Domain '${domain}' is not added to your Resend account. Please add and verify it in your Resend dashboard.`
+        message: `Domain '${domain}' is not added. Please add and verify it in your email settings.`
       }), {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    // Check verification status
     const isVerified = domainInfo.status === "verified";
 
     return new Response(JSON.stringify({ 
@@ -108,27 +118,19 @@ const handler = async (req: Request): Promise<Response> => {
       status: domainInfo.status,
       message: isVerified 
         ? `Domain '${domain}' is verified and ready to use`
-        : `Domain '${domain}' is added but not yet verified. Please complete DNS verification in your Resend dashboard.`
+        : `Domain '${domain}' is added but not yet verified. Please complete DNS verification.`
     }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
     console.error("Error verifying domain:", error);
     
-    let errorMessage = "Failed to verify domain";
-    if (error.message) {
-      errorMessage = error.message;
-    }
-
     return new Response(
       JSON.stringify({ 
         success: false,
         verified: false,
-        error: errorMessage 
+        error: "Failed to verify domain"
       }),
       {
         status: 500,

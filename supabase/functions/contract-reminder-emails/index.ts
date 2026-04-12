@@ -10,7 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -19,6 +19,34 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Authenticate: require cron secret OR authenticated system admin
+    const cronSecret = req.headers.get('x-cron-secret');
+    const expectedCronSecret = Deno.env.get('CRON_SECRET');
+    
+    if (cronSecret && expectedCronSecret && cronSecret === expectedCronSecret) {
+      // Valid cron call
+    } else {
+      // Fall back to JWT auth
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      
+      const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+    }
+
     console.log('Starting contract reminder check...');
 
     const today = new Date().toISOString().split('T')[0];
@@ -109,12 +137,6 @@ const handler = async (req: Request): Promise<Response> => {
                     <p style="margin: 5px 0;"><strong>Days Until Expiry:</strong> ${daysUntilExpiry}</p>
                   </div>
                   <p>Please review this contract and take appropriate action to renew or replace it before it expires.</p>
-                  <div style="text-align: center; margin: 30px 0;">
-                    <a href="${supabaseUrl}/admin/service-contracts/${contract.id}" 
-                       style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
-                      View Contract Details
-                    </a>
-                  </div>
                   <p style="color: #6b7280; font-size: 14px;">
                     This is an automated reminder from your maintenance management system.
                   </p>
@@ -131,7 +153,6 @@ const handler = async (req: Request): Promise<Response> => {
               html: emailHtml,
             });
 
-            // Log to contract_reminders_log
             await supabase
               .from('contract_reminders_log')
               .insert({
@@ -142,7 +163,6 @@ const handler = async (req: Request): Promise<Response> => {
                 tenant_id: contract.tenant_id,
               });
 
-            // Log to email_delivery_log
             await supabase
               .from('email_delivery_log')
               .insert({
@@ -157,7 +177,6 @@ const handler = async (req: Request): Promise<Response> => {
           } catch (emailError) {
             console.error(`Error sending email to ${adminUser.email}:`, emailError);
             
-            // Log failed email
             await supabase
               .from('contract_reminders_log')
               .insert({

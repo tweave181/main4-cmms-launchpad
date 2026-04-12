@@ -21,25 +21,44 @@ interface InvitationEmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Authenticate the caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const { invitationId, name, email, role, inviterName, tenantName, token }: InvitationEmailRequest = await req.json();
 
-    // Validate required fields
     if (!email || !token || !tenantName) {
       throw new Error("Missing required fields: email, token, or tenantName");
     }
 
-    // Construct the invitation link
     const baseUrl = req.headers.get("origin") || "https://id-preview--4f5e6a65-aa71-4ffa-b277-e29dddd42aab.lovable.app";
     const inviteLink = `${baseUrl}/accept-invitation?token=${token}`;
 
     console.log("Sending invitation email to:", email);
-    console.log("Invite link:", inviteLink);
 
     const emailResponse = await resend.emails.send({
       from: "Main4 <noreply@main4.uk>",
