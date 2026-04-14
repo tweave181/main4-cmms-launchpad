@@ -181,10 +181,19 @@ export const useAuthState = () => {
     }
   }, [userProfile, loading, ready, profileLoading, profileError, profileStatus]);
 
+  // Use refs to avoid dependency churn in the main effect
+  const handleSessionReadyRef = useRef(handleSessionReady);
+  handleSessionReadyRef.current = handleSessionReady;
+  const clearUserDataRef = useRef(clearUserData);
+  clearUserDataRef.current = clearUserData;
+  const activateBackoffRef = useRef(activateBackoff);
+  activateBackoffRef.current = activateBackoff;
+  const handleExpiredSessionRef = useRef(handleExpiredSession);
+  handleExpiredSessionRef.current = handleExpiredSession;
+
   useEffect(() => {
     let mounted = true;
 
-    // Fix: Simplified session handling to prevent validation loops
     const handleInitialSession = async (session: any) => {
       if (!mounted) return;
       
@@ -193,12 +202,12 @@ export const useAuthState = () => {
         setReady(false);
         setProfileStatus('loading');
         setProfileError(null);
-        clearUserData();
+        clearUserDataRef.current();
         return;
       }
 
       setUser(session.user);
-      await handleSessionReady(session);
+      await handleSessionReadyRef.current(session);
     };
 
     const initializeAuth = async () => {
@@ -218,14 +227,13 @@ export const useAuthState = () => {
       }
     };
 
-    // Handle 429 (rate limit) from other tabs
     const handleStorage = () => {
       const backoffUntil = parseInt(localStorage.getItem(RATE_LIMIT_BACKOFF_KEY) || '0', 10);
       if (backoffUntil && (Date.now() - backoffUntil < RATE_LIMIT_BACKOFF_DURATION)) {
         setProfileStatus('rate-limit');
-        setProfileError("We’re reconnecting you. Please wait...");
+        setProfileError("We're reconnecting you. Please wait...");
         setBackoffActive(true);
-      } else if (backoffActive) {
+      } else {
         setProfileStatus('loading');
         setProfileError(null);
         setBackoffActive(false);
@@ -233,7 +241,6 @@ export const useAuthState = () => {
     };
     window.addEventListener('storage', handleStorage);
 
-    // Listen for auth changes (without preventive session refresh!)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
 
@@ -242,46 +249,28 @@ export const useAuthState = () => {
         setReady(false);
         setProfileStatus('loading');
         setProfileError(null);
-        clearUserData();
-        if (event === "SIGNED_OUT") {
-          // Navigation will be handled by AuthNavigationHandler component
-        }
+        clearUserDataRef.current();
         setLoading(false);
         return;
       }
 
       setUser(session.user);
       setTimeout(async () => {
-        await handleSessionReady(session);
+        await handleSessionReadyRef.current(session);
       }, 0);
 
       if (event === 'SIGNED_IN') {
-        // Update last_login directly after successful login
         setTimeout(async () => {
           try {
-            // Validate session is established
             const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (!currentUser) {
-              console.warn('No user found for last_login update');
-              return;
-            }
+            if (!currentUser) return;
 
-            console.log('Updating last_login for user:', currentUser.id);
-            
-            // Update last_login directly
-            const { error: updateError } = await supabase
+            await supabase
               .from('users')
               .update({ last_login: new Date().toISOString() })
               .eq('id', currentUser.id);
             
-            if (updateError) {
-              console.error('Failed to update last_login:', updateError);
-            } else {
-              console.log('Successfully updated last_login');
-            }
-            
-            // Insert audit log
-            const { error: auditError } = await supabase
+            await supabase
               .from('audit_logs')
               .insert({
                 user_id: currentUser.id,
@@ -292,16 +281,10 @@ export const useAuthState = () => {
                   user_agent: navigator.userAgent,
                 },
               } as any);
-            
-            if (auditError) {
-              console.error('Failed to create audit log:', auditError);
-            } else {
-              console.log('Successfully created login audit log');
-            }
           } catch (error) {
             console.error('Login logging failed:', error);
           }
-        }, 2000); // 2 second delay to ensure session is fully established
+        }, 2000);
       }
 
       setLoading(false);
@@ -315,7 +298,8 @@ export const useAuthState = () => {
       window.removeEventListener('storage', handleStorage);
       if (backoffTimeout.current) clearTimeout(backoffTimeout.current);
     };
-  }, [handleSessionReady, clearUserData, activateBackoff, handleExpiredSession, backoffActive]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     user,
