@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,10 +18,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
+import { CalendarIcon, Check, ChevronsUpDown, Plus } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+
+export const PENDING_CONTRACT_DRAFT_KEY = 'pendingServiceContractDraft';
+export const PENDING_NEW_VENDOR_KEY = 'pendingNewVendorId';
 
 const contractSchema = z.object({
   contract_title: z.string().min(1, 'Contract title is required'),
@@ -56,13 +60,17 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
     watch,
-    reset
+    reset,
+    getValues
   } = useForm<ContractFormData>({
     resolver: zodResolver(contractSchema),
     defaultValues: {
@@ -155,6 +163,46 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
       });
     }
   }, [contract, isOpen, companies, reset]);
+
+  // Restore draft + auto-select newly created vendor when returning from Addresses page
+  useEffect(() => {
+    if (!isOpen) return;
+    const newVendorId = sessionStorage.getItem(PENDING_NEW_VENDOR_KEY);
+    const draftRaw = sessionStorage.getItem(PENDING_CONTRACT_DRAFT_KEY);
+    if (!newVendorId || !draftRaw) return;
+    // Wait until companies list contains the new vendor to avoid race
+    if (!companies.some(c => c.id === newVendorId)) return;
+    try {
+      const draft = JSON.parse(draftRaw);
+      reset({
+        ...draft.values,
+        start_date: draft.values.start_date ? new Date(draft.values.start_date) : undefined,
+        end_date: draft.values.end_date ? new Date(draft.values.end_date) : undefined,
+        vendor_company_id: newVendorId,
+        address_id: undefined,
+      });
+    } catch (e) {
+      console.error('Failed to restore contract draft', e);
+    } finally {
+      sessionStorage.removeItem(PENDING_NEW_VENDOR_KEY);
+      sessionStorage.removeItem(PENDING_CONTRACT_DRAFT_KEY);
+    }
+  }, [isOpen, companies, reset]);
+
+  const handleAddNewVendor = () => {
+    sessionStorage.setItem(
+      PENDING_CONTRACT_DRAFT_KEY,
+      JSON.stringify({
+        values: getValues(),
+        returnPath: location.pathname,
+        contractId: contract?.id ?? null,
+      })
+    );
+    onClose();
+    navigate('/addresses?addVendor=1');
+  };
+
+
 
   const createContractMutation = useMutation({
     mutationFn: async (data: ContractFormData) => {
@@ -326,7 +374,19 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="vendor_company_id">Vendor Company *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="vendor_company_id">Vendor Company *</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddNewVendor}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add New Vendor
+                </Button>
+              </div>
               <Popover open={companySearchOpen} onOpenChange={setCompanySearchOpen}>
                 <PopoverTrigger asChild>
                   <Button

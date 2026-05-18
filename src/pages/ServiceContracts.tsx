@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +51,19 @@ const ServiceContracts: React.FC = () => {
   } = useGlobalSettings();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Re-open the contract modal when returning from "Add New Vendor" flow
+  useEffect(() => {
+    const draft = sessionStorage.getItem('pendingServiceContractDraft');
+    const newVendor = sessionStorage.getItem('pendingNewVendorId');
+    if (draft && newVendor) {
+      try {
+        const parsed = JSON.parse(draft);
+        // Only reopen here for create flow (no contractId); edit flow lives on detail page
+        if (!parsed.contractId) setIsModalOpen(true);
+      } catch {}
+    }
+  }, []);
   const {
     data: contracts = [],
     isLoading,

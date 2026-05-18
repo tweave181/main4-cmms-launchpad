@@ -1,13 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin } from 'lucide-react';
 import { AddressList } from '@/components/addresses/AddressList';
 import { AddressFormModal } from '@/components/addresses/AddressFormModal';
 import { useAuth } from '@/contexts/auth';
+import {
+  PENDING_CONTRACT_DRAFT_KEY,
+  PENDING_NEW_VENDOR_KEY,
+} from '@/components/contracts/ServiceContractModal';
+import type { Address } from '@/types/address';
 
 const Addresses: React.FC = () => {
   const { isAdmin } = useAuth();
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const addVendorMode = searchParams.get('addVendor') === '1';
+
+  useEffect(() => {
+    if (addVendorMode) {
+      setIsAddFormOpen(true);
+    }
+  }, [addVendorMode]);
+
+  const handleClose = () => {
+    setIsAddFormOpen(false);
+    if (addVendorMode) {
+      // Clear the query param so reopening the page doesn't re-trigger
+      searchParams.delete('addVendor');
+      setSearchParams(searchParams, { replace: true });
+      // If user cancels without saving, also drop the pending draft
+      const draftRaw = sessionStorage.getItem(PENDING_CONTRACT_DRAFT_KEY);
+      if (draftRaw && !sessionStorage.getItem(PENDING_NEW_VENDOR_KEY)) {
+        // keep draft so user can return manually; but navigate back
+        try {
+          const draft = JSON.parse(draftRaw);
+          if (draft.returnPath) navigate(draft.returnPath);
+        } catch {}
+      }
+    }
+  };
+
+  const handleAddressCreated = (address: Address) => {
+    if (addVendorMode && address.company_id) {
+      sessionStorage.setItem(PENDING_NEW_VENDOR_KEY, address.company_id);
+      const draftRaw = sessionStorage.getItem(PENDING_CONTRACT_DRAFT_KEY);
+      let returnPath = '/admin/service-contracts';
+      try {
+        if (draftRaw) {
+          const draft = JSON.parse(draftRaw);
+          if (draft.returnPath) returnPath = draft.returnPath;
+        }
+      } catch {}
+      setIsAddFormOpen(false);
+      navigate(returnPath);
+    } else {
+      setIsAddFormOpen(false);
+    }
+  };
 
   if (!isAdmin) {
     return (
@@ -33,15 +84,16 @@ const Addresses: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <AddressList 
-            onAddAddress={() => setIsAddFormOpen(true)} 
+          <AddressList
+            onAddAddress={() => setIsAddFormOpen(true)}
           />
         </CardContent>
       </Card>
 
       <AddressFormModal
         isOpen={isAddFormOpen}
-        onClose={() => setIsAddFormOpen(false)}
+        onClose={handleClose}
+        onSuccess={handleAddressCreated}
       />
     </div>
   );
