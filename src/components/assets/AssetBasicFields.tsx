@@ -97,8 +97,8 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control, cur
         disabled={!!parentAssetValue}
       />
       <AssetNameField control={control} />
-      <AssetTagField control={control} onTagSelect={handleTagSelect} />
       <AssetCategoryField control={control} onCategoryChange={handleCategoryChange} />
+      <AssetTagField control={control} onTagSelect={handleTagSelect} />
       <AssetLocationField control={control} />
       <AssetDepartmentField control={control} />
       <AssetStatusField control={control} />
