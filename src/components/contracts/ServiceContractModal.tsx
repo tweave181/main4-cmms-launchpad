@@ -374,7 +374,19 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="vendor_company_id">Vendor Company *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="vendor_company_id">Vendor Company *</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddNewVendor}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add New Vendor
+                </Button>
+              </div>
               <Popover open={companySearchOpen} onOpenChange={setCompanySearchOpen}>
                 <PopoverTrigger asChild>
                   <Button
