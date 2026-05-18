@@ -13,9 +13,5 @@ self.addEventListener('activate', (event) => {
     await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
 
     await self.clients.claim();
-    await self.registration.unregister();
-
-    const windowClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    windowClients.forEach((client) => client.navigate(client.url));
   })());
 });
