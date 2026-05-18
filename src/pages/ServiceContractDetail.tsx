@@ -75,6 +75,18 @@ const ServiceContractDetail: React.FC = () => {
   } = useGlobalSettings();
   const queryClient = useQueryClient();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Re-open the edit modal when returning from "Add New Vendor" flow
+  useEffect(() => {
+    const draft = sessionStorage.getItem('pendingServiceContractDraft');
+    const newVendor = sessionStorage.getItem('pendingNewVendorId');
+    if (draft && newVendor) {
+      try {
+        const parsed = JSON.parse(draft);
+        if (parsed.contractId && parsed.contractId === id) setIsEditModalOpen(true);
+      } catch {}
+    }
+  }, [id]);
   const {
     data: contract,
     isLoading,
