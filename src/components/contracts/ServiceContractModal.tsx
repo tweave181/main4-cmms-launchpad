@@ -164,6 +164,46 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
     }
   }, [contract, isOpen, companies, reset]);
 
+  // Restore draft + auto-select newly created vendor when returning from Addresses page
+  useEffect(() => {
+    if (!isOpen) return;
+    const newVendorId = sessionStorage.getItem(PENDING_NEW_VENDOR_KEY);
+    const draftRaw = sessionStorage.getItem(PENDING_CONTRACT_DRAFT_KEY);
+    if (!newVendorId || !draftRaw) return;
+    // Wait until companies list contains the new vendor to avoid race
+    if (!companies.some(c => c.id === newVendorId)) return;
+    try {
+      const draft = JSON.parse(draftRaw);
+      reset({
+        ...draft.values,
+        start_date: draft.values.start_date ? new Date(draft.values.start_date) : undefined,
+        end_date: draft.values.end_date ? new Date(draft.values.end_date) : undefined,
+        vendor_company_id: newVendorId,
+        address_id: undefined,
+      });
+    } catch (e) {
+      console.error('Failed to restore contract draft', e);
+    } finally {
+      sessionStorage.removeItem(PENDING_NEW_VENDOR_KEY);
+      sessionStorage.removeItem(PENDING_CONTRACT_DRAFT_KEY);
+    }
+  }, [isOpen, companies, reset]);
+
+  const handleAddNewVendor = () => {
+    sessionStorage.setItem(
+      PENDING_CONTRACT_DRAFT_KEY,
+      JSON.stringify({
+        values: getValues(),
+        returnPath: location.pathname,
+        contractId: contract?.id ?? null,
+      })
+    );
+    onClose();
+    navigate('/addresses?addVendor=1');
+  };
+
+
+
   const createContractMutation = useMutation({
     mutationFn: async (data: ContractFormData) => {
       if (!userProfile?.tenant_id) {
