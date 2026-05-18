@@ -60,13 +60,17 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
     watch,
-    reset
+    reset,
+    getValues
   } = useForm<ContractFormData>({
     resolver: zodResolver(contractSchema),
     defaultValues: {
