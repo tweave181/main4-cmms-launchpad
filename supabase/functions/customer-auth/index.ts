@@ -598,7 +598,7 @@ serve(async (req) => {
       if (job_title_id !== undefined) updateData.job_title_id = job_title_id || null;
       if (work_area_id !== undefined) updateData.work_area_id = work_area_id || null;
       if (reports_to !== undefined) updateData.reports_to = reports_to || null;
-      if (is_active !== undefined) updateData.is_active = is_active;
+      if (is_active !== undefined && allowAdminFields) updateData.is_active = is_active;
 
       // Hash new password if provided using Web Crypto API
       if (password) {
