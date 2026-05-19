@@ -95,6 +95,52 @@ async function verifyPassword(password: string, storedHash: string): Promise<boo
   }
 }
 
+// SHA-256 hex digest, used to hash session tokens before storage
+async function sha256Hex(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Validate a customer portal session token. Returns the session row or null.
+async function validateCustomerSession(
+  supabase: ReturnType<typeof createClient>,
+  token: string | undefined | null,
+): Promise<{ customer_id: string; tenant_id: string } | null> {
+  if (!token || typeof token !== 'string') return null;
+  const token_hash = await sha256Hex(token);
+  const { data } = await supabase
+    .from('customer_sessions')
+    .select('customer_id, tenant_id, expires_at')
+    .eq('token_hash', token_hash)
+    .maybeSingle();
+  if (!data) return null;
+  if (new Date(data.expires_at) < new Date()) return null;
+  return { customer_id: data.customer_id, tenant_id: data.tenant_id };
+}
+
+// Verify a Supabase auth JWT (from the Authorization header) belongs to an admin.
+async function requireAdmin(
+  supabaseUrl: string,
+  serviceClient: ReturnType<typeof createClient>,
+  authHeader: string | null,
+): Promise<{ ok: boolean; user_id?: string; tenant_id?: string }> {
+  if (!authHeader?.startsWith('Bearer ')) return { ok: false };
+  const token = authHeader.slice(7);
+  const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+  const { data: claims, error } = await userClient.auth.getClaims(token);
+  if (error || !claims?.claims?.sub) return { ok: false };
+  const userId = claims.claims.sub as string;
+  const { data: profile } = await serviceClient
+    .from('users')
+    .select('tenant_id, role')
+    .eq('id', userId)
+    .maybeSingle();
+  if (!profile || profile.role !== 'admin') return { ok: false };
+  return { ok: true, user_id: userId, tenant_id: profile.tenant_id };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -103,12 +149,14 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+
     // Use service role key for customer operations (bypasses RLS)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
     const { action } = body;
+    const authHeader = req.headers.get('Authorization');
+
 
     if (action === 'login') {
       const { name, password, tenant_id } = body;
