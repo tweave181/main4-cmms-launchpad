@@ -26,6 +26,24 @@ const hasValidJWTClaims = (session: any): boolean => {
 // Add short-lived local rate limit backoff flag
 const RATE_LIMIT_BACKOFF_KEY = 'lovableRateLimitBackoff';
 const RATE_LIMIT_BACKOFF_DURATION = 2500;
+const SESSION_EXPIRED_FLAG_KEY = 'lovableSessionExpired';
+
+const setSessionExpiredFlag = () => {
+  if (typeof window !== 'undefined') {
+    window.sessionStorage.setItem(SESSION_EXPIRED_FLAG_KEY, '1');
+  }
+};
+
+const clearSessionExpiredFlag = () => {
+  if (typeof window !== 'undefined') {
+    window.sessionStorage.removeItem(SESSION_EXPIRED_FLAG_KEY);
+  }
+};
+
+const hasSessionExpiredFlag = () => {
+  if (typeof window === 'undefined') return false;
+  return window.sessionStorage.getItem(SESSION_EXPIRED_FLAG_KEY) === '1';
+};
 
 export type ProfileStatus = 'loading' | 'ready' | 'missing' | 'error' | 'expired' | 'rate-limit';
 
@@ -61,6 +79,7 @@ export const useAuthState = () => {
 
   // Helper to handle forced logout on expired/invalid session
   const handleExpiredSession = useCallback(async (customMsg?: string) => {
+    setSessionExpiredFlag();
     try {
       await supabase.auth.signOut();
     } catch (e) {}
@@ -95,6 +114,7 @@ export const useAuthState = () => {
     }
 
     sessionChecked.current = session.access_token;
+    clearSessionExpiredFlag();
     setReady(true);
     setProfileStatus('loading');
     setProfileError(null);
@@ -200,8 +220,13 @@ export const useAuthState = () => {
       if (!session?.user) {
         setUser(null);
         setReady(false);
-        setProfileStatus('loading');
-        setProfileError(null);
+        if (hasSessionExpiredFlag()) {
+          setProfileStatus('expired');
+          setProfileError('Your session is no longer valid. Please sign in again.');
+        } else {
+          setProfileStatus('loading');
+          setProfileError(null);
+        }
         clearUserDataRef.current();
         return;
       }
@@ -247,8 +272,13 @@ export const useAuthState = () => {
       if (!session?.user) {
         setUser(null);
         setReady(false);
-        setProfileStatus('loading');
-        setProfileError(null);
+        if (hasSessionExpiredFlag()) {
+          setProfileStatus('expired');
+          setProfileError('Your session is no longer valid. Please sign in again.');
+        } else {
+          setProfileStatus('loading');
+          setProfileError(null);
+        }
         clearUserDataRef.current();
         setLoading(false);
         return;
