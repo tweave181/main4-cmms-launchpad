@@ -75,8 +75,40 @@ const Addresses: React.FC = () => {
     );
   }
 
+  const handleReturnToContract = () => {
+    const draftRaw = sessionStorage.getItem(PENDING_CONTRACT_DRAFT_KEY);
+    let returnPath = '/admin/service-contracts';
+    try {
+      if (draftRaw) {
+        const draft = JSON.parse(draftRaw);
+        if (draft?.returnPath) returnPath = draft.returnPath;
+      }
+    } catch {}
+    setIsAddFormOpen(false);
+    navigate(returnPath);
+  };
+
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-4">
+      {addVendorMode && (
+        <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+          <nav className="flex items-center text-sm text-muted-foreground" aria-label="Breadcrumb">
+            <button
+              onClick={handleReturnToContract}
+              className="font-medium text-primary hover:underline"
+            >
+              Service Contract
+            </button>
+            <ChevronRight className="mx-2 h-4 w-4" />
+            <span className="text-foreground">Add New Vendor</span>
+          </nav>
+          <Button variant="outline" size="sm" onClick={handleReturnToContract}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Service Contract
+          </Button>
+        </div>
+      )}
+
       <Card className="rounded-2xl shadow-sm border border-gray-200">
         <CardHeader className="pb-4">
           <CardTitle className="text-2xl font-semibold flex items-center space-x-3">
