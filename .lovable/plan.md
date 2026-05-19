@@ -1,37 +1,45 @@
-## Add New Vendor flow from Service Contract modal
+# Invitation-Code Signup Popups
 
-### What changes
-On the Add/Edit Service Contract modal, add an **"+ Add New Vendor"** button directly above the "Select vendor..." dropdown. Clicking it preserves the in-progress contract form, sends the user to the Address Book to create a new vendor (company + address marked as Supplier/Contractor), then returns to the Service Contract modal with the new vendor pre-selected.
+## Goal
+Replace the "Don't have an account? Sign up" link on the Sign In page with **"Click to enter Invitation Code"**, opening a small popup flow. After successful signup, the user verifies their email and lands in the app where the existing Setup Wizard collects the rest of their details.
 
-### User flow
-1. User opens "Add New Service Contract", types Contract Title, Dates, etc.
-2. Vendor isn't in the list → clicks **+ Add New Vendor** above the dropdown.
-3. Contract form draft is saved; user is taken to `/addresses` with the Add Address modal opened automatically (company field required, "Supplier" type pre-checked).
-4. On save, user is returned to `/admin/service-contracts` (or `/admin/service-contracts/:id` if editing); the contract modal reopens with all previous field values restored and the newly-created vendor pre-selected in the Vendor Company dropdown.
-5. User finishes and clicks Create Contract.
+## UX Flow
 
-### Technical details
+1. **Sign In page** — change the link text under the Sign In button to:
+   `Click to enter Invitation Code`
 
-**`src/components/contracts/ServiceContractModal.tsx`**
-- Above the Vendor Company Popover, add a small outline button: `<Button variant="outline" size="sm" onClick={handleAddNewVendor}><Plus/> Add New Vendor</Button>`.
-- `handleAddNewVendor`:
-  - Snapshot current form values via `getValues()` plus `{ returnPath: location.pathname, contractId: contract?.id ?? null }` into `sessionStorage` under key `pendingServiceContractDraft`.
-  - `onClose()` the modal and `navigate('/addresses?addVendor=1')`.
-- On mount (and when `companies` list changes), check `sessionStorage` for `pendingNewVendorId`. If present and modal is open: `reset(savedDraft)` then `setValue('vendor_company_id', pendingNewVendorId)` and clear both storage keys.
+2. **Popup 1 — Invitation Code**
+   - Title: "Enter Invitation Code"
+   - Single input + **Enter** button
+   - Validates the code via the existing `validate_tenant_invitation` RPC
+   - On success: closes and opens Popup 2 (passes the validated code along)
+   - On failure: inline error, stays open
 
-**`src/pages/Addresses.tsx`**
-- Read `?addVendor=1` from URL. If present, auto-open `AddressFormModal` and pass an `initialType="supplier"` prop.
-- On successful create, if `sessionStorage.pendingServiceContractDraft` exists:
-  - Store the new `company_id` in `sessionStorage.pendingNewVendorId`.
-  - Navigate back to `draft.returnPath` (e.g. `/admin/service-contracts`).
+3. **Popup 2 — Create Account**
+   - Title: "Create your account"
+   - Fields: **Email**, **Password**, **Confirm Password** (one password value, typed twice for confirmation, as requested)
+   - **Create Account** button
+   - Calls existing `signUp(email, password, ...)` with the validated invitation code
+   - All other tenant/business details are **omitted** — they're collected later via Main4's Pricing & Sign Up page on the website / in-app setup wizard
 
-**`src/pages/ServiceContracts.tsx` / `ServiceContractDetail.tsx`**
-- On mount, if `sessionStorage.pendingServiceContractDraft` exists, automatically open the Service Contract modal (create or edit based on saved `contractId`). The modal itself handles restoring values + selecting the new vendor.
+4. **After submit**
+   - Show the existing `EmailVerificationPending` screen (already wired) so the user knows to verify their email
+   - After they verify and sign in, the existing Setup Wizard / Pricing flow handles the rest
 
-**`src/components/addresses/AddressFormModal.tsx`**
-- Accept optional `initialType` prop and `onCreated?: (result) => void` callback so the Addresses page can intercept the new company id and trigger the return navigation.
+## Technical Notes
 
-### Out of scope
-- No DB schema changes.
-- No edits to vendor list query — refetch happens automatically because `useCompanies` invalidates on insert.
-- Edit-contract flow uses the same mechanism but returns to the detail page's edit modal.
+- **Files to change**
+  - `src/components/auth/AuthPage.tsx` — drop the `register` view; add state for the two dialogs; render new `InvitationCodeDialog` and `CreateAccountDialog`; keep `verification-pending` view as-is
+  - `src/components/auth/LoginForm.tsx` — change link label to "Click to enter Invitation Code" and make it open Popup 1 (replace `onToggleMode` with `onStartSignup`)
+  - **New** `src/components/auth/InvitationCodeDialog.tsx` — Radix Dialog with code input, validates via `useValidateInvitation`, on success calls `onValidated(code)`
+  - **New** `src/components/auth/CreateAccountDialog.tsx` — Radix Dialog with email + password + confirm password; calls `signUp` with placeholder/derived tenant fields and the validated code; on success calls `onRegistrationComplete(email)`
+
+- **signUp signature** currently expects `(email, password, name, tenantName, tenantSlug, businessType, invitationCode)`. Since we're no longer collecting those fields up front, we'll pass minimal placeholders derived from the email (e.g. name = email local-part, tenantName = email local-part, tenantSlug = slugified local-part, businessType = `'other'` or first available). The real organization details are added later via the existing setup wizard / pricing page. **Confirm this approach is OK**, or alternatively we leave `RegisterForm.tsx` available as a deeper signup path from elsewhere.
+
+- **Keep** existing `RegisterForm.tsx` and `InvitationCodeInput.tsx` files in place (unused by AuthPage) so nothing else that imports them breaks. They can be deleted in a later cleanup pass.
+
+- No backend / SQL / RLS changes. Email verification continues to use the current Supabase Auth flow.
+
+## Out of Scope
+- Changing the invitation generation, tenant defaults, or setup wizard
+- Any styling changes beyond the new dialogs (they'll reuse current shadcn `Dialog`, `Input`, `Button`, `Label` tokens)
