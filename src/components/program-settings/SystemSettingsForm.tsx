@@ -66,6 +66,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
       language: settings?.language || 'English',
       timezone: settings?.timezone || 'Europe/London',
       date_format: settings?.date_format || 'DD/MM/YYYY',
+      units_system: settings?.units_system || 'metric',
       default_fiscal_year_start: settings?.default_fiscal_year_start || '',
       organization_name: settings?.organization_name || '',
       system_contact_email: settings?.system_contact_email || '',
