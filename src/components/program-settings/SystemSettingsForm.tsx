@@ -23,6 +23,7 @@ const systemSettingsSchema = z.object({
   language: z.string().optional(),
   timezone: z.string().optional(),
   date_format: z.string().optional(),
+  units_system: z.string().optional(),
   default_fiscal_year_start: z.string().optional(),
   organization_name: z.string().optional(),
   system_contact_email: z.string().email('Invalid email address').optional().or(z.literal('')),
