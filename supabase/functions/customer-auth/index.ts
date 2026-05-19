@@ -488,14 +488,25 @@ serve(async (req) => {
     }
 
     if (action === 'create') {
-      const { tenant_id, name, email, phone, phone_extension, department_id, job_title_id, work_area_id, reports_to, password, is_active } = body;
+      // Admin-only: requires a valid Supabase auth JWT belonging to an admin
+      const adminCheck = await requireAdmin(supabaseUrl, supabase, authHeader);
+      if (!adminCheck.ok) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+        );
+      }
+      const { name, email, phone, phone_extension, department_id, job_title_id, work_area_id, reports_to, password, is_active } = body;
+      // Force tenant_id to the admin's own tenant — never trust the client value
+      const tenant_id = adminCheck.tenant_id!;
 
-      if (!tenant_id || !name || !password) {
+      if (!name || !password) {
         return new Response(
           JSON.stringify({ success: false, error: 'Name and password are required' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
       }
+
 
       // Hash password using Web Crypto API
       const password_hash = await hashPassword(password);
