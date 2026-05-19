@@ -41,6 +41,11 @@ const SETUP_ALLOWED_ROUTES = [
   '/admin/service-contracts',
 ];
 
+const hasSessionExpiredFlag = () => {
+  if (typeof window === 'undefined') return false;
+  return window.sessionStorage.getItem('lovableSessionExpired') === '1';
+};
+
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading, userProfile, profileStatus } = useAuth();
   const tenantId = userProfile?.tenant_id;
@@ -122,7 +127,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (!user) {
     // Redirect expired sessions to auth with a clear banner
     const searchParams = new URLSearchParams();
-    if (profileStatus === 'expired') {
+    if (profileStatus === 'expired' || hasSessionExpiredFlag()) {
       searchParams.set('expired', '1');
     }
     const redirectPath = searchParams.toString() ? `/auth?${searchParams.toString()}` : '/auth';

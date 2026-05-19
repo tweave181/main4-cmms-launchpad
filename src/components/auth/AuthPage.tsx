@@ -15,8 +15,14 @@ const AuthPage: React.FC = () => {
 
   useEffect(() => {
     const q = searchParams;
-    if (q.get("expired")) {
+    const expiredFromQuery = q.get("expired");
+    const expiredFromStorage = typeof window !== 'undefined' && window.sessionStorage.getItem('lovableSessionExpired') === '1';
+
+    if (expiredFromQuery || expiredFromStorage) {
       setMsg("Your session expired. Please sign in again.");
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem('lovableSessionExpired');
+      }
     } else {
       setMsg(null);
     }
