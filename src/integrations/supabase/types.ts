@@ -2027,6 +2027,7 @@ export type Database = {
           system_contact_email: string | null
           tenant_id: string
           timezone: string | null
+          units_system: string
           updated_at: string
         }
         Insert: {
@@ -2064,6 +2065,7 @@ export type Database = {
           system_contact_email?: string | null
           tenant_id: string
           timezone?: string | null
+          units_system?: string
           updated_at?: string
         }
         Update: {
@@ -2101,6 +2103,7 @@ export type Database = {
           system_contact_email?: string | null
           tenant_id?: string
           timezone?: string | null
+          units_system?: string
           updated_at?: string
         }
         Relationships: [

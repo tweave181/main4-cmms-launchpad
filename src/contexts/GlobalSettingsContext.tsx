@@ -104,6 +104,7 @@ interface GlobalSettingsContextType {
   language: string;
   timezone: string;
   country: string;
+  unitsSystem: string;
   organizationName: string;
 }
 
@@ -130,6 +131,7 @@ export const GlobalSettingsProvider: React.FC<GlobalSettingsProviderProps> = ({ 
   const language = settings?.language || DEFAULT_SETTINGS.language;
   const timezone = settings?.timezone || DEFAULT_SETTINGS.timezone;
   const country = settings?.country || DEFAULT_SETTINGS.country;
+  const unitsSystem = settings?.units_system || 'metric';
   const organizationName = settings?.organization_name || 'CMMS Pro';
 
 // Create bound formatting functions with current settings
@@ -177,6 +179,7 @@ const value: GlobalSettingsContextType = {
   language,
   timezone,
   country,
+  unitsSystem,
   organizationName,
 };
 
