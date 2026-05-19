@@ -26,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (cronSecret && expectedCronSecret && cronSecret === expectedCronSecret) {
       // Valid cron call
     } else {
-      // Fall back to JWT auth
+      // Fall back to JWT auth - require admin role
       const authHeader = req.headers.get('Authorization');
       if (!authHeader) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -34,7 +34,6 @@ const handler = async (req: Request): Promise<Response> => {
           headers: { "Content-Type": "application/json", ...corsHeaders },
         });
       }
-      
       const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!, {
         global: { headers: { Authorization: authHeader } },
       });
@@ -42,6 +41,14 @@ const handler = async (req: Request): Promise<Response> => {
       if (authError || !user) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
           status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      const { data: profile, error: profileError } = await supabase
+        .from('users').select('role').eq('id', user.id).single();
+      if (profileError || profile?.role !== 'admin') {
+        return new Response(JSON.stringify({ error: 'Forbidden: admin access required' }), {
+          status: 403,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         });
       }

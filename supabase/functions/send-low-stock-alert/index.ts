@@ -83,7 +83,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get notification recipients (admins and inventory managers)
+    // For non-cron calls, override request tenant_id with the authenticated admin's tenant
+    if (!isInternalCall) {
+      const authHeader = req.headers.get('Authorization')!;
+      const token = authHeader.replace('Bearer ', '');
+      const authClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+        global: { headers: { Authorization: authHeader } }
+      });
+      const { data: userData } = await authClient.auth.getUser(token);
+      if (userData?.user) {
+        const { data: prof } = await supabase
+          .from('users').select('tenant_id').eq('id', userData.user.id).single();
+        if (prof?.tenant_id) {
+          requestData.tenant_id = prof.tenant_id;
+        }
+      }
+    }
+
     const { data: users, error: usersError } = await supabase
       .from('users')
       .select('id, email, name')

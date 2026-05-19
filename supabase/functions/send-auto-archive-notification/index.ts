@@ -82,23 +82,33 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const {
-      recipientEmail,
-      recipientName,
       recipientUserId,
-      tenantId,
       archivedPresets,
       totalArchived,
       archivedAt,
       autoArchiveSettings,
     }: AutoArchiveNotificationRequest = await req.json();
 
-    // Verify the request tenant_id matches the authenticated user's tenant
-    if (tenantId !== userProfile.tenant_id) {
+    // Tenant is always derived from authenticated user — never trust the body
+    const tenantId = userProfile.tenant_id;
+    if (recipientUserId && recipientUserId !== userData.user.id) {
       return new Response(
-        JSON.stringify({ error: 'Forbidden: tenant mismatch' }),
+        JSON.stringify({ error: 'Forbidden: can only notify yourself' }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Recipient email must be the authenticated user's own email
+    const { data: recipientProfile, error: recipientErr } = await createClient(supabaseUrl, supabaseServiceKey)
+      .from('users').select('email, name').eq('id', userData.user.id).single();
+    if (recipientErr || !recipientProfile?.email) {
+      return new Response(
+        JSON.stringify({ error: 'Recipient not found' }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const recipientEmail = recipientProfile.email;
+    const recipientName = recipientProfile.name || 'there';
 
     console.log(`Sending auto-archive notification to ${recipientEmail}`);
 
