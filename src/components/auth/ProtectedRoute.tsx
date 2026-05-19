@@ -42,7 +42,7 @@ const SETUP_ALLOWED_ROUTES = [
 ];
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading, userProfile } = useAuth();
+  const { user, loading, userProfile, profileStatus } = useAuth();
   const tenantId = userProfile?.tenant_id;
   const location = useLocation();
   const [setupCheck, setSetupCheck] = useState<'loading' | 'needs-setup' | 'done'>('loading');
@@ -120,12 +120,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    // Redirect to auth page with expired flag if coming from a protected route
+    // Redirect expired sessions to auth with a clear banner
     const searchParams = new URLSearchParams();
-    if (location.pathname !== '/') {
+    if (profileStatus === 'expired') {
       searchParams.set('expired', '1');
     }
-    const redirectPath = `/auth?${searchParams.toString()}`;
+    const redirectPath = searchParams.toString() ? `/auth?${searchParams.toString()}` : '/auth';
     return <Navigate to={redirectPath} replace />;
   }
 

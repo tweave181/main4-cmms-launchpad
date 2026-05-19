@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import EmailVerificationPending from './EmailVerificationPending';
@@ -7,15 +8,20 @@ type AuthView = 'login' | 'register' | 'verification-pending';
 const AuthPage: React.FC = () => {
   const [view, setView] = useState<AuthView>('login');
   const [pendingEmail, setPendingEmail] = useState<string>('');
+  const location = useLocation();
 
-  // Pull expired-session message from URL
   const [msg, setMsg] = React.useState<string | null>(null);
-  React.useEffect(() => {
-    const q = new URLSearchParams(window.location.search);
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+
+  useEffect(() => {
+    const q = searchParams;
     if (q.get("expired")) {
       setMsg("Your session expired. Please sign in again.");
+    } else {
+      setMsg(null);
     }
-  }, []);
+  }, [searchParams]);
+
   const handleToggleMode = () => {
     setView(view === 'login' ? 'register' : 'login');
   };
