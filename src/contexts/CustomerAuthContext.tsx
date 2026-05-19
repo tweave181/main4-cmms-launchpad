@@ -100,12 +100,12 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       // Update local state and storage with new customer data
-      const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const session: CustomerSession = JSON.parse(stored);
         session.customer = result.customer;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
       }
+
       setCustomer(result.customer);
 
       return { success: true };
