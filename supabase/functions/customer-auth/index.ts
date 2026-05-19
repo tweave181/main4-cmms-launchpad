@@ -647,14 +647,23 @@ serve(async (req) => {
     }
 
     if (action === 'get_lookup_data') {
-      const { tenant_id } = body;
-
+      // Allow either an admin (Supabase JWT) or an authenticated portal customer (session token).
+      // The tenant is derived from the caller — the client cannot pick an arbitrary tenant.
+      const adminCheck = await requireAdmin(supabaseUrl, supabase, authHeader);
+      let tenant_id: string | undefined;
+      if (adminCheck.ok) {
+        tenant_id = adminCheck.tenant_id;
+      } else {
+        const session = await validateCustomerSession(supabase, body.session_token);
+        if (session) tenant_id = session.tenant_id;
+      }
       if (!tenant_id) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Tenant ID is required' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
         );
       }
+
 
       // Fetch departments, job titles, locations, and potential supervisors for the tenant
       const [departmentsRes, jobTitlesRes, locationsRes, customersRes] = await Promise.all([
