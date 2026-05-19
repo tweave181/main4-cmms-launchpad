@@ -11,6 +11,7 @@ export interface ProgramSettings {
   language?: string;
   timezone?: string;
   date_format?: string;
+  units_system?: string;
   default_fiscal_year_start?: string;
   organization_name?: string;
   system_contact_email?: string;
