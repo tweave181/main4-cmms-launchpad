@@ -216,15 +216,29 @@ serve(async (req) => {
       // Remove password_hash from response
       const { password_hash, verification_token, verification_token_expires_at, ...safeCustomer } = customer;
 
-      // Generate cryptographically secure session token
+      // Generate cryptographically secure session token, store hashed copy server-side
       const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
       const token = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      const token_hash = await sha256Hex(token);
+      const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+
+      const { error: sessErr } = await supabase
+        .from('customer_sessions')
+        .insert({ customer_id: customer.id, tenant_id: customer.tenant_id, token_hash, expires_at });
+      if (sessErr) {
+        console.error('Failed to persist customer session:', sessErr);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to start session' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
 
       return new Response(
         JSON.stringify({ success: true, customer: safeCustomer, token }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
 
     if (action === 'signup') {
       const { tenant_id, name, email, password } = body;
