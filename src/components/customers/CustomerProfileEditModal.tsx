@@ -79,9 +79,13 @@ export const CustomerProfileEditModal: React.FC<CustomerProfileEditModalProps> =
   const fetchLookupData = async () => {
     setIsLoading(true);
     try {
+      const stored = localStorage.getItem('customer_session');
+      const session_token: string | undefined = stored ? JSON.parse(stored)?.token : undefined;
+
       const { data, error } = await supabase.functions.invoke('customer-auth', {
-        body: { action: 'get_lookup_data', tenant_id: customer.tenant_id },
+        body: { action: 'get_lookup_data', session_token },
       });
+
 
       if (error || !data?.success) {
         throw new Error(data?.error || 'Failed to load options');

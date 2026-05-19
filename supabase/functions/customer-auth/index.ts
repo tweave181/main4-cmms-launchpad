@@ -95,6 +95,52 @@ async function verifyPassword(password: string, storedHash: string): Promise<boo
   }
 }
 
+// SHA-256 hex digest, used to hash session tokens before storage
+async function sha256Hex(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Validate a customer portal session token. Returns the session row or null.
+async function validateCustomerSession(
+  supabase: ReturnType<typeof createClient>,
+  token: string | undefined | null,
+): Promise<{ customer_id: string; tenant_id: string } | null> {
+  if (!token || typeof token !== 'string') return null;
+  const token_hash = await sha256Hex(token);
+  const { data } = await supabase
+    .from('customer_sessions')
+    .select('customer_id, tenant_id, expires_at')
+    .eq('token_hash', token_hash)
+    .maybeSingle();
+  if (!data) return null;
+  if (new Date(data.expires_at) < new Date()) return null;
+  return { customer_id: data.customer_id, tenant_id: data.tenant_id };
+}
+
+// Verify a Supabase auth JWT (from the Authorization header) belongs to an admin.
+async function requireAdmin(
+  supabaseUrl: string,
+  serviceClient: ReturnType<typeof createClient>,
+  authHeader: string | null,
+): Promise<{ ok: boolean; user_id?: string; tenant_id?: string }> {
+  if (!authHeader?.startsWith('Bearer ')) return { ok: false };
+  const token = authHeader.slice(7);
+  const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+  const { data: claims, error } = await userClient.auth.getClaims(token);
+  if (error || !claims?.claims?.sub) return { ok: false };
+  const userId = claims.claims.sub as string;
+  const { data: profile } = await serviceClient
+    .from('users')
+    .select('tenant_id, role')
+    .eq('id', userId)
+    .maybeSingle();
+  if (!profile || profile.role !== 'admin') return { ok: false };
+  return { ok: true, user_id: userId, tenant_id: profile.tenant_id };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -103,12 +149,14 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+
     // Use service role key for customer operations (bypasses RLS)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
     const { action } = body;
+    const authHeader = req.headers.get('Authorization');
+
 
     if (action === 'login') {
       const { name, password, tenant_id } = body;
@@ -168,15 +216,29 @@ serve(async (req) => {
       // Remove password_hash from response
       const { password_hash, verification_token, verification_token_expires_at, ...safeCustomer } = customer;
 
-      // Generate cryptographically secure session token
+      // Generate cryptographically secure session token, store hashed copy server-side
       const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
       const token = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      const token_hash = await sha256Hex(token);
+      const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+
+      const { error: sessErr } = await supabase
+        .from('customer_sessions')
+        .insert({ customer_id: customer.id, tenant_id: customer.tenant_id, token_hash, expires_at });
+      if (sessErr) {
+        console.error('Failed to persist customer session:', sessErr);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to start session' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
 
       return new Response(
         JSON.stringify({ success: true, customer: safeCustomer, token }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
 
     if (action === 'signup') {
       const { tenant_id, name, email, password } = body;
@@ -426,14 +488,25 @@ serve(async (req) => {
     }
 
     if (action === 'create') {
-      const { tenant_id, name, email, phone, phone_extension, department_id, job_title_id, work_area_id, reports_to, password, is_active } = body;
+      // Admin-only: requires a valid Supabase auth JWT belonging to an admin
+      const adminCheck = await requireAdmin(supabaseUrl, supabase, authHeader);
+      if (!adminCheck.ok) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+        );
+      }
+      const { name, email, phone, phone_extension, department_id, job_title_id, work_area_id, reports_to, password, is_active } = body;
+      // Force tenant_id to the admin's own tenant — never trust the client value
+      const tenant_id = adminCheck.tenant_id!;
 
-      if (!tenant_id || !name || !password) {
+      if (!name || !password) {
         return new Response(
           JSON.stringify({ success: false, error: 'Name and password are required' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
       }
+
 
       // Hash password using Web Crypto API
       const password_hash = await hashPassword(password);
@@ -476,14 +549,44 @@ serve(async (req) => {
     }
 
     if (action === 'update') {
-      const { customer_id, name, email, phone, phone_extension, department_id, job_title_id, work_area_id, reports_to, password, is_active } = body;
+      // Two auth paths:
+      //  - Admin (Supabase JWT) updating any customer in their own tenant
+      //  - Customer (portal session token) updating their own record
+      const { customer_id: requestedCustomerId, session_token, name, email, phone, phone_extension, department_id, job_title_id, work_area_id, reports_to, password, is_active } = body;
 
-      if (!customer_id) {
+      if (!requestedCustomerId) {
         return new Response(
           JSON.stringify({ success: false, error: 'Customer ID is required' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
       }
+
+      let customer_id = requestedCustomerId;
+      let allowAdminFields = false;
+      const adminCheck = await requireAdmin(supabaseUrl, supabase, authHeader);
+      if (adminCheck.ok) {
+        // Admin can update any customer within their own tenant
+        const { data: target } = await supabase
+          .from('customers').select('tenant_id').eq('id', customer_id).maybeSingle();
+        if (!target || target.tenant_id !== adminCheck.tenant_id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Unauthorized' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+          );
+        }
+        allowAdminFields = true;
+      } else {
+        // Customer self-service: validate portal session and force customer_id to session owner
+        const session = await validateCustomerSession(supabase, session_token);
+        if (!session || session.customer_id !== customer_id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Unauthorized' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+          );
+        }
+        customer_id = session.customer_id;
+      }
+
 
       const updateData: Record<string, any> = {};
 
@@ -495,7 +598,7 @@ serve(async (req) => {
       if (job_title_id !== undefined) updateData.job_title_id = job_title_id || null;
       if (work_area_id !== undefined) updateData.work_area_id = work_area_id || null;
       if (reports_to !== undefined) updateData.reports_to = reports_to || null;
-      if (is_active !== undefined) updateData.is_active = is_active;
+      if (is_active !== undefined && allowAdminFields) updateData.is_active = is_active;
 
       // Hash new password if provided using Web Crypto API
       if (password) {
@@ -544,14 +647,23 @@ serve(async (req) => {
     }
 
     if (action === 'get_lookup_data') {
-      const { tenant_id } = body;
-
+      // Allow either an admin (Supabase JWT) or an authenticated portal customer (session token).
+      // The tenant is derived from the caller — the client cannot pick an arbitrary tenant.
+      const adminCheck = await requireAdmin(supabaseUrl, supabase, authHeader);
+      let tenant_id: string | undefined;
+      if (adminCheck.ok) {
+        tenant_id = adminCheck.tenant_id;
+      } else {
+        const session = await validateCustomerSession(supabase, body.session_token);
+        if (session) tenant_id = session.tenant_id;
+      }
       if (!tenant_id) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Tenant ID is required' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
         );
       }
+
 
       // Fetch departments, job titles, locations, and potential supervisors for the tenant
       const [departmentsRes, jobTitlesRes, locationsRes, customersRes] = await Promise.all([
