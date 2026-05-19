@@ -549,14 +549,44 @@ serve(async (req) => {
     }
 
     if (action === 'update') {
-      const { customer_id, name, email, phone, phone_extension, department_id, job_title_id, work_area_id, reports_to, password, is_active } = body;
+      // Two auth paths:
+      //  - Admin (Supabase JWT) updating any customer in their own tenant
+      //  - Customer (portal session token) updating their own record
+      const { customer_id: requestedCustomerId, session_token, name, email, phone, phone_extension, department_id, job_title_id, work_area_id, reports_to, password, is_active } = body;
 
-      if (!customer_id) {
+      if (!requestedCustomerId) {
         return new Response(
           JSON.stringify({ success: false, error: 'Customer ID is required' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
       }
+
+      let customer_id = requestedCustomerId;
+      let allowAdminFields = false;
+      const adminCheck = await requireAdmin(supabaseUrl, supabase, authHeader);
+      if (adminCheck.ok) {
+        // Admin can update any customer within their own tenant
+        const { data: target } = await supabase
+          .from('customers').select('tenant_id').eq('id', customer_id).maybeSingle();
+        if (!target || target.tenant_id !== adminCheck.tenant_id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Unauthorized' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+          );
+        }
+        allowAdminFields = true;
+      } else {
+        // Customer self-service: validate portal session and force customer_id to session owner
+        const session = await validateCustomerSession(supabase, session_token);
+        if (!session || session.customer_id !== customer_id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Unauthorized' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+          );
+        }
+        customer_id = session.customer_id;
+      }
+
 
       const updateData: Record<string, any> = {};
 
