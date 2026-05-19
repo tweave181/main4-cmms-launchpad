@@ -469,13 +469,51 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                       field
                     }) => (
                       <FormItem>
-                        <FormControl>
-                          <Input className="max-w-[100px]" placeholder="£, $, €" disabled={!isEditMode} {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!isEditMode}>
+                          <FormControl>
+                            <SelectTrigger className="max-w-[250px]">
+                              <SelectValue placeholder="Select currency" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="£">£ — British Pound (GBP)</SelectItem>
+                            <SelectItem value="$">$ — US Dollar (USD)</SelectItem>
+                            <SelectItem value="€">€ — Euro (EUR)</SelectItem>
+                            <SelectItem value="C$">C$ — Canadian Dollar (CAD)</SelectItem>
+                            <SelectItem value="A$">A$ — Australian Dollar (AUD)</SelectItem>
+                            <SelectItem value="¥">¥ — Japanese Yen (JPY)</SelectItem>
+                            <SelectItem value="CHF">CHF — Swiss Franc</SelectItem>
+                            <SelectItem value="kr">kr — Scandinavian Krone</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )} />
                   </div>
+
+                  {/* Weights & Measures */}
+                  <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
+                    <FormLabel className="text-right">Weights &amp; Measures:</FormLabel>
+                    <FormField control={form.control} name="units_system" render={({
+                      field
+                    }) => (
+                      <FormItem>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!isEditMode}>
+                          <FormControl>
+                            <SelectTrigger className="max-w-[300px]">
+                              <SelectValue placeholder="Select unit system" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="metric">Metric (kg, cm, L, °C)</SelectItem>
+                            <SelectItem value="imperial">Imperial (lb, in, gal, °F)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+
 
                   {/* Language */}
                   <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
