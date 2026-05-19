@@ -179,6 +179,7 @@ const value: GlobalSettingsContextType = {
   language,
   timezone,
   country,
+  unitsSystem,
   organizationName,
 };
 
