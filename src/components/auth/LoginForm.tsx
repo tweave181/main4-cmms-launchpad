@@ -127,7 +127,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
                 onClick={onToggleMode}
                 className="text-sm"
               >
-                Don't have an account? Sign up
+                Click to enter Invitation Code
               </Button>
             </div>
           </form>
