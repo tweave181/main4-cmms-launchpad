@@ -26,33 +26,69 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Authenticate the caller
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    const { invitationId, name, email, role, inviterName, tenantName, token }: InvitationEmailRequest = await req.json();
+    const { data: callerProfile, error: callerError } = await adminClient
+      .from('users').select('role, tenant_id').eq('id', user.id).single();
+    if (callerError || callerProfile?.role !== 'admin') {
+      return new Response(JSON.stringify({ error: 'Forbidden: admin access required' }), {
+        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
-    if (!email || !token || !tenantName) {
-      throw new Error("Missing required fields: email, token, or tenantName");
+    const body = await req.json();
+    const invitationId = body?.invitationId;
+    const inviterName = body?.inviterName || 'A team administrator';
+    if (!invitationId) {
+      throw new Error('Missing required field: invitationId');
+    }
+
+    const { data: invitation, error: invError } = await adminClient
+      .from('user_invitations')
+      .select('id, tenant_id, email, name, role, invitation_code, token')
+      .eq('id', invitationId).single();
+    if (invError || !invitation) {
+      return new Response(JSON.stringify({ error: 'Invitation not found' }), {
+        status: 404, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    if (invitation.tenant_id !== callerProfile.tenant_id) {
+      return new Response(JSON.stringify({ error: 'Forbidden: tenant mismatch' }), {
+        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const { data: tenantRow } = await adminClient
+      .from('tenants').select('name').eq('id', invitation.tenant_id).single();
+
+    const email = invitation.email;
+    const name = invitation.name || '';
+    const role = invitation.role;
+    const token = (invitation as any).token || invitation.invitation_code;
+    const tenantName = tenantRow?.name || 'your organization';
+
+    if (!email || !token) {
+      throw new Error("Invitation missing email or token");
     }
 
     const baseUrl = req.headers.get("origin") || "https://id-preview--4f5e6a65-aa71-4ffa-b277-e29dddd42aab.lovable.app";
