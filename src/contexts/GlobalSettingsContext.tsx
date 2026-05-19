@@ -104,6 +104,7 @@ interface GlobalSettingsContextType {
   language: string;
   timezone: string;
   country: string;
+  unitsSystem: string;
   organizationName: string;
 }
 
