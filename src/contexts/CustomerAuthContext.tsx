@@ -79,9 +79,13 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
 
     try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const session_token: string | undefined = stored ? JSON.parse(stored)?.token : undefined;
+
       const { data: result, error } = await supabase.functions.invoke('customer-auth', {
-        body: { action: 'update', customer_id: customer.id, ...data },
+        body: { action: 'update', customer_id: customer.id, session_token, ...data },
       });
+
 
       if (error || !result?.success) {
         if (error instanceof FunctionsHttpError) {
