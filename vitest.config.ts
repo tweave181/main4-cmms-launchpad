@@ -10,7 +10,6 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: [
       'src/**/*.{test,spec}.{ts,tsx}',
-      'src/test/integration/**/*.integration.test.{ts,tsx}',
       'src/test/snapshot/**/*.snapshot.test.{ts,tsx}',
     ],
     coverage: {
