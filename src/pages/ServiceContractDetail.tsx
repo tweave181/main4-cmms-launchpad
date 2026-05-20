@@ -484,6 +484,8 @@ const ServiceContractDetail: React.FC = () => {
       {/* Documents & Links */}
       <ContractDocumentsSection contractId={contract.id} />
 
+      <NetworkFolderCard contractName={contract.contract_title} />
+
 
 
       {/* Edit Contract Modal */}
