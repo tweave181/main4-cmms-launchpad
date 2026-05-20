@@ -649,6 +649,38 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                   </div>
                 </div>
               </TabsContent>
+
+              {/* Documents Tab */}
+              <TabsContent value="documents" className="pt-4">
+                <div className="space-y-4 max-w-2xl">
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1">Network Documents Root</h3>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      The base location on your network where contract documents are stored.
+                      Each service contract will get its own subfolder named after the contract.
+                      Examples: <code>\\fileserver\Main4\Contracts</code>, <code>Z:\Main4\Contracts</code>,
+                      or a SharePoint URL like <code>https://contoso.sharepoint.com/sites/main4/Contracts</code>.
+                    </p>
+                  </div>
+                  <FormField control={form.control} name="network_documents_root" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Network documents root</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="\\fileserver\Main4\Contracts"
+                          disabled={!isEditMode}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <p className="text-xs text-muted-foreground">
+                    Note: Main4 does not create folders on your share automatically. Your IT
+                    team is responsible for creating the matching folder for each contract.
+                  </p>
+                </div>
+              </TabsContent>
             </Tabs>
           </form>
         </Form>
