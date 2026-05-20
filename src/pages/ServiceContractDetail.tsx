@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
+import { ContractDocumentsSection } from '@/components/contracts/ContractDocumentsSection';
 interface ServiceContract {
   id: string;
   contract_title: string;
@@ -478,6 +479,11 @@ const ServiceContractDetail: React.FC = () => {
             </div>}
         </CardContent>
       </Card>
+
+      {/* Documents & Links */}
+      <ContractDocumentsSection contractId={contract.id} />
+
+
 
       {/* Edit Contract Modal */}
       <ServiceContractModal isOpen={isEditModalOpen} onClose={() => {
