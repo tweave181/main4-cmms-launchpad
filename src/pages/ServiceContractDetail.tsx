@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
 import { ContractDocumentsSection } from '@/components/contracts/ContractDocumentsSection';
+import { NetworkFolderCard } from '@/components/contracts/NetworkFolderCard';
 interface ServiceContract {
   id: string;
   contract_title: string;
