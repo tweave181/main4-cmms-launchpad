@@ -42,7 +42,8 @@ const systemSettingsSchema = z.object({
   main_contact_phone: z.string().optional(),
   main_contact_mobile: z.string().optional(),
   main_contact_email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  main_contact_department_id: z.string().optional()
+  main_contact_department_id: z.string().optional(),
+  network_documents_root: z.string().optional()
 });
 
 interface SystemSettingsFormProps {
@@ -85,7 +86,8 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
       main_contact_phone: settings?.main_contact_phone || '',
       main_contact_mobile: settings?.main_contact_mobile || '',
       main_contact_email: settings?.main_contact_email || '',
-      main_contact_department_id: settings?.main_contact_department_id || ''
+      main_contact_department_id: settings?.main_contact_department_id || '',
+      network_documents_root: settings?.network_documents_root || ''
     }
   });
 
@@ -213,6 +215,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                 <TabsTrigger value="siteAddress">Site Address</TabsTrigger>
                 <TabsTrigger value="mainContact">Main Contact</TabsTrigger>
                 <TabsTrigger value="localization">Localization</TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
               </TabsList>
 
               {/* Site Address Tab */}
@@ -644,6 +647,38 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                       </FormItem>
                     )} />
                   </div>
+                </div>
+              </TabsContent>
+
+              {/* Documents Tab */}
+              <TabsContent value="documents" className="pt-4">
+                <div className="space-y-4 max-w-2xl">
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1">Network Documents Root</h3>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      The base location on your network where contract documents are stored.
+                      Each service contract will get its own subfolder named after the contract.
+                      Examples: <code>\\fileserver\Main4\Contracts</code>, <code>Z:\Main4\Contracts</code>,
+                      or a SharePoint URL like <code>https://contoso.sharepoint.com/sites/main4/Contracts</code>.
+                    </p>
+                  </div>
+                  <FormField control={form.control} name="network_documents_root" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Network documents root</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="\\fileserver\Main4\Contracts"
+                          disabled={!isEditMode}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <p className="text-xs text-muted-foreground">
+                    Note: Main4 does not create folders on your share automatically. Your IT
+                    team is responsible for creating the matching folder for each contract.
+                  </p>
                 </div>
               </TabsContent>
             </Tabs>

@@ -1,0 +1,1 @@
+ALTER TABLE public.program_settings ADD COLUMN IF NOT EXISTS network_documents_root TEXT;
