@@ -480,6 +480,11 @@ const ServiceContractDetail: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Documents & Links */}
+      <ContractDocumentsSection contractId={contract.id} />
+
+
+
       {/* Edit Contract Modal */}
       <ServiceContractModal isOpen={isEditModalOpen} onClose={() => {
       setIsEditModalOpen(false);
