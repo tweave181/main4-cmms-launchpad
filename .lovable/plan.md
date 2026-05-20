@@ -1,25 +1,42 @@
 ## Goal
-When the user opens the "Add New Address" form and no Company records exist, show a clear message and a button to create a Company first.
+Allow any tenant user to attach multiple external documents to a service contract — either by uploading a file or by pasting a link to a document hosted elsewhere.
 
-## Behavior
-- On opening the Add Address modal (new address only, not edit), check for existing Company records using the existing `useCompanies()` hook.
-- If `companies.length === 0`:
-  - Replace the address form body with a friendly empty-state panel:
-    - Title: "No companies found"
-    - Message: "Addresses are linked to companies. Please add a company first before creating an address."
-    - Primary button: "Add Company" — opens the existing `CompanyForm` modal (already used in `src/pages/Companies.tsx`) inline.
-    - Secondary button: "Cancel" — closes the address modal.
-  - On successful company creation, the companies query invalidates, the empty-state disappears, and the address form fields become available (preselecting the new company in the company dropdown if applicable).
-- If companies exist, behavior is unchanged.
+## UX
 
-## Files to change
-- `src/components/addresses/AddressFormModal.tsx`
-  - Import `useCompanies` and `CompanyForm`.
-  - Add `const { data: companies = [], isLoading } = useCompanies();`
-  - When `!isEditing && !isLoading && companies.length === 0`, render the empty-state panel instead of the form.
-  - Manage local `showCompanyForm` state to open the `CompanyForm` modal.
+On the Service Contract form/detail modal, add a new **Documents** section:
+- List of attached documents showing: icon (file vs link), title, type/source, who added it, date.
+- Each row has **Open/Download** and **Delete** actions.
+- "Add Document" button opens a small dialog with two tabs:
+  - **Upload file** — file picker (PDF, DOC/DOCX, XLS/XLSX, images; ≤20 MB) + optional title/description.
+  - **External link** — URL field (validated http/https) + title + optional description.
+
+Surface the same section read-only inside `ContractDetailModal`, and editable inside `ServiceContractModal`.
+
+## Data model
+
+New table `service_contract_documents`:
+- `id`, `tenant_id`, `contract_id` (→ service_contracts)
+- `document_type` — `'file' | 'link'`
+- `title` (required), `description` (nullable)
+- `file_path` (storage path, nullable), `file_name`, `file_size`, `mime_type` (nullable, for files)
+- `external_url` (nullable, for links)
+- `created_by`, `created_at`, `updated_at`
+
+RLS: standard tenant-scoped policies (select/insert/update/delete `tenant_id = get_current_user_tenant_id()`), matching the rest of the contract tables. Any authenticated tenant user can add or delete.
+
+New private storage bucket `contract-documents` with RLS on `storage.objects`:
+- Files stored under `{tenant_id}/{contract_id}/{uuid}-{filename}`.
+- Authenticated users can SELECT/INSERT/DELETE objects only when the first path segment equals their `get_current_user_tenant_id()`.
+- Downloads use signed URLs (60 s).
+
+## Frontend changes
+
+- `src/hooks/useContractDocuments.ts` — list / upload / addLink / delete (React Query).
+- `src/components/contracts/ContractDocumentsSection.tsx` — list + Add button (used in both modals; `readOnly` prop).
+- `src/components/contracts/AddContractDocumentDialog.tsx` — tabbed upload/link form with zod validation (title ≤200, URL must be http/https, file ≤20 MB, allowed mime types).
+- Wire into `ContractDetailModal.tsx` (read-only view + manage) and `ServiceContractModal.tsx` (only enabled after the contract exists / on edit; for new contracts, show after first save).
 
 ## Out of scope
-- No backend / schema changes.
-- Edit-address flow is untouched.
-- Other entry points (e.g. `addVendorMode` from contracts) still go through the same modal, so they get the same guard automatically.
+- Version history of documents.
+- Per-document access control beyond tenant isolation.
+- Preview rendering of PDFs/Office files in-app (open in new tab instead).

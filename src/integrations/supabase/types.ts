@@ -2184,6 +2184,57 @@ export type Database = {
           },
         ]
       }
+      service_contract_documents: {
+        Row: {
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          document_type: string
+          external_url: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          document_type: string
+          external_url?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          document_type?: string
+          external_url?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       service_contracts: {
         Row: {
           address_id: string | null
