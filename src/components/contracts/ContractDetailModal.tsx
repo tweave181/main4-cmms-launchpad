@@ -319,20 +319,9 @@ export const ContractDetailModal: React.FC<ContractDetailModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Attachments Section - Placeholder for future implementation */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Attachments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-4">
-                <FileText className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-muted-foreground text-sm">
-                  Attachment management will be available in a future update.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Documents & Links */}
+          <ContractDocumentsSection contractId={contract.id} />
+
 
           {/* Record Information */}
           <div className="text-sm text-muted-foreground">
