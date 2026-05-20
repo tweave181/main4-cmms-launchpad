@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useGlobalSettings } from '@/contexts/GlobalSettingsContext';
 import { ServiceContractModal } from '@/components/contracts/ServiceContractModal';
+import { ContractDocumentsSection } from '@/components/contracts/ContractDocumentsSection';
 interface ServiceContract {
   id: string;
   contract_title: string;
