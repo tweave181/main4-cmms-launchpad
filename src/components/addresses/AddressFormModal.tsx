@@ -17,6 +17,9 @@ import { MapPin, Plus, AlertTriangle, Check } from 'lucide-react';
 import { AddressFormFields } from './AddressFormFields';
 import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses';
 import { useFormDialog } from '@/hooks/useFormDialog';
+import { useCompanies } from '@/hooks/useCompanies';
+import { CompanyForm } from '@/components/companies/CompanyForm';
+import { Building2 } from 'lucide-react';
 import type { Address, AddressFormData } from '@/types/address';
 
 const addressSchema = z.object({
@@ -60,8 +63,11 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
   const isEditing = !!address;
   const createAddressMutation = useCreateAddress();
   const updateAddressMutation = useUpdateAddress();
+  const { data: companies = [], isLoading: companiesLoading } = useCompanies();
+  const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState<DuplicateInfo | null>(null);
   const [showOverrideOption, setShowOverrideOption] = useState(false);
+  const noCompanies = !isEditing && !companiesLoading && companies.length === 0;
 
   const { showConfirmation, handleCancel, handleConfirmCancel, handleGoBack } = useFormDialog({
     onClose,
@@ -195,76 +201,115 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
             </FormDialogTitle>
           </FormDialogHeader>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <AddressFormFields control={form.control} />
-
-              {duplicateInfo && (
-                <Alert className="border-amber-200 bg-amber-50">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <AlertDescription className="text-amber-800">
-                    <div className="space-y-2">
-                      <p className="font-medium">This address already exists in the system:</p>
-                      <p className="text-sm bg-white px-2 py-1 rounded border">
-                        {duplicateInfo.addressPreview}
-                      </p>
-                      <p className="text-sm">
-                        Please use the existing record or adjust the details.
-                      </p>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="flex justify-start space-x-2 pt-4 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                >
+          {noCompanies ? (
+            <div className="space-y-4 py-4">
+              <Alert>
+                <Building2 className="h-4 w-4" />
+                <AlertDescription>
+                  <div className="space-y-1">
+                    <p className="font-medium text-foreground">No companies found</p>
+                    <p className="text-sm">
+                      Addresses are linked to companies. Please add a company first
+                      before creating an address.
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+              <div className="flex justify-start space-x-2 pt-2 border-t">
+                <Button type="button" variant="outline" onClick={onClose}>
                   Cancel
                 </Button>
-                
-                {showOverrideOption && duplicateInfo && (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleUseDuplicate}
-                      className="flex items-center space-x-1"
-                    >
-                      <Check className="h-4 w-4" />
-                      <span>Use Existing</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={handleOverrideDuplicate}
-                      disabled={createAddressMutation.isPending}
-                      className="flex items-center space-x-1"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>Create Anyway</span>
-                    </Button>
-                  </>
-                )}
-                
-                {!showOverrideOption && (
-                  <Button
-                    type="submit"
-                    disabled={createAddressMutation.isPending || updateAddressMutation.isPending}
-                  >
-                    {(createAddressMutation.isPending || updateAddressMutation.isPending)
-                      ? 'Saving...'
-                      : isEditing
-                      ? 'Update Address'
-                      : 'Create Address'}
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  onClick={() => setShowCompanyForm(true)}
+                  className="flex items-center space-x-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add Company</span>
+                </Button>
               </div>
-            </form>
-          </Form>
+            </div>
+          ) : (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <AddressFormFields control={form.control} />
+
+                {duplicateInfo && (
+                  <Alert className="border-amber-200 bg-amber-50">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-amber-800">
+                      <div className="space-y-2">
+                        <p className="font-medium">This address already exists in the system:</p>
+                        <p className="text-sm bg-white px-2 py-1 rounded border">
+                          {duplicateInfo.addressPreview}
+                        </p>
+                        <p className="text-sm">
+                          Please use the existing record or adjust the details.
+                        </p>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="flex justify-start space-x-2 pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </Button>
+
+                  {showOverrideOption && duplicateInfo && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleUseDuplicate}
+                        className="flex items-center space-x-1"
+                      >
+                        <Check className="h-4 w-4" />
+                        <span>Use Existing</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleOverrideDuplicate}
+                        disabled={createAddressMutation.isPending}
+                        className="flex items-center space-x-1"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>Create Anyway</span>
+                      </Button>
+                    </>
+                  )}
+
+                  {!showOverrideOption && (
+                    <Button
+                      type="submit"
+                      disabled={createAddressMutation.isPending || updateAddressMutation.isPending}
+                    >
+                      {(createAddressMutation.isPending || updateAddressMutation.isPending)
+                        ? 'Saving...'
+                        : isEditing
+                        ? 'Update Address'
+                        : 'Create Address'}
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </Form>
+          )}
         </FormDialogContent>
       </FormDialog>
+
+      {showCompanyForm && (
+        <CompanyForm
+          company={null}
+          isOpen={showCompanyForm}
+          onClose={() => setShowCompanyForm(false)}
+          onSuccess={() => setShowCompanyForm(false)}
+        />
+      )}
 
       <ConfirmationDialog
         isOpen={showConfirmation}
