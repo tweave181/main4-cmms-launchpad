@@ -664,6 +664,9 @@ export const ServiceContractModal: React.FC<ServiceContractModalProps> = ({
             )}
           </div>
 
+          <ContractDocumentsSection contractId={contract?.id} />
+
+
           {/* Actions */}
           <div className="flex justify-start space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
