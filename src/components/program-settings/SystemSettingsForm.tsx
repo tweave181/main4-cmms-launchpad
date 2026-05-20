@@ -42,7 +42,8 @@ const systemSettingsSchema = z.object({
   main_contact_phone: z.string().optional(),
   main_contact_mobile: z.string().optional(),
   main_contact_email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  main_contact_department_id: z.string().optional()
+  main_contact_department_id: z.string().optional(),
+  network_documents_root: z.string().optional()
 });
 
 interface SystemSettingsFormProps {
