@@ -215,6 +215,7 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
                 <TabsTrigger value="siteAddress">Site Address</TabsTrigger>
                 <TabsTrigger value="mainContact">Main Contact</TabsTrigger>
                 <TabsTrigger value="localization">Localization</TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
               </TabsList>
 
               {/* Site Address Tab */}
