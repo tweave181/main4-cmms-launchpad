@@ -86,7 +86,8 @@ export const SystemSettingsForm: React.FC<SystemSettingsFormProps> = ({
       main_contact_phone: settings?.main_contact_phone || '',
       main_contact_mobile: settings?.main_contact_mobile || '',
       main_contact_email: settings?.main_contact_email || '',
-      main_contact_department_id: settings?.main_contact_department_id || ''
+      main_contact_department_id: settings?.main_contact_department_id || '',
+      network_documents_root: settings?.network_documents_root || ''
     }
   });
 
