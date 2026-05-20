@@ -19,7 +19,7 @@ export const supabaseTest = createClient<Database>(
 // Test user credentials
 export const TEST_USER = {
   email: 'test@example.com',
-  password: 'testpassword123',
+  password: 'TestP@ssw0rd!2024Secure',
   name: 'Test User',
 };
 
