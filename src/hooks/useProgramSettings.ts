@@ -79,6 +79,7 @@ export interface ProgramSettingsFormData {
   main_contact_mobile?: string;
   main_contact_email?: string;
   main_contact_department_id?: string;
+  network_documents_root?: string;
 }
 
 export const useProgramSettings = () => {
