@@ -12,6 +12,9 @@ export default defineConfig({
       'src/**/*.{test,spec}.{ts,tsx}',
       'src/test/snapshot/**/*.snapshot.test.{ts,tsx}',
     ],
+    exclude: [
+      'src/test/integration/**/*.integration.test.{ts,tsx}',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -24,7 +27,7 @@ export default defineConfig({
         'src/integrations/supabase/types.ts',
       ],
     },
-    testTimeout: 30000, // 30 seconds for integration tests
+    testTimeout: 30000,
   },
   resolve: {
     alias: {
