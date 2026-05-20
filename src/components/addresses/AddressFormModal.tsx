@@ -17,6 +17,9 @@ import { MapPin, Plus, AlertTriangle, Check } from 'lucide-react';
 import { AddressFormFields } from './AddressFormFields';
 import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses';
 import { useFormDialog } from '@/hooks/useFormDialog';
+import { useCompanies } from '@/hooks/useCompanies';
+import { CompanyForm } from '@/components/companies/CompanyForm';
+import { Building2 } from 'lucide-react';
 import type { Address, AddressFormData } from '@/types/address';
 
 const addressSchema = z.object({
