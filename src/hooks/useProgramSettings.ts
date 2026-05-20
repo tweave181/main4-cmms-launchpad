@@ -40,6 +40,7 @@ export interface ProgramSettings {
   main_contact_email?: string;
   main_contact_department_id?: string;
   main_contact_department?: { id: string; name: string };
+  network_documents_root?: string;
   created_at: string;
   updated_at: string;
 }
