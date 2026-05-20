@@ -63,8 +63,11 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
   const isEditing = !!address;
   const createAddressMutation = useCreateAddress();
   const updateAddressMutation = useUpdateAddress();
+  const { data: companies = [], isLoading: companiesLoading } = useCompanies();
+  const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState<DuplicateInfo | null>(null);
   const [showOverrideOption, setShowOverrideOption] = useState(false);
+  const noCompanies = !isEditing && !companiesLoading && companies.length === 0;
 
   const { showConfirmation, handleCancel, handleConfirmCancel, handleGoBack } = useFormDialog({
     onClose,
