@@ -2047,6 +2047,7 @@ export type Database = {
           main_contact_mobile: string | null
           main_contact_phone: string | null
           main_contact_surname: string | null
+          network_documents_root: string | null
           organization_name: string | null
           setup_wizard_dismissed: boolean | null
           site_address_line_1: string | null
@@ -2085,6 +2086,7 @@ export type Database = {
           main_contact_mobile?: string | null
           main_contact_phone?: string | null
           main_contact_surname?: string | null
+          network_documents_root?: string | null
           organization_name?: string | null
           setup_wizard_dismissed?: boolean | null
           site_address_line_1?: string | null
@@ -2123,6 +2125,7 @@ export type Database = {
           main_contact_mobile?: string | null
           main_contact_phone?: string | null
           main_contact_surname?: string | null
+          network_documents_root?: string | null
           organization_name?: string | null
           setup_wizard_dismissed?: boolean | null
           site_address_line_1?: string | null
