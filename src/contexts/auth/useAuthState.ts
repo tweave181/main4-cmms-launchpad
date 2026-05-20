@@ -328,7 +328,6 @@ export const useAuthState = () => {
       window.removeEventListener('storage', handleStorage);
       if (backoffTimeout.current) clearTimeout(backoffTimeout.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
