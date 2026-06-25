@@ -28,9 +28,10 @@ type FormData = z.infer<typeof formSchema>;
 
 interface WorkRequestFormProps {
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) => {
+export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess, onCancel }) => {
   const NO_LOCATION_VALUE = '__no_location__';
   const { data: categories = [], isLoading: loadingCategories } = useWorkRequestCategories();
   const createRequest = useCreateWorkRequest();
