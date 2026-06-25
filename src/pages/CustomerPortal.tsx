@@ -68,7 +68,7 @@ const CustomerPortal: React.FC = () => {
       )}
       
       <div className="space-y-8">
-        <WorkRequestForm />
+        <WorkRequestForm onCancel={() => navigate(-1)} />
         
         <MyRequestsList />
       </div>
