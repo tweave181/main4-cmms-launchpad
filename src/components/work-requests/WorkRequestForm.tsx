@@ -12,7 +12,8 @@ import { useWorkRequestCategories, useCreateWorkRequest } from '@/hooks/useWorkR
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCustomerAuth } from '@/contexts/CustomerAuthContext';
-import { Loader2, Send } from 'lucide-react';
+import { Loader2, Send, X } from 'lucide-react';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
