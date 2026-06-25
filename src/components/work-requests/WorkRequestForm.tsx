@@ -97,12 +97,14 @@ export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess, onC
       setShowCancelConfirm(true);
     } else {
       form.reset();
+      onCancel?.();
     }
   };
 
   const confirmCancel = () => {
     setShowCancelConfirm(false);
     form.reset();
+    onCancel?.();
   };
 
   return (
