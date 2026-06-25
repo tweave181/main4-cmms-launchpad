@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,7 +12,8 @@ import { useWorkRequestCategories, useCreateWorkRequest } from '@/hooks/useWorkR
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCustomerAuth } from '@/contexts/CustomerAuthContext';
-import { Loader2, Send } from 'lucide-react';
+import { Loader2, Send, X } from 'lucide-react';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
@@ -34,7 +35,8 @@ export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) =
   const { data: categories = [], isLoading: loadingCategories } = useWorkRequestCategories();
   const createRequest = useCreateWorkRequest();
   const { customer, isAuthenticated: isCustomerAuth } = useCustomerAuth();
-  
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
   const { data: locations = [] } = useQuery({
     queryKey: ['locations-simple'],
     queryFn: async () => {
@@ -46,7 +48,7 @@ export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) =
       return data || [];
     },
   });
-  
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,7 +60,22 @@ export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) =
       location_description: '',
     },
   });
-  
+
+  const { isDirty } = form.formState;
+
+  // Warn on browser close/refresh if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
   const onSubmit = async (data: FormData) => {
     await createRequest.mutateAsync({
       title: data.title,
@@ -73,177 +90,213 @@ export const WorkRequestForm: React.FC<WorkRequestFormProps> = ({ onSuccess }) =
     form.reset();
     onSuccess?.();
   };
-  
+
+  const handleCancel = () => {
+    if (isDirty) {
+      setShowCancelConfirm(true);
+    } else {
+      form.reset();
+    }
+  };
+
+  const confirmCancel = () => {
+    setShowCancelConfirm(false);
+    form.reset();
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Send className="h-5 w-5" />
-          Submit a Work Request
-        </CardTitle>
-        {isCustomerAuth && customer && (
-          <p className="text-sm text-muted-foreground">
-            Submitting as: <strong>{customer.name}</strong>
-          </p>
-        )}
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What's the issue? *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Brief summary, e.g., 'Heating not working in Room 101'" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Describe the problem *</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Please provide as much detail as possible about the issue..."
-                      className="min-h-[100px]"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Send className="h-5 w-5" />
+            Submit a Work Request
+          </CardTitle>
+          {isCustomerAuth && customer && (
+            <p className="text-sm text-muted-foreground">
+              Submitting as: <strong>{customer.name}</strong>
+            </p>
+          )}
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="category"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={loadingCategories ? 'Loading...' : 'Select a category'} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Urgency</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">Low - Can wait</SelectItem>
-                        <SelectItem value="medium">Medium - Normal priority</SelectItem>
-                        <SelectItem value="high">High - Needs attention soon</SelectItem>
-                        <SelectItem value="urgent">Urgent - Safety or critical issue</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="location_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location (optional)</FormLabel>
-                    <Select
-                      onValueChange={(val) => field.onChange(val === NO_LOCATION_VALUE ? '' : val)}
-                      value={field.value ? field.value : NO_LOCATION_VALUE}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a location" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value={NO_LOCATION_VALUE}>Not specified</SelectItem>
-                        {locations.map((loc) => (
-                          <SelectItem key={loc.id} value={loc.id}>
-                            {loc.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="location_description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location details (optional)</FormLabel>
+                    <FormLabel>What's the issue? *</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="e.g., Near the main entrance" 
-                        {...field} 
+                      <Input
+                        placeholder="Brief summary, e.g., 'Heating not working in Room 101'"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full md:w-auto"
-              disabled={createRequest.isPending}
-            >
-              {createRequest.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit Request
-                </>
-              )}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Describe the problem *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Please provide as much detail as possible about the issue..."
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={loadingCategories ? 'Loading...' : 'Select a category'} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.name}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Urgency</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Low - Can wait</SelectItem>
+                          <SelectItem value="medium">Medium - Normal priority</SelectItem>
+                          <SelectItem value="high">High - Needs attention soon</SelectItem>
+                          <SelectItem value="urgent">Urgent - Safety or critical issue</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="location_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location (optional)</FormLabel>
+                      <Select
+                        onValueChange={(val) => field.onChange(val === NO_LOCATION_VALUE ? '' : val)}
+                        value={field.value ? field.value : NO_LOCATION_VALUE}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a location" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value={NO_LOCATION_VALUE}>Not specified</SelectItem>
+                          {locations.map((loc) => (
+                            <SelectItem key={loc.id} value={loc.id}>
+                              {loc.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="location_description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location details (optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Near the main entrance"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="submit"
+                  disabled={createRequest.isPending}
+                >
+                  {createRequest.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Submit Request
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={createRequest.isPending}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+
+      <ConfirmationDialog
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={confirmCancel}
+        title="Discard changes?"
+        description="You have unsaved changes. Are you sure you want to discard them and leave this page?"
+        confirmText="Discard"
+        cancelText="Stay"
+        variant="destructive"
+      />
+    </>
   );
 };
