@@ -1,4 +1,5 @@
 
+import { PageBanner } from '@/components/ui/page-banner';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -515,6 +516,12 @@ const Inventory: React.FC = () => {
 
   return (
     <div className="p-6">
+      <PageBanner
+        variant="inventory"
+        title="Inventory"
+        subtitle="Spare parts and stock — know what's on the shelf before the breakdown."
+        icon={<Boxes className="h-6 w-6" />}
+      />
       <Card className="rounded-2xl shadow-sm border border-gray-200">
         <CardHeader className="pb-4">
           <CardTitle className="text-2xl font-semibold flex items-center space-x-3">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { PageBanner } from '@/components/ui/page-banner';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -181,6 +182,12 @@ const Assets: React.FC = () => {
       </div>;
   }
   return <div className="p-6">
+        <PageBanner
+          variant="assets"
+          title="Assets"
+          subtitle="Every piece of equipment under management — searchable, tagged and tracked."
+          icon={<Tag className="h-6 w-6" />}
+        />
         <Card className="rounded-2xl shadow-sm border border-gray-200">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">

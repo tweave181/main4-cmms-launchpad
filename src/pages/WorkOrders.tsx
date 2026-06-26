@@ -1,4 +1,5 @@
 
+import { PageBanner } from '@/components/ui/page-banner';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -94,6 +95,12 @@ const WorkOrders: React.FC = () => {
 
   return (
     <div className="p-6">
+      <PageBanner
+        variant="workorders"
+        title="Work Orders"
+        subtitle="Plan, dispatch and close out the jobs that keep the site moving."
+        icon={<Wrench className="h-6 w-6" />}
+      />
       <Card className="rounded-2xl shadow-sm border border-gray-200">
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">

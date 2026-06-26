@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { PageBanner } from '@/components/ui/page-banner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -165,18 +166,18 @@ const ServiceContracts: React.FC = () => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Service Contracts</h1>
-          <p className="text-muted-foreground">
-            Manage and monitor your service contracts and maintenance agreements
-          </p>
-        </div>
-        <Button onClick={() => setIsModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Contract
-        </Button>
-      </div>
+      <PageBanner
+        variant="contracts"
+        title="Service Contracts"
+        subtitle="Manage and monitor your service contracts and maintenance agreements."
+        icon={<FileText className="h-6 w-6" />}
+        actions={
+          <Button onClick={() => setIsModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Contract
+          </Button>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
