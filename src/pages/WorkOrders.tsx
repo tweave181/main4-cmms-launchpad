@@ -9,6 +9,7 @@ import { exportWorkOrdersToCSV, exportWorkOrdersToPDF } from '@/utils/workOrderE
 import { WorkOrderList } from '@/components/work-orders/WorkOrderList';
 import { WorkOrderFiltersComponent } from '@/components/work-orders/WorkOrderFilters';
 import { CreateWorkOrderModal } from '@/components/work-orders/CreateWorkOrderModal';
+import { AIWorkOrderBox } from '@/components/work-orders/AIWorkOrderBox';
 import { WorkOrderDetail } from '@/components/work-orders/WorkOrderDetail';
 import { EditWorkOrderModal } from '@/components/work-orders/EditWorkOrderModal';
 import { MobileActionButtons } from '@/components/mobile/MobileActionButtons';
@@ -139,6 +140,7 @@ const WorkOrders: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
+          <AIWorkOrderBox />
           <WorkOrderFiltersComponent
             filters={filters}
             onFiltersChange={setFilters}
