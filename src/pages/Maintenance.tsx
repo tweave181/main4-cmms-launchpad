@@ -6,12 +6,25 @@ import { Calendar, Plus, List, CalendarIcon } from 'lucide-react';
 import { PMScheduleList } from '@/components/maintenance/PMScheduleList';
 import { PMCalendarView } from '@/components/maintenance/PMCalendarView';
 import { useNavigate } from 'react-router-dom';
+import { PageBanner } from '@/components/ui/page-banner';
 
 const Maintenance: React.FC = () => {
   const navigate = useNavigate();
 
   return (
     <div className="p-6">
+      <PageBanner
+        variant="maintenance"
+        title="Preventive Maintenance"
+        subtitle="Keep equipment running — schedule, plan and track every PM."
+        icon={<Calendar className="h-6 w-6" />}
+        actions={
+          <Button onClick={() => navigate('/pm/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create PM
+          </Button>
+        }
+      />
       <Card className="rounded-2xl shadow-sm border border-gray-200">
         <CardHeader className="pb-4">
           <div className="flex justify-between items-center">
@@ -19,10 +32,6 @@ const Maintenance: React.FC = () => {
               <Calendar className="h-6 w-6 text-primary" />
               <span className="text-slate-950">Preventive Maintenance List</span>
             </CardTitle>
-            <Button onClick={() => navigate('/pm/new')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create PM
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
