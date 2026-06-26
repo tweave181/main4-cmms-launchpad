@@ -1,72 +1,105 @@
 import React from 'react';
-import { useProgramSettings } from '@/hooks/useProgramSettings';
+import { cn } from '@/lib/utils';
+
+import dashboardImg from '@/assets/banners/banner-dashboard.jpg';
+import assetsImg from '@/assets/banners/banner-assets.jpg';
+import maintenanceImg from '@/assets/banners/banner-maintenance.jpg';
+import inventoryImg from '@/assets/banners/banner-inventory.jpg';
+import workordersImg from '@/assets/banners/banner-workorders.jpg';
+import contractsImg from '@/assets/banners/banner-contracts.jpg';
+import defaultImg from '@/assets/banners/banner-default.jpg';
+
+export type PageBannerVariant =
+  | 'dashboard'
+  | 'assets'
+  | 'maintenance'
+  | 'inventory'
+  | 'workorders'
+  | 'contracts'
+  | 'default';
+
+const VARIANT_IMG: Record<PageBannerVariant, string> = {
+  dashboard: dashboardImg,
+  assets: assetsImg,
+  maintenance: maintenanceImg,
+  inventory: inventoryImg,
+  workorders: workordersImg,
+  contracts: contractsImg,
+  default: defaultImg,
+};
 
 interface PageBannerProps {
+  variant?: PageBannerVariant;
   title: string;
-  customerLogoUrl?: string;
-  showMain4Logo?: boolean;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  actions?: React.ReactNode;
   className?: string;
+  /** Height in tailwind classes. Defaults to a compact banner. */
+  heightClass?: string;
 }
 
+/**
+ * Engineering-themed hero banner for top of pages.
+ * Renders an image background with a gradient overlay, page title, optional
+ * subtitle and right-aligned actions.
+ */
 export const PageBanner: React.FC<PageBannerProps> = ({
+  variant = 'default',
   title,
-  customerLogoUrl,
-  showMain4Logo = true,
-  className = ''
+  subtitle,
+  icon,
+  actions,
+  className,
+  heightClass = 'h-40 md:h-48',
 }) => {
-  const { data: settings } = useProgramSettings();
-  
-  // Use provided customerLogoUrl or fall back to settings
-  const logoUrl = customerLogoUrl || settings?.logo_url;
+  const img = VARIANT_IMG[variant] ?? defaultImg;
 
   return (
-    <div className={`w-full bg-card border-b border-border py-4 px-6 ${className}`}>
-      <div className="flex items-center justify-between max-w-full">
-        {/* Left Section - Customer Logo */}
-        <div className="flex-1 flex justify-start">
-          <div className="w-32 h-12 flex items-center">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt="Customer Logo"
-                className="max-w-full max-h-full object-contain"
-              />
-            ) : (
-              <div className="w-full h-full bg-muted rounded flex items-center justify-center text-muted-foreground text-xs">
-                Customer Logo
-              </div>
+    <div
+      className={cn(
+        'relative w-full overflow-hidden rounded-2xl shadow-sm border border-border mb-6',
+        heightClass,
+        className,
+      )}
+    >
+      <img
+        src={img}
+        alt=""
+        aria-hidden="true"
+        width={1920}
+        height={512}
+        loading="lazy"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      {/* Gradient overlay for legible text */}
+      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+
+      <div className="relative z-10 flex h-full items-center justify-between gap-4 px-6 md:px-8">
+        <div className="flex items-center gap-4 min-w-0">
+          {icon && (
+            <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary backdrop-blur-sm border border-primary/20">
+              {icon}
+            </div>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground truncate">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="mt-1 text-sm md:text-base text-muted-foreground line-clamp-2 max-w-2xl">
+                {subtitle}
+              </p>
             )}
           </div>
         </div>
-
-        {/* Center Section - Page Title */}
-        <div className="flex-1 flex justify-center px-4">
-          <h1 className="text-xl font-bold text-foreground text-center">
-            {title}
-          </h1>
-        </div>
-
-        {/* Right Section - Main4 Logo */}
-        <div className="flex-1 flex justify-end">
-          {showMain4Logo && (
-            <div className="w-32 h-12 flex items-center justify-end">
-              <img
-                src="/main4-logo.png"
-                alt="Main4 Logo"
-                className="max-w-full max-h-full object-contain"
-                onError={(e) => {
-                  // Fallback to text if image fails to load
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-              <div className="hidden bg-primary text-primary-foreground px-3 py-1 rounded font-bold text-sm">
-                Main4
-              </div>
-            </div>
-          )}
-        </div>
+        {actions && (
+          <div className="flex-shrink-0 flex items-center gap-2">{actions}</div>
+        )}
       </div>
     </div>
   );
 };
+
+export default PageBanner;
