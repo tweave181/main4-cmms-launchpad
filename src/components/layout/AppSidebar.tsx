@@ -118,7 +118,11 @@ export const AppSidebar = () => {
     href: '/admin/preferences/locations'
   }, {
     icon: FolderOpen,
-    label: 'Asset Categories',
+    label: 'Equipment Categories',
+    href: '/admin/preferences/equipment-categories'
+  }, {
+    icon: FolderOpen,
+    label: 'Asset Categories (legacy)',
     href: '/admin/preferences/categories'
   }, {
     icon: Tag,
