@@ -12,6 +12,7 @@ export interface Asset {
   manufacturer?: string;
   manufacturer_company_id?: string;
   category?: string;
+  equipment_category_id?: string | null;
   location_id?: string;
   department_id?: string;
   purchase_date?: string;
@@ -84,6 +85,7 @@ export interface AssetInsert {
   manufacturer?: string | null;
   manufacturer_company_id?: string | null;
   category?: string | null;
+  equipment_category_id?: string | null;
   location_id?: string | null;
   department_id?: string | null;
   purchase_date?: string | null;
@@ -109,6 +111,8 @@ export const assetSchema = z.object({
   model: z.string().optional(),
   manufacturer_company_id: z.string().optional(),
   category: z.string().optional(),
+  equipment_category_id: z.string().optional(),
+  asset_tag_manual: z.boolean().optional(),
   location_id: z.string().optional(),
   department_id: z.string().optional(),
   purchase_date: z.string().optional(),
