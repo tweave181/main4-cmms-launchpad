@@ -326,6 +326,7 @@ export type Database = {
           created_by: string | null
           department_id: string | null
           description: string | null
+          equipment_category_id: string | null
           id: string
           location_id: string | null
           manufacturer: string | null
@@ -355,6 +356,7 @@ export type Database = {
           created_by?: string | null
           department_id?: string | null
           description?: string | null
+          equipment_category_id?: string | null
           id?: string
           location_id?: string | null
           manufacturer?: string | null
@@ -384,6 +386,7 @@ export type Database = {
           created_by?: string | null
           department_id?: string | null
           description?: string | null
+          equipment_category_id?: string | null
           id?: string
           location_id?: string | null
           manufacturer?: string | null
@@ -409,6 +412,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_equipment_category_id_fkey"
+            columns: ["equipment_category_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_categories"
             referencedColumns: ["id"]
           },
           {
@@ -1257,6 +1267,125 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "email_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_categories: {
+        Row: {
+          category_name: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_prefix: string | null
+          icon: string | null
+          id: string
+          legacy_category_id: string | null
+          legacy_prefix_id: string | null
+          max_sequence: number
+          next_sequence: number
+          number_code: number
+          prefix_letter: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category_name: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_prefix?: string | null
+          icon?: string | null
+          id?: string
+          legacy_category_id?: string | null
+          legacy_prefix_id?: string | null
+          max_sequence?: number
+          next_sequence?: number
+          number_code: number
+          prefix_letter: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category_name?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_prefix?: string | null
+          icon?: string | null
+          id?: string
+          legacy_category_id?: string | null
+          legacy_prefix_id?: string | null
+          max_sequence?: number
+          next_sequence?: number
+          number_code?: number
+          prefix_letter?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_category_audit_log: {
+        Row: {
+          action: string
+          change_summary: string | null
+          changed_by: string | null
+          equipment_category_id: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          tenant_id: string | null
+          timestamp: string
+        }
+        Insert: {
+          action: string
+          change_summary?: string | null
+          changed_by?: string | null
+          equipment_category_id?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          tenant_id?: string | null
+          timestamp?: string
+        }
+        Update: {
+          action?: string
+          change_summary?: string | null
+          changed_by?: string | null
+          equipment_category_id?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          tenant_id?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_category_audit_log_equipment_category_id_fkey"
+            columns: ["equipment_category_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_category_audit_log_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -3034,9 +3163,17 @@ export type Database = {
         Returns: boolean
       }
       is_current_user_admin: { Args: never; Returns: boolean }
+      preview_next_asset_tag: {
+        Args: { _equipment_category_id: string }
+        Returns: string
+      }
       remove_system_admin_role: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      reserve_asset_tag: {
+        Args: { _equipment_category_id: string }
+        Returns: string
       }
       user_has_permission: {
         Args: { _action: string; _resource: string; _user_id: string }
