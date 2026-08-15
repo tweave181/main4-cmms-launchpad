@@ -44,6 +44,7 @@ import ServiceContractDetail from "./pages/ServiceContractDetail";
 import AssetPrefixManager from "./pages/AssetPrefixManager";
 import BulkPrefixEntry from "./pages/BulkPrefixEntry";
 import CategoryManager from "./pages/CategoryManager";
+import EquipmentCategories from "./pages/EquipmentCategories";
 import SparePartsCategoryManager from "./pages/SparePartsCategoryManager";
 import SystemAuditLog from "./pages/SystemAuditLog";
 import AdminSettings from "./pages/AdminSettings";
@@ -136,6 +137,7 @@ function App() {
                               <Route path="/admin/preferences/locations" element={<Locations />} />
                               <Route path="/admin/preferences/locations/bulk" element={<BulkLocationEntry />} />
                               <Route path="/admin/preferences/categories" element={<CategoryManager />} />
+                              <Route path="/admin/preferences/equipment-categories" element={<EquipmentCategories />} />
                               <Route path="/spare-parts-categories" element={<SparePartsCategoryManager />} />
                               <Route path="/admin/preferences/asset-prefixes" element={<AssetPrefixManager />} />
                               <Route path="/admin/preferences/asset-prefixes/bulk" element={<BulkPrefixEntry />} />
@@ -154,6 +156,7 @@ function App() {
                               <Route path="/companies" element={<Navigate to="/admin/preferences/company" replace />} />
                               <Route path="/locations" element={<Navigate to="/admin/preferences/locations" replace />} />
                               <Route path="/categories" element={<Navigate to="/admin/preferences/categories" replace />} />
+                              <Route path="/equipment-categories" element={<Navigate to="/admin/preferences/equipment-categories" replace />} />
                               <Route path="/asset-prefixes" element={<Navigate to="/admin/preferences/asset-prefixes" replace />} />
                               <Route path="*" element={<NotFound />} />
                             </Routes>

@@ -31,7 +31,6 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({ control, cur
   const assetTypeValue = useWatch({ control, name: 'asset_type' });
   const parentAssetValue = useWatch({ control, name: 'parent_asset_id' });
   const equipmentCategoryId = useWatch({ control, name: 'equipment_category_id' });
-  const assetTagValue = useWatch({ control, name: 'asset_tag' });
   const tagManual = useWatch({ control, name: 'asset_tag_manual' });
 
   // Preview the next asset tag whenever an equipment category is selected on a new asset.
