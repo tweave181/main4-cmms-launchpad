@@ -8,6 +8,7 @@ import { transformFormDataToAsset } from './utils/dataTransform';
 import { logError, showErrorToast } from './utils/errorHandling';
 import { createAsset, updateAsset } from './utils/databaseOperations';
 import { useState } from 'react';
+import { reserveAssetTag } from '@/hooks/useEquipmentCategories';
 
 interface UseAssetFormProps {
   asset?: Asset | null;
@@ -30,6 +31,8 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
       model: asset?.model || '',
       manufacturer_company_id: asset?.manufacturer_company_id || '',
       category: asset?.category || '',
+      equipment_category_id: asset?.equipment_category_id || '',
+      asset_tag_manual: false,
       location_id: asset?.location_id || '',
       department_id: asset?.department_id || '',
       purchase_date: asset?.purchase_date || '',
@@ -76,8 +79,20 @@ export const useAssetForm = ({ asset, onSuccess }: UseAssetFormProps) => {
         return;
       }
 
+      // Reserve an authoritative asset tag for new assets driven by an equipment category
+      let submitData = data;
+      if (!isEditing && data.equipment_category_id && !data.asset_tag_manual) {
+        try {
+          const reservedTag = await reserveAssetTag(data.equipment_category_id);
+          submitData = { ...data, asset_tag: reservedTag };
+        } catch (tagError: any) {
+          showErrorToast(tagError);
+          return;
+        }
+      }
+
       // Transform form data to asset data with defensive programming
-      const assetData = transformFormDataToAsset(data, userProfile!, isEditing);
+      const assetData = transformFormDataToAsset(submitData, userProfile!, isEditing);
       console.log('Constructed asset data:', assetData);
 
       // Perform database operation with enhanced error handling
