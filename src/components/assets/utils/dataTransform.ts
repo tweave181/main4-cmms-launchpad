@@ -23,6 +23,7 @@ export const transformFormDataToAsset = (
     manufacturer: null, // Remove free-text manufacturer field
     manufacturer_company_id: data.manufacturer_company_id || null,
     category: data.category?.trim() || null,
+    equipment_category_id: data.equipment_category_id || null,
     location_id: data.location_id?.trim() || null,
     department_id: data.department_id?.trim() || null,
     purchase_date: data.purchase_date?.trim() || null,

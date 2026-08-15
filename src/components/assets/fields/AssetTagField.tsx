@@ -39,6 +39,10 @@ export const AssetTagField: React.FC<AssetTagFieldProps> = ({ control, onTagSele
               <Input 
                 placeholder="Enter or select asset tag" 
                 {...field}
+                onChange={(e) => {
+                  field.onChange(e);
+                  onTagSelect(e.target.value);
+                }}
                 className="flex-1"
               />
             </FormControl>
