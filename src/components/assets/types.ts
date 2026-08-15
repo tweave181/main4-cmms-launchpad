@@ -60,6 +60,8 @@ export interface AssetFormData {
   model?: string;
   manufacturer_company_id?: string;
   category?: string;
+  equipment_category_id?: string;
+  asset_tag_manual?: boolean;
   location_id?: string;
   department_id?: string;
   purchase_date?: string;
